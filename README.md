@@ -1,2 +1,2 @@
 # inferno
-a key logger 'clinet' with logs fetched by a remote 'server' app
+a key logger 'client' with logs fetched by a remote 'server' app
