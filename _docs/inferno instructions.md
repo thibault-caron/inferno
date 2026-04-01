@@ -22,7 +22,7 @@ class T
 - Utiliser les smart pointers
 - Mettre en place des tags sur le repo pour chaque cercle.
 - fonctions max 25 ligne
-- largeur max 85 colonnes/caractères
+- largeur max 80 colonnes/caractères
 
 ## Cercle 01
 

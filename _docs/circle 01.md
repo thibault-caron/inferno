@@ -4,23 +4,27 @@
 
 1. Cross-Platform Sockets (Anticipating Cercle 07)
 
-What's coming: The client must eventually run on both Linux and Windows. Classes encapsulating syscalls will need to inherit from an interface depending on the OS.
-What to do now: Design LPTF_Socket with cross-platform compatibility in mind. You will eventually have to handle POSIX sockets (Linux) and Winsock (Windows). Prepare to use preprocessor directives (#ifdef _WIN32, #ifdef __linux__) or setup an abstract ISocket interface right away.
+   - **What's coming:** The client must eventually run on both Linux and Windows. Classes encapsulating syscalls will need to inherit from an interface depending on the OS.
+   - **What to do now:** Design LPTF_Socket with cross-platform compatibility in mind. You will eventually have to handle POSIX sockets (Linux) and Winsock (Windows). Prepare to use preprocessor directives (#ifdef _WIN32, #ifdef __linux__) or setup an abstract ISocket interface right away.
+
 2. Binary-Safe Data Buffering (Anticipating Cercle 02)
 
-What's coming: You will implement a custom binary protocol using structures (LPTF_Packet), not strings.
-What to do now: Do not rely on null-terminated strings (\0) or newline characters (\n) to detect the end of a message. TCP is a stream protocol; a single recv() might yield only half a packet. Your server/client reactor should maintain a byte buffer (std::vector<uint8_t>) for each connection, accumulating raw bytes until enough are present to form a complete packet.
+    - What's coming: You will implement a custom binary protocol using structures (LPTF_Packet), not strings.
+    - What to do now: Do not rely on null-terminated strings (\0) or newline characters (\n) to detect the end of a message. TCP is a stream protocol; a single recv() might yield only half a packet. Your server/client reactor should maintain a byte buffer (std::vector<uint8_t>) for each connection, accumulating raw bytes until enough are present to form a complete packet.
+    - 
 3. Integration with a GUI & Threads (Anticipating Cercle 04 & 05)
 
-What's coming: The server will receive a Qt GUI (Cercle 04) and a separate background thread for PostgreSQL database operations (Cercle 05, though hinted in the Cercle 01 notes).
-What to do now: Since you cannot use threads for networking, you must use a non-blocking multiplexing syscall (like select, poll, or epoll). Keep this Reactor loop extremely clean and decoupled from your application logic. This ensures that when you integrate Qt, your socket polling won't block the UI thread, or it can be easily bridged with Qt's event system.
+    - **What's coming:** The server will receive a Qt GUI (Cercle 04) and a separate background thread for PostgreSQL database operations (Cercle 05, though hinted in the Cercle 01 notes).
+    - **What to do now:** Since you cannot use threads for networking, you must use a non-blocking multiplexing syscall (like select, poll, or epoll). Keep this Reactor loop extremely clean and decoupled from your application logic. This ensures that when you integrate Qt, your socket polling won't block the UI thread, or it can be easily bridged with Qt's event system.
+
 4. Graceful Disconnection & Lifecycle Management (Anticipating Cercle 04 & 08)
 
-What's coming: The server UI will need a way to kick specific clients (Cercle 04), and the client will need to silently attempt reconnections when dropped (Cercle 08).
-What to do now: Ensure your network multiplexer accurately detects client disconnections (e.g., when recv returns 0 or socket errors occur). LPTF_Socket should expose clear states (Connected, Disconnected, Error) so the client program can loop a reconnection attempt cleanly rather than crashing.
+    - **What's coming:** The server UI will need a way to kick specific clients (Cercle 04), and the client will need to silently attempt reconnections when dropped (Cercle 08).
+    - **What to do now:** Ensure your network multiplexer accurately detects client disconnections (e.g., when recv returns 0 or socket errors occur). LPTF_Socket should expose clear states (Connected, Disconnected, Error) so the client program can loop a reconnection attempt cleanly rather than crashing.
+
 5. Strict Constraints Check (Prerequisites)
 
-Because every function is limited to 25 lines and 85 columns, your LPTF_Socket and multiplexing logic (the select() or poll() loop) will likely need to be aggressively broken down into small, single-responsibility helper methods right from the start. Build your reactor as a class that maps file descriptors to callback functions or handler objects to keep the core loop minimal.
+    Because every function is limited to 25 lines and 85 columns, your LPTF_Socket and multiplexing logic (the select() or poll() loop) will likely need to be aggressively broken down into small, single-responsibility helper methods right from the start. Build your reactor as a class that maps file descriptors to callback functions or handler objects to keep the core loop minimal.
 
 
 ## LPTF_Socket
