@@ -104,9 +104,10 @@ The Header Structure (Fixed Size)
 ```c++
 #pragma pack(push, 1) // Ensure no padding bytes are added by the compiler
 struct PacketHeader {
-    uint8_t  magic[2];    // E.g., 'L', 'P' to verify it's our protocol
-    uint16_t command_id;  // E.g., 0x01 = GetOS, 0x02 = KeyloggerToggle
-    uint32_t payload_len; // How many bytes follow the header
+    uint32_t  Identifier;    // E.g., 'L', 'P' to verify it's our protocol
+    uint8_t Version
+    uint8_t Type;  // Enum., 1 = DATA, 2 = COMMAND, ...
+    uint16_t size; // How many bytes follow the header
 };
 #pragma pack(pop)
 ```

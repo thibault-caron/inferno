@@ -56,7 +56,7 @@ thread sépéré pour la base de donnée
 - Une **classe LPTF_Packet** doit permettre de stocker et extraire des informations suite à ou pour un transfert réseau: **serialiser / parser**
 - Ce protocole doit être nommé et rédigé à la façon d’une **Request For Comments** (voir RFC 959-->FTP ou 1149-->blague)
 
-### [à propos des protocoles binaires](<https://stackoverflow.com/questions/2645009/binary-protocols-v-text-protocols>)
+### [Liens fournis dans le sujet:](<https://stackoverflow.com/questions/2645009/binary-protocols-v-text-protocols>)
 
 Binary protocol versus text protocol isn't really about how binary blobs are encoded. The difference is really whether the protocol is oriented around data structures or around text strings. Let me give an example: HTTP. HTTP is a text protocol, even though when it sends a jpeg image, it just sends the raw bytes, not a text encoding of them.
 
