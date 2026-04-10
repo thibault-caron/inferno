@@ -1,0 +1,72 @@
+cmake_minimum_required(VERSION 3.20)
+project(InfernoAgent LANGUAGES CXX)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# ── Pull in shared — makes this file self-sufficient ─────────────────────────
+# When built via root CMakeLists, shared is already defined and this is skipped.
+# When built in isolation (inside the agent container), this pulls it directly.
+if(NOT TARGET shared_lib)
+    add_subdirectory(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../shared
+        ${CMAKE_BINARY_DIR}/shared
+    )
+endif()
+
+# ── Agent library (all logic, no main) ───────────────────────────────────────
+add_library(agent_lib STATIC
+    src/placeholder.cpp
+    # src/socket/SocketLinux.cpp    ← add as you create files
+)
+
+# PRIVATE here because nothing links agent_lib downstream.
+# If another target ever needed agent_lib's headers, switch to PUBLIC.
+target_include_directories(agent_lib PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# shared_lib is PUBLIC in its own CMakeLists, so linking it here
+# automatically gives agent_lib access to all shared headers too.
+target_link_libraries(agent_lib PRIVATE
+    shared_lib
+)
+
+target_compile_options(agent_lib PRIVATE
+    -Wall -Wextra -Wpedantic
+)
+
+# ── Agent executable ──────────────────────────────────────────────────────────
+add_executable(agent
+    src/main.cpp
+)
+
+target_link_libraries(agent PRIVATE agent_lib)
+
+target_compile_options(agent PRIVATE
+    -Wall -Wextra -Wpedantic
+)
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+enable_testing()
+find_package(GTest REQUIRED)
+
+add_executable(agent_tests
+    tests/main_test.cpp
+    # tests/test_socket_linux.cpp   ← add as you create tests
+)
+
+target_include_directories(agent_tests PRIVATE
+${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+
+target_link_libraries(agent_tests PRIVATE
+agent_lib           # brings in shared_lib transitively
+GTest::gtest
+GTest::gmock
+GTest::gtest_main
+)
+
+target_compile_options(agent_tests PRIVATE
+-Wall -Wextra -Wpedantic
+)
+
+add_test(NAME agent_tests COMMAND agent_tests)
