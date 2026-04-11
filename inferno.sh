@@ -130,7 +130,7 @@ cmd_test() {
     # Always test shared — it's a dependency of everything
     if [ "$target" != "shared" ] && [ "$target" != "all" ]; then
         title "Testing: shared"
-        ctest --test-dir "$(build_dir shared)" --output-on-failure
+        "$(build_dir shared)/shared_tests"
     fi
 
     title "Testing: $target"
@@ -138,9 +138,9 @@ cmd_test() {
     test_t=$(test_target "$target")
 
     if [ -z "$test_t" ]; then
-        ctest --test-dir "$(build_dir "$target")" --output-on-failure
+        ctest --test-dir "$(build_dir "$target")" --output-on-failure -V
     else
-        ctest --test-dir "$(build_dir "$target")" -R "$test_t" --output-on-failure
+        ctest --test-dir "$(build_dir "$target")" -R "$test_t" --output-on-failure -V
     fi
 
     success "All tests passed!"
