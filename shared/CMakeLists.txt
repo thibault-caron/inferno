@@ -5,8 +5,7 @@ project(InfernoShared LANGUAGES CXX)
 # STATIC = compiled once into a .a archive, then linked into agent and server.
 # No Dockerfile, no executable — this is purely a library.
 add_library(shared_lib STATIC
-    src/main.cpp
-    # src/protocol/parser.cpp       ← add as you create files
+    src/protocol/protocol_parser.cpp
     # src/protocol/serializer.cpp
 )
 
@@ -26,7 +25,7 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
     find_package(GTest REQUIRED)
 
     add_executable(shared_tests
-        tests/main_test.cpp
+        tests/protocol/protocol_parser_test.cpp
     )
 
     target_include_directories(shared_tests PRIVATE
@@ -45,4 +44,7 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
     )
     
     add_test(NAME shared_tests COMMAND shared_tests)
+    # include(GoogleTest)
+    # gtest_discover_tests(shared_tests DISCOVERY_MODE PRE_TEST)
+
 endif()
