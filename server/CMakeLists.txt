@@ -6,10 +6,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # When built via root CMakeLists, shared is already defined and this is skipped.
 # When built in isolation (inside the agent container), this pulls it directly.
 if(NOT TARGET shared_lib)
-    add_subdirectory(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../shared
-        ${CMAKE_BINARY_DIR}/shared
-    )
+    set(_shared_lib "${CMAKE_CURRENT_SOURCE_DIR}/../shared/build/libshared_lib.a")
+    if(EXISTS "${_shared_lib}")
+        add_library(shared_lib STATIC IMPORTED GLOBAL)
+        set_target_properties(shared_lib PROPERTIES
+            IMPORTED_LOCATION "${_shared_lib}"
+        )
+        target_include_directories(shared_lib INTERFACE
+            "${CMAKE_CURRENT_SOURCE_DIR}/../shared/include"
+        )
+    else()
+        add_subdirectory(
+            ${CMAKE_CURRENT_SOURCE_DIR}/../shared
+            ${CMAKE_BINARY_DIR}/shared
+        )
+    endif()
 endif()
 
 # ── Server library (all logic, no main) ──────────────────────────────────────
