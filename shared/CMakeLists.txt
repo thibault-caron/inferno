@@ -6,6 +6,7 @@ project(InfernoShared LANGUAGES CXX)
 # No Dockerfile, no executable — this is purely a library.
 add_library(shared_lib STATIC
     src/protocol/protocol_parser.cpp
+    src/protocol/protocol_parser_register.cpp
     src/protocol/protocol_serializer.cpp
     # src/protocol/serializer.cpp
 )
@@ -27,6 +28,7 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
 
     add_executable(shared_tests
         tests/convert_endian_test.cpp
+        tests/protocol/protocol_parser_register_test.cpp
         tests/protocol/protocol_parser_test.cpp
         tests/protocol/protocol_serializer_test.cpp
     )

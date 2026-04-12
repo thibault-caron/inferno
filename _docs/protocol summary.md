@@ -110,9 +110,10 @@ struct RegisterPayload {
 
 #### Hostname
 
-- Empty hostname not allowed
-- Max hostname length = Max value (65535) - rest of payload
-
+* Empty hostname not allowed
+* Max hostname length = Max value (65535) - rest of payload
+* Unknown os_type/arch mapped to Unknown
+* 
 ---
 
 ### 5.2 COMMAND
