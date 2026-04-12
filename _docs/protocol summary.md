@@ -108,6 +108,11 @@ struct RegisterPayload {
 * 1 = x64
 * 2 = ARM
 
+#### Hostname
+
+- Empty hostname not allowed
+- Max hostname length = Max value (65535) - rest of payload
+
 ---
 
 ### 5.2 COMMAND
