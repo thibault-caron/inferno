@@ -97,15 +97,21 @@ cmd_build() {
     local target="${1:-all}"
     local src build
 
-    # Always build shared first if building a component
     if [ "$target" != "shared" ] && [ "$target" != "all" ]; then
-        local shared_build
-        shared_build=$(build_dir "shared")
-        if [ ! -f "$shared_build/build.ninja" ]; then
-            info "Configuring shared..."
-            cmake -S "$(source_dir shared)" -B "$shared_build" -G Ninja
+        local shared_lib
+        shared_lib="$(source_dir shared)/build/libshared_lib.a"
+        if [ -f "$shared_lib" ] && [ ! "$(find "$(source_dir shared)/src" -newer "$shared_lib")" ]; then
+            info "Shared already up to date, skipping."
+        else
+            local shared_build
+            shared_build=$(build_dir "shared")
+            if [ ! -f "$shared_build/build.ninja" ]; then
+                info "Configuring shared..."
+                cmake -S "$(source_dir shared)" -B "$shared_build" -G Ninja
+            fi
+            info "Building shared..."
+            cmake --build "$shared_build" -j"$(nproc)"
         fi
-        cmake --build "$shared_build" -j"$(nproc)"
     fi
 
     src=$(source_dir "$target")
@@ -117,7 +123,7 @@ cmd_build() {
     fi
 
     title "Building: $target"
-    cmake --build "$build" -j"$(nproc)"   # ← no --target, builds everything including tests
+    cmake --build "$build" -j"$(nproc)"
 
     success "Build complete!"
 }

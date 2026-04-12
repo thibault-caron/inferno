@@ -22,12 +22,32 @@ services:
   #   restart: unless-stopped
 
   # ============================================
+  # C++ Shared library (Development)
+  # ============================================
+  shared:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inferno-shared
+    volumes:
+      - type: bind
+        source: ./shared
+        target: /app/shared
+      - type: bind
+        source: ./inferno.sh
+        target: /app/inferno.sh
+    command: ["bash", "./inferno.sh", "test", "shared"]
+
+  # ============================================
   # C++ Server (Development)
   # ============================================
   server:
+    depends_on:
+      shared:
+        condition: service_completed_successfully
     build:
-      context: ./server
-      dockerfile: Dockerfile.server
+      context: .
+      dockerfile: Dockerfile
     container_name: inferno-server
     environment:
       DB_HOST: inferno-db
@@ -58,9 +78,12 @@ services:
   # C++ Agent (Development)
   # ============================================
   agent:
+    depends_on:
+      shared:
+        condition: service_completed_successfully
     build:
-      context: ./agent
-      dockerfile: Dockerfile.agent
+      context: .
+      dockerfile: Dockerfile
     container_name: inferno-agent
     environment:
       # Server configuration

@@ -27,6 +27,7 @@ CMD ["bash"]
 # ── Stage 2 : runtime (uncomment when you have a binary to ship) ───────────
 # FROM debian:bookworm-20260406-slim AS runtime
 # WORKDIR /app
-# COPY --from=builder /app/build/agent .
+# COPY --from=builder /app/build/agent . 
+# or # COPY --from=builder /app/build/server .
 # EXPOSE 4444
-# CMD ["./agent"]
+# CMD ["./agent"] or CMD ["./server"]
