@@ -19,6 +19,8 @@ class ProtocolParser {
   ProtocolParser& operator=(const ProtocolParser&) = delete;
 
   static LptfHeader parseHeader(const std::vector<uint8_t>& input);
+  static RegisterPayload parseRegisterPayload(
+      const std::vector<uint8_t>& input);
 };
 
 #endif
