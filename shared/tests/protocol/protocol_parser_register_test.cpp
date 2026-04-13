@@ -2,10 +2,9 @@
 
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
+#include "protocol/protocol_test_helpers.hpp"
 
 namespace {
-
-constexpr uint8_t INVALID_ENUM_VALUE = 255;
 
 std::vector<uint8_t> makeRegisterPayload(
     const uint8_t rawOs, const uint8_t rawArch,
@@ -93,7 +92,7 @@ TEST(ProtocolParserRegister, should_decode_hostname_length_as_big_endian) {
 TEST(ProtocolParserRegister, should_reject_unknown_os_type) {
   const std::string hostname = "host-a";
   const std::vector<uint8_t> input = makeRegisterPayload(
-      INVALID_ENUM_VALUE, static_cast<uint8_t>(ArchType::X64),
+      TestHelpers::INVALID_ENUM_VALUE, static_cast<uint8_t>(ArchType::X64),
       static_cast<uint16_t>(hostname.size()), bytesFromString(hostname));
 
   EXPECT_THROW(ProtocolParser::parseRegisterPayload(input), InvalidFieldValue);
@@ -102,7 +101,7 @@ TEST(ProtocolParserRegister, should_reject_unknown_os_type) {
 TEST(ProtocolParserRegister, should_reject_unknown_arch) {
   const std::string hostname = "host-b";
   const std::vector<uint8_t> input = makeRegisterPayload(
-      static_cast<uint8_t>(OSType::LINUX), INVALID_ENUM_VALUE,
+      static_cast<uint8_t>(OSType::LINUX), TestHelpers::INVALID_ENUM_VALUE,
       static_cast<uint16_t>(hostname.size()), bytesFromString(hostname));
 
   EXPECT_THROW(ProtocolParser::parseRegisterPayload(input), InvalidFieldValue);

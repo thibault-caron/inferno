@@ -1,6 +1,7 @@
 #ifndef LPTF_PROTOCOL
 #define LPTF_PROTOCOL
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -12,6 +13,10 @@ constexpr std::string_view LPTF_IDENTIFIER_STR(LPTF_IDENTIFIER, 4);
 constexpr std::size_t REGISTER_FIXED_BYTES = 4;
 constexpr uint16_t REGISTER_MAX_HOSTNAME_LEN =
     static_cast<uint16_t>(65535u - REGISTER_FIXED_BYTES);
+constexpr std::size_t COMMAND_FIXED_BYTES = 5;
+constexpr std::size_t RESPONSE_FIXED_BYTES = 7;
+constexpr std::size_t DATA_FIXED_BYTES = 3;
+constexpr std::size_t ERROR_FIXED_BYTES = 3;
 
 enum class MessageType : uint8_t {
   REGISTER = 0,
