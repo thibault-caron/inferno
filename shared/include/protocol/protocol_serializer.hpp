@@ -1,5 +1,5 @@
-#ifndef LPTF_PARSER
-#define LPTF_PARSER
+#ifndef LPTF_SERIALIZER
+#define LPTF_SERIALIZER
 
 #include <cstddef>
 #include <cstring>
