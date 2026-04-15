@@ -31,3 +31,28 @@ TEST(ProtocolSerializer,
   // Assert
   EXPECT_EQ(expected, result);
 }
+
+
+TEST(ProtocolSerializer,
+     should_produce_corresponding_byteArray_when_errorPayload_is_valid) {
+  // Arrange
+  ErrorPayload error{
+      ErrorType::EXECUTION_FAILED,
+      "err", 
+  };
+
+  std::vector<uint8_t> expected = {
+    static_cast<uint8_t>(error.code),
+    0b00000000,
+    0b00000011,
+    error.message[0],
+    error.message[1],
+    error.message[2]
+  };
+
+  // Act
+  std::vector<uint8_t> result = ProtocolSerializer::serializeErrorPayload(error);
+
+  // Assert
+  EXPECT_EQ(expected, result);
+}

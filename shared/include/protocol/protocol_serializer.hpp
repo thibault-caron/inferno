@@ -16,7 +16,8 @@ class ProtocolSerializer {
   ProtocolSerializer(const ProtocolSerializer&) = delete;
   ProtocolSerializer& operator=(const ProtocolSerializer&) = delete;
 
-  static std::vector<uint8_t> serializeHeader(LptfHeader header);
+  static std::vector<uint8_t> serializeHeader(const LptfHeader& header);
+  static std::vector<uint8_t> serializeErrorPayload(const ErrorPayload& payload);
 };
 
 #endif
