@@ -2,16 +2,6 @@
 
 namespace {
 
-void ensureRegisterMinSize(const std::vector<uint8_t>& input) {
-  if (input.size() < REGISTER_FIXED_BYTES) {
-    throw InvalidSize("register payload", std::to_string(input.size()));
-  }
-}
-
-uint16_t readHostnameLen(const std::vector<uint8_t>& input) {
-  return ConvertEndian::readU16BE(input, 2);
-}
-
 OSType toOsType(uint8_t value) {
   if (value <= static_cast<uint8_t>(OSType::MAC)) {
     return static_cast<OSType>(value);
@@ -41,8 +31,10 @@ void validateRegisterSize(uint16_t hostnameLen,
 
 RegisterPayload ProtocolParser::parseRegisterPayload(
     const std::vector<uint8_t>& input) {
-  ensureRegisterMinSize(input);
-  const uint16_t hostnameLen = readHostnameLen(input);
+  if (input.size() < REGISTER_FIXED_BYTES) {
+    throw InvalidSize("register payload", std::to_string(input.size()));
+  }
+  const uint16_t hostnameLen = ConvertEndian::readU16BE(input, 2);
   validateRegisterSize(hostnameLen, input);
 
   RegisterPayload payload;
