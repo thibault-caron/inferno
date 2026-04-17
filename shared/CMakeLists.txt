@@ -38,6 +38,10 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
         tests/protocol/protocol_parser_register_test.cpp
         tests/protocol/protocol_parser_response_test.cpp
         tests/protocol/protocol_parser_test.cpp
+        tests/protocol/protocol_serializer_command_test.cpp
+        tests/protocol/protocol_serializer_data_test.cpp
+        tests/protocol/protocol_serializer_register_test.cpp
+        tests/protocol/protocol_serializer_response_test.cpp
         tests/protocol/protocol_serializer_test.cpp
     )
 
