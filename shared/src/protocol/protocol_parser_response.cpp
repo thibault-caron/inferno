@@ -3,11 +3,11 @@
 namespace {
 
 ResponseStatus toResponseStatus(uint8_t value) {
-  if (value <= static_cast<uint8_t>(ResponseStatus::ERROR)) {
-    return static_cast<ResponseStatus>(value);
-  }
-  throw InvalidFieldValue("response_status",
+  if (value > static_cast<uint8_t>(ResponseStatus::ERROR)) {
+    throw InvalidFieldValue("response_status",
                           std::to_string(static_cast<unsigned int>(value)));
+  }
+  return static_cast<ResponseStatus>(value);
 }
 
 void validateChunkFields(uint8_t totalChunks, uint8_t chunkIndex) {
@@ -39,8 +39,11 @@ ResponsePayload ProtocolParser::parseResponsePayload(
   payload.status = toResponseStatus(input[2]);
   payload.total_chunks = input[3];
   payload.chunk_index = input[4];
+  // payload.data.assign(ptr, dataLen) Copies dataLen bytes starting at ptr into payload.data
+  // reinterpret_cast<const char*>(...) Converts the pointer to const char*, that assign() expects
   payload.data.assign(
-      reinterpret_cast<const char*>(input.data() + RESPONSE_FIXED_BYTES),
-      dataLen);
+      reinterpret_cast<const char*>(input.data() + RESPONSE_FIXED_BYTES), 
+      dataLen); 
+      // --> payload.data = std::string(ptr, dataLen);
   return payload;
 }

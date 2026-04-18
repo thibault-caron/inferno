@@ -10,11 +10,13 @@ std::vector<uint8_t> makeCommandPayload(uint16_t id, uint8_t rawType,
                                         uint16_t declaredLen,
                                         const std::vector<uint8_t>& dataBytes) {
   std::vector<uint8_t> out;
-  out.reserve(COMMAND_FIXED_BYTES + dataBytes.size());
-  TestHelpers::appendU16BE(out, id);
-  out.push_back(rawType);
-  TestHelpers::appendU16BE(out, declaredLen);
-  out.insert(out.end(), dataBytes.begin(), dataBytes.end());
+  out.resize(COMMAND_FIXED_BYTES + dataBytes.size());
+  ConvertEndian::writeU16BE(out, 0, id);
+  out[2] = rawType;
+  ConvertEndian::writeU16BE(out, 3, declaredLen);
+  for (std::size_t i = 0; i < dataBytes.size(); ++i) {
+    out[COMMAND_FIXED_BYTES + i] = dataBytes[i];
+  }
   return out;
 }
 

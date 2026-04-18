@@ -10,13 +10,15 @@ std::vector<uint8_t> makeResponsePayload(
     uint16_t id, uint8_t rawStatus, uint8_t totalChunks, uint8_t chunkIndex,
     uint16_t declaredLen, const std::vector<uint8_t>& dataBytes) {
   std::vector<uint8_t> out;
-  out.reserve(RESPONSE_FIXED_BYTES + dataBytes.size());
-  TestHelpers::appendU16BE(out, id);
-  out.push_back(rawStatus);
-  out.push_back(totalChunks);
-  out.push_back(chunkIndex);
-  TestHelpers::appendU16BE(out, declaredLen);
-  out.insert(out.end(), dataBytes.begin(), dataBytes.end());
+  out.resize(RESPONSE_FIXED_BYTES + dataBytes.size());
+  ConvertEndian::writeU16BE(out, 0, id);
+  out[2] = rawStatus;
+  out[3] = totalChunks;
+  out[4] = chunkIndex;
+  ConvertEndian::writeU16BE(out, 5, declaredLen);
+  for (std::size_t i = 0; i < dataBytes.size(); ++i) {
+    out[RESPONSE_FIXED_BYTES + i] = dataBytes[i];
+  }
   return out;
 }
 

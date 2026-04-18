@@ -9,10 +9,12 @@ namespace {
 std::vector<uint8_t> makeDataPayload(uint8_t rawSubtype, uint16_t declaredLen,
                                      const std::vector<uint8_t>& dataBytes) {
   std::vector<uint8_t> out;
-  out.reserve(DATA_FIXED_BYTES + dataBytes.size());
-  out.push_back(rawSubtype);
-  TestHelpers::appendU16BE(out, declaredLen);
-  out.insert(out.end(), dataBytes.begin(), dataBytes.end());
+  out.resize(DATA_FIXED_BYTES + dataBytes.size());
+  out[0] = rawSubtype;
+  ConvertEndian::writeU16BE(out, 1, declaredLen);
+  for (std::size_t i = 0; i < dataBytes.size(); ++i) {
+    out[DATA_FIXED_BYTES + i] = dataBytes[i];
+  }
   return out;
 }
 

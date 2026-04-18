@@ -10,13 +10,13 @@ constexpr uint8_t LPTF_HEADER_SIZE = 8;
 constexpr char LPTF_IDENTIFIER[4] = {'L', 'P', 'T', 'F'};
 constexpr std::string_view LPTF_IDENTIFIER_STR(LPTF_IDENTIFIER, 4);
 
-constexpr std::size_t REGISTER_FIXED_BYTES = 4;
+constexpr std::size_t REGISTER_FIXED_BYTES = sizeof(uint16_t) + 2 * sizeof(uint8_t); // hostname_len + os_type + arch
 constexpr uint16_t REGISTER_MAX_HOSTNAME_LEN =
     static_cast<uint16_t>(65535u - REGISTER_FIXED_BYTES);
-constexpr std::size_t COMMAND_FIXED_BYTES = 5;
-constexpr std::size_t RESPONSE_FIXED_BYTES = 7;
-constexpr std::size_t DATA_FIXED_BYTES = 3;
-constexpr std::size_t ERROR_FIXED_BYTES = 3;
+constexpr std::size_t COMMAND_FIXED_BYTES = sizeof(uint16_t) * 2 + sizeof(uint8_t);  // id + type + data_len
+constexpr std::size_t RESPONSE_FIXED_BYTES = sizeof(uint16_t) * 2 + sizeof(uint8_t) * 3;  // id + data_len + status + total_chunks + chunk_index
+constexpr std::size_t DATA_FIXED_BYTES = sizeof(uint16_t) + sizeof(uint8_t);
+constexpr std::size_t ERROR_FIXED_BYTES = sizeof(uint16_t) + sizeof(uint8_t);
 
 enum class MessageType : uint8_t {
   REGISTER = 0,

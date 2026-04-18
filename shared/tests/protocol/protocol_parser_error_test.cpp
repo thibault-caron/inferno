@@ -10,10 +10,12 @@ std::vector<uint8_t> makeErrorPayload(
     uint8_t rawCode, uint16_t declaredLen,
     const std::vector<uint8_t>& messageBytes) {
   std::vector<uint8_t> out;
-  out.reserve(ERROR_FIXED_BYTES + messageBytes.size());
-  out.push_back(rawCode);
-  TestHelpers::appendU16BE(out, declaredLen);
-  out.insert(out.end(), messageBytes.begin(), messageBytes.end());
+  out.resize(ERROR_FIXED_BYTES + messageBytes.size());
+  out[0] = rawCode;
+  ConvertEndian::writeU16BE(out, 1, declaredLen);
+  for (std::size_t i = 0; i < messageBytes.size(); ++i) {
+    out[ERROR_FIXED_BYTES + i] = messageBytes[i];
+  }
   return out;
 }
 
