@@ -16,15 +16,16 @@ class ProtocolSerializer {
   ProtocolSerializer(const ProtocolSerializer&) = delete;
   ProtocolSerializer& operator=(const ProtocolSerializer&) = delete;
 
-  static std::vector<uint8_t> serializeHeader(const LptfHeader& header);
-  static std::vector<uint8_t> serializeRegisterPayload(
+  static std::vector<std::uint8_t> serializeHeader(const LptfHeader& header);
+  static std::vector<std::uint8_t> serializeRegisterPayload(
       const RegisterPayload& payload);
-  static std::vector<uint8_t> serializeCommandPayload(
+  static std::vector<std::uint8_t> serializeCommandPayload(
       const CommandPayload& payload);
-  static std::vector<uint8_t> serializeResponsePayload(
+  static std::vector<std::uint8_t> serializeResponsePayload(
       const ResponsePayload& payload);
-  static std::vector<uint8_t> serializeDataPayload(const DataPayload& payload);
-  static std::vector<uint8_t> serializeErrorPayload(
+  static std::vector<std::uint8_t> serializeDataPayload(
+      const DataPayload& payload);
+  static std::vector<std::uint8_t> serializeErrorPayload(
       const ErrorPayload& payload);
 };
 

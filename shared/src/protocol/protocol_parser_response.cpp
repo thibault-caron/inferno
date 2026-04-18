@@ -2,15 +2,15 @@
 
 namespace {
 
-ResponseStatus toResponseStatus(uint8_t value) {
-  if (value >= static_cast<uint8_t>(ResponseStatus::END)) {
+ResponseStatus toResponseStatus(std::uint8_t value) {
+  if (value >= static_cast<std::uint8_t>(ResponseStatus::END)) {
     throw InvalidFieldValue("response_status",
                             std::to_string(static_cast<unsigned int>(value)));
   }
   return static_cast<ResponseStatus>(value);
 }
 
-void validateChunkFields(uint8_t totalChunks, uint8_t chunkIndex) {
+void validateChunkFields(std::uint8_t totalChunks, std::uint8_t chunkIndex) {
   if (totalChunks == 0) {
     throw InvalidFieldValue("total_chunks", "0");
   }
@@ -23,14 +23,14 @@ void validateChunkFields(uint8_t totalChunks, uint8_t chunkIndex) {
 }  // namespace
 
 ResponsePayload ProtocolParser::parseResponsePayload(
-    const std::vector<uint8_t>& input) {
+    const std::vector<std::uint8_t>& input) {
   if (input.size() < RESPONSE_FIXED_BYTES) {
     throw InvalidSize("response payload", std::to_string(input.size()));
   }
   validateChunkFields(input[3], input[4]);
-  const uint16_t dataLen = ConvertEndian::readU16BE(input, 5);
+  const std::uint16_t dataLen{ConvertEndian::readU16BE(input, 5)};
 
-  size_t expectedSize = RESPONSE_FIXED_BYTES + dataLen;
+  const std::size_t expectedSize{RESPONSE_FIXED_BYTES + dataLen};
   validateExpectedLength(input, expectedSize);
 
   ResponsePayload payload;
@@ -38,12 +38,8 @@ ResponsePayload ProtocolParser::parseResponsePayload(
   payload.status = toResponseStatus(input[2]);
   payload.total_chunks = input[3];
   payload.chunk_index = input[4];
-  // payload.data.assign(ptr, dataLen) Copies dataLen bytes starting at ptr into
-  // payload.data reinterpret_cast<const char*>(...) Converts the pointer to
-  // const char*, that assign() expects
   payload.data.assign(
       reinterpret_cast<const char*>(input.data() + RESPONSE_FIXED_BYTES),
       dataLen);
-  // --> payload.data = std::string(ptr, dataLen);
   return payload;
 }

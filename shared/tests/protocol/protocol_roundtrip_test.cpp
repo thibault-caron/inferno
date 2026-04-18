@@ -13,7 +13,7 @@ TEST(ProtocolRoundTrip,
   RegisterPayload input{OSType::LINUX, ArchType::X64, "client-01"};
 
   // Act
-  const std::vector<uint8_t> bytes =
+  const std::vector<std::uint8_t> bytes =
       ProtocolSerializer::serializeRegisterPayload(input);
   const RegisterPayload result = ProtocolParser::parseRegisterPayload(bytes);
 
@@ -29,7 +29,7 @@ TEST(ProtocolRoundTrip,
   CommandPayload input{42, CommandType::SHELL, "whoami"};
 
   // Act
-  const std::vector<uint8_t> bytes =
+  const std::vector<std::uint8_t> bytes =
       ProtocolSerializer::serializeCommandPayload(input);
   const CommandPayload result = ProtocolParser::parseCommandPayload(bytes);
 
@@ -45,7 +45,7 @@ TEST(ProtocolRoundTrip,
   ResponsePayload input{9, ResponseStatus::OK, 3, 1, "chunk-data"};
 
   // Act
-  const std::vector<uint8_t> bytes =
+  const std::vector<std::uint8_t> bytes =
       ProtocolSerializer::serializeResponsePayload(input);
   const ResponsePayload result = ProtocolParser::parseResponsePayload(bytes);
 
@@ -63,7 +63,7 @@ TEST(ProtocolRoundTrip,
   DataPayload input{DataType::KEYLOGGER, "keys"};
 
   // Act
-  const std::vector<uint8_t> bytes =
+  const std::vector<std::uint8_t> bytes =
       ProtocolSerializer::serializeDataPayload(input);
   const DataPayload result = ProtocolParser::parseDataPayload(bytes);
 
@@ -78,7 +78,7 @@ TEST(ProtocolRoundTrip,
   ErrorPayload input{ErrorType::EXECUTION_FAILED, "boom"};
 
   // Act
-  const std::vector<uint8_t> bytes =
+  const std::vector<std::uint8_t> bytes =
       ProtocolSerializer::serializeErrorPayload(input);
   const ErrorPayload result = ProtocolParser::parseErrorPayload(bytes);
 

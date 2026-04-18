@@ -6,10 +6,10 @@
 
 namespace {
 
-std::vector<uint8_t> makeErrorPayload(
-    uint8_t rawCode, uint16_t declaredLen,
-    const std::vector<uint8_t>& messageBytes) {
-  std::vector<uint8_t> out;
+std::vector<std::uint8_t> makeErrorPayload(
+    std::uint8_t rawCode, std::uint16_t declaredLen,
+    const std::vector<std::uint8_t>& messageBytes) {
+  std::vector<std::uint8_t> out;
   out.resize(ERROR_FIXED_BYTES + messageBytes.size());
   out[0] = rawCode;
   ConvertEndian::writeU16BE(out, 1, declaredLen);
@@ -23,9 +23,9 @@ std::vector<uint8_t> makeErrorPayload(
 
 TEST(ProtocolParserError, should_parse_error_payload_when_input_is_valid) {
   const std::string message = "invalid format";
-  const std::vector<uint8_t> input =
-      makeErrorPayload(static_cast<uint8_t>(ErrorType::INVALID_FORMAT),
-                       static_cast<uint16_t>(message.size()),
+  const std::vector<std::uint8_t> input =
+      makeErrorPayload(static_cast<std::uint8_t>(ErrorType::INVALID_FORMAT),
+                       static_cast<std::uint16_t>(message.size()),
                        TestHelpers::bytesFromString(message));
 
   const ErrorPayload result = ProtocolParser::parseErrorPayload(input);
@@ -35,33 +35,32 @@ TEST(ProtocolParserError, should_parse_error_payload_when_input_is_valid) {
 }
 
 TEST(ProtocolParserError, should_reject_payload_shorter_than_fixed_fields) {
-  const std::vector<uint8_t> input = {0x00, 0x00};
+  const std::vector<std::uint8_t> input = {0x00, 0x00};
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidSize);
 }
 
 TEST(ProtocolParserError, should_reject_unknown_error_code) {
   const std::string message = "whatever message";
-  const std::vector<uint8_t> input =
-      makeErrorPayload(TestHelpers::INVALID_ENUM_VALUE,
-        message.size(), TestHelpers::bytesFromString(message));
+  const std::vector<std::uint8_t> input =
+      makeErrorPayload(TestHelpers::INVALID_ENUM_VALUE, message.size(),
+                       TestHelpers::bytesFromString(message));
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidFieldValue);
 }
 
 TEST(ProtocolParserError,
      should_reject_when_declared_message_length_mismatches_payload_size) {
-  const std::vector<uint8_t> input =
-      makeErrorPayload(static_cast<uint8_t>(ErrorType::EXECUTION_FAILED), 10,
-                       TestHelpers::bytesFromString("abc"));
+  const std::vector<std::uint8_t> input =
+      makeErrorPayload(static_cast<std::uint8_t>(ErrorType::EXECUTION_FAILED),
+                       10, TestHelpers::bytesFromString("abc"));
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidSize);
 }
 
-TEST(ProtocolParserError,
-     should_reject_when_declared_message_length_is_null) {
-  const std::vector<uint8_t> input =
-      makeErrorPayload(static_cast<uint8_t>(ErrorType::UNKNOWN_TYPE), 0, {});
+TEST(ProtocolParserError, should_reject_when_declared_message_length_is_null) {
+  const std::vector<std::uint8_t> input = makeErrorPayload(
+      static_cast<std::uint8_t>(ErrorType::UNKNOWN_TYPE), 0, {});
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidSize);
 }

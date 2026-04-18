@@ -2,8 +2,8 @@
 
 namespace {
 
-CommandType toCommandType(uint8_t value) {
-  if (value >= static_cast<uint8_t>(CommandType::END)) {
+CommandType toCommandType(std::uint8_t value) {
+  if (value >= static_cast<std::uint8_t>(CommandType::END)) {
     throw InvalidFieldValue("command_type",
                             std::to_string(static_cast<unsigned int>(value)));
   }
@@ -13,15 +13,15 @@ CommandType toCommandType(uint8_t value) {
 }  // namespace
 
 CommandPayload ProtocolParser::parseCommandPayload(
-    const std::vector<uint8_t>& input) {
+    const std::vector<std::uint8_t>& input) {
   if (input.size() < COMMAND_FIXED_BYTES) {
     throw InvalidSize("command payload", std::to_string(input.size()));
   }
 
   const CommandType type = toCommandType(input[2]);
-  const uint16_t dataLen = ConvertEndian::readU16BE(input, 3);
-  
-  size_t expectedSize = COMMAND_FIXED_BYTES + dataLen;
+  const std::uint16_t dataLen = ConvertEndian::readU16BE(input, 3);
+
+  const std::size_t expectedSize{COMMAND_FIXED_BYTES + dataLen};
   validateExpectedLength(input, expectedSize);
 
   CommandPayload payload;

@@ -2,8 +2,8 @@
 
 namespace {
 
-ErrorType toErrorType(uint8_t value) {
-  if (value >= static_cast<uint8_t>(ErrorType::END)) {
+ErrorType toErrorType(std::uint8_t value) {
+  if (value >= static_cast<std::uint8_t>(ErrorType::END)) {
     throw InvalidFieldValue("error_code",
                             std::to_string(static_cast<unsigned int>(value)));
   }
@@ -13,14 +13,14 @@ ErrorType toErrorType(uint8_t value) {
 }  // namespace
 
 ErrorPayload ProtocolParser::parseErrorPayload(
-    const std::vector<uint8_t>& input) {
+    const std::vector<std::uint8_t>& input) {
   if (input.size() < ERROR_FIXED_BYTES) {
     throw InvalidSize("error payload", std::to_string(input.size()));
   }
 
-  const uint16_t messageLen = ConvertEndian::readU16BE(input, 1);
-  const std::size_t expectedSize = ERROR_FIXED_BYTES + messageLen;
-  const std::size_t maxLength = MAX_VALUE_INT16 - ERROR_FIXED_BYTES;
+  const std::uint16_t messageLen{ConvertEndian::readU16BE(input, 1)};
+  const std::size_t expectedSize{ERROR_FIXED_BYTES + messageLen};
+  const std::size_t maxLength{MAX_VALUE_INT16 - ERROR_FIXED_BYTES};
 
   // if (input.size() != expectedSize) {
   //   throw InvalidSize("error payload", std::to_string(input.size()));
