@@ -6,6 +6,11 @@ project(InfernoShared LANGUAGES CXX)
 # No Dockerfile, no executable — this is purely a library.
 add_library(shared_lib STATIC
     src/protocol/protocol_parser.cpp
+    src/protocol/protocol_parser_command.cpp
+    src/protocol/protocol_parser_data.cpp
+    src/protocol/protocol_parser_error.cpp
+    src/protocol/protocol_parser_register.cpp
+    src/protocol/protocol_parser_response.cpp
     src/protocol/protocol_serializer.cpp
     # src/protocol/serializer.cpp
 )
@@ -25,10 +30,29 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
     enable_testing()
     find_package(GTest REQUIRED)
 
+    set(PARSER_TESTS
+        tests/protocol/parser/protocol_parser_command_test.cpp
+        tests/protocol/parser/protocol_parser_data_test.cpp
+        tests/protocol/parser/protocol_parser_error_test.cpp
+        tests/protocol/parser/protocol_parser_register_test.cpp
+        tests/protocol/parser/protocol_parser_response_test.cpp
+        tests/protocol/parser/protocol_parser_test.cpp
+    )
+
+    set(SERIALIZER_TESTS
+        tests/protocol/serializer/protocol_serializer_command_test.cpp
+        tests/protocol/serializer/protocol_serializer_data_test.cpp
+        tests/protocol/serializer/protocol_serializer_register_test.cpp
+        tests/protocol/serializer/protocol_serializer_response_test.cpp
+        tests/protocol/serializer/protocol_serializer_test.cpp
+    )
+
     add_executable(shared_tests
         tests/convert_endian_test.cpp
-        tests/protocol/protocol_parser_test.cpp
-        tests/protocol/protocol_serializer_test.cpp
+        tests/protocol/protocol_roundtrip_test.cpp
+        ${PARSER_TESTS}
+        ${SERIALIZER_TESTS}
+        
     )
 
     target_include_directories(shared_tests PRIVATE

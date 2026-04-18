@@ -1,5 +1,5 @@
-#ifndef LPTF_PARSER
-#define LPTF_PARSER
+#ifndef LPTF_SERIALIZER
+#define LPTF_SERIALIZER
 
 #include <cstddef>
 #include <cstring>
@@ -17,7 +17,15 @@ class ProtocolSerializer {
   ProtocolSerializer& operator=(const ProtocolSerializer&) = delete;
 
   static std::vector<uint8_t> serializeHeader(const LptfHeader& header);
-  static std::vector<uint8_t> serializeErrorPayload(const ErrorPayload& payload);
+  static std::vector<uint8_t> serializeRegisterPayload(
+      const RegisterPayload& payload);
+  static std::vector<uint8_t> serializeCommandPayload(
+      const CommandPayload& payload);
+  static std::vector<uint8_t> serializeResponsePayload(
+      const ResponsePayload& payload);
+  static std::vector<uint8_t> serializeDataPayload(const DataPayload& payload);
+  static std::vector<uint8_t> serializeErrorPayload(
+      const ErrorPayload& payload);
 };
 
 #endif

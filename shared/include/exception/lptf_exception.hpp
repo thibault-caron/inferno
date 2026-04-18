@@ -24,7 +24,8 @@ class InvalidIdentifier : public InfernoException {
 
 class UnsupportedVersion : public InfernoException {
  public:
-  UnsupportedVersion(const std::string& value, const std::string& msg = "Unsupported version")
+  UnsupportedVersion(const std::string& value,
+                     const std::string& msg = "Unsupported version")
       : InfernoException(msg, value) {}
 };
 
@@ -36,9 +37,15 @@ class InvalidType : public InfernoException {
 
 class InvalidSize : public InfernoException {
  public:
- // source = header, payload...
+  // source = header, payload...
   InvalidSize(const std::string& source, const std::string& value)
       : InfernoException("Invalid size for " + source, value) {}
+};
+
+class InvalidFieldValue : public InfernoException {
+ public:
+  InvalidFieldValue(const std::string& field, const std::string& value)
+      : InfernoException("Unsupported value for " + field, value) {}
 };
 
 #endif
