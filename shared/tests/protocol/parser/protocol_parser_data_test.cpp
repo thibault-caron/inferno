@@ -38,9 +38,17 @@ TEST(ProtocolParserData, should_reject_payload_shorter_than_fixed_fields) {
   EXPECT_THROW(ProtocolParser::parseDataPayload(input), InvalidSize);
 }
 
-TEST(ProtocolParserData, should_reject_unknown_data_subtype) {
+TEST(ProtocolParserData, should_reject_null_data_size) {
   const std::vector<uint8_t> input =
-      makeDataPayload(TestHelpers::INVALID_ENUM_VALUE, 0, {});
+      makeDataPayload(static_cast<uint8_t>(DataType::KEYLOGGER), 0, {});
+
+  EXPECT_THROW(ProtocolParser::parseDataPayload(input), InvalidSize);
+}
+
+TEST(ProtocolParserData, should_reject_unknown_data_subtype) {
+  const std::string data = "whatever";
+  const std::vector<uint8_t> input = makeDataPayload(
+      static_cast<uint8_t>(DataType::END), static_cast<uint16_t>(data.size()), TestHelpers::bytesFromString(data));
 
   EXPECT_THROW(ProtocolParser::parseDataPayload(input), InvalidFieldValue);
 }

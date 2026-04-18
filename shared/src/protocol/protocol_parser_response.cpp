@@ -3,9 +3,9 @@
 namespace {
 
 ResponseStatus toResponseStatus(uint8_t value) {
-  if (value > static_cast<uint8_t>(ResponseStatus::ERROR)) {
+  if (value >= static_cast<uint8_t>(ResponseStatus::END)) {
     throw InvalidFieldValue("response_status",
-                          std::to_string(static_cast<unsigned int>(value)));
+                            std::to_string(static_cast<unsigned int>(value)));
   }
   return static_cast<ResponseStatus>(value);
 }
@@ -29,21 +29,21 @@ ResponsePayload ProtocolParser::parseResponsePayload(
   }
   validateChunkFields(input[3], input[4]);
   const uint16_t dataLen = ConvertEndian::readU16BE(input, 5);
-  const std::size_t expectedSize = RESPONSE_FIXED_BYTES + dataLen;
-  if (input.size() != expectedSize) {
-    throw InvalidSize("response payload", std::to_string(input.size()));
-  }
+
+  size_t expectedSize = RESPONSE_FIXED_BYTES + dataLen;
+  validateExpectedLength(input, expectedSize);
 
   ResponsePayload payload;
   payload.id = ConvertEndian::readU16BE(input, 0);
   payload.status = toResponseStatus(input[2]);
   payload.total_chunks = input[3];
   payload.chunk_index = input[4];
-  // payload.data.assign(ptr, dataLen) Copies dataLen bytes starting at ptr into payload.data
-  // reinterpret_cast<const char*>(...) Converts the pointer to const char*, that assign() expects
+  // payload.data.assign(ptr, dataLen) Copies dataLen bytes starting at ptr into
+  // payload.data reinterpret_cast<const char*>(...) Converts the pointer to
+  // const char*, that assign() expects
   payload.data.assign(
-      reinterpret_cast<const char*>(input.data() + RESPONSE_FIXED_BYTES), 
-      dataLen); 
-      // --> payload.data = std::string(ptr, dataLen);
+      reinterpret_cast<const char*>(input.data() + RESPONSE_FIXED_BYTES),
+      dataLen);
+  // --> payload.data = std::string(ptr, dataLen);
   return payload;
 }

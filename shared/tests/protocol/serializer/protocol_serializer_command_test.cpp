@@ -50,6 +50,15 @@ TEST(ProtocolSerializerCommand,
 }
 
 TEST(ProtocolSerializerCommand,
+     should_throw_InvalidFieldValue_when_shell_command_contains_no_data) {
+  // Arrange
+  CommandPayload input{7, CommandType::SHELL, ""};
+
+  // Act & Assert
+  EXPECT_THROW(ProtocolSerializer::serializeCommandPayload(input), InvalidFieldValue);
+}
+
+TEST(ProtocolSerializerCommand,
      should_throw_InvalidFieldValue_when_command_type_is_unknown) {
   // Arrange
   CommandPayload input{

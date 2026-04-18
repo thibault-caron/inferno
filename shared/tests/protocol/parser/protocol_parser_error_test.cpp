@@ -41,8 +41,10 @@ TEST(ProtocolParserError, should_reject_payload_shorter_than_fixed_fields) {
 }
 
 TEST(ProtocolParserError, should_reject_unknown_error_code) {
+  const std::string message = "whatever message";
   const std::vector<uint8_t> input =
-      makeErrorPayload(TestHelpers::INVALID_ENUM_VALUE, 0, {});
+      makeErrorPayload(TestHelpers::INVALID_ENUM_VALUE,
+        message.size(), TestHelpers::bytesFromString(message));
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidFieldValue);
 }
@@ -52,6 +54,14 @@ TEST(ProtocolParserError,
   const std::vector<uint8_t> input =
       makeErrorPayload(static_cast<uint8_t>(ErrorType::EXECUTION_FAILED), 10,
                        TestHelpers::bytesFromString("abc"));
+
+  EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidSize);
+}
+
+TEST(ProtocolParserError,
+     should_reject_when_declared_message_length_is_null) {
+  const std::vector<uint8_t> input =
+      makeErrorPayload(static_cast<uint8_t>(ErrorType::UNKNOWN_TYPE), 0, {});
 
   EXPECT_THROW(ProtocolParser::parseErrorPayload(input), InvalidSize);
 }

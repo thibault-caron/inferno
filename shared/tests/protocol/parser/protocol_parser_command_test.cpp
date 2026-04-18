@@ -68,10 +68,13 @@ TEST(ProtocolParserCommand, should_reject_unknown_command_type) {
   EXPECT_THROW(ProtocolParser::parseCommandPayload(input), InvalidFieldValue);
 }
 
-TEST(ProtocolParserCommand, should_reject_data_for_non_shell_command) {
+TEST(ProtocolParserCommand, should_ignore_data_for_non_shell_command) {
   const std::vector<uint8_t> input =
       makeCommandPayload(1, static_cast<uint8_t>(CommandType::OS_INFO), 3,
                          TestHelpers::bytesFromString("abc"));
 
-  EXPECT_THROW(ProtocolParser::parseCommandPayload(input), InvalidSize);
+  const CommandPayload command = ProtocolParser::parseCommandPayload(input);
+
+  EXPECT_EQ(0, command.data.size());
+
 }

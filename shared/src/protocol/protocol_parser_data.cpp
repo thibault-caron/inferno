@@ -3,11 +3,11 @@
 namespace {
 
 DataType toDataType(uint8_t value) {
-  if (value <= static_cast<uint8_t>(DataType::KEYLOGGER)) {
-    return static_cast<DataType>(value);
+  if (value >= static_cast<uint8_t>(DataType::END)) {
+    throw InvalidFieldValue("data_type",
+                            std::to_string(static_cast<unsigned int>(value)));
   }
-  throw InvalidFieldValue("data_type",
-                          std::to_string(static_cast<unsigned int>(value)));
+  return static_cast<DataType>(value);
 }
 
 }  // namespace
@@ -19,9 +19,9 @@ DataPayload ProtocolParser::parseDataPayload(
   }
   const uint16_t dataLen = ConvertEndian::readU16BE(input, 1);
   const std::size_t expectedSize = DATA_FIXED_BYTES + dataLen;
-  if (input.size() != expectedSize) {
-    throw InvalidSize("data payload", std::to_string(input.size()));
-  }
+  const std::size_t maxLength = MAX_VALUE_INT16 - DATA_FIXED_BYTES;
+
+  validateStringLength(dataLen, input, maxLength, expectedSize);
 
   DataPayload payload;
   payload.subtype = toDataType(input[0]);
