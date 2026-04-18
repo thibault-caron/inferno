@@ -12,6 +12,22 @@ void ensureFitsU16(std::size_t sourceSize, const std::string& source) {
   }
 }
 
+void validateHeader(const LptfHeader& header) {
+  const std::string inputIdentifier(header.identifier,
+                                    sizeof(header.identifier));
+  if (inputIdentifier != LPTF_IDENTIFIER_STR) {
+    throw InvalidIdentifier(inputIdentifier);
+  }
+  if (header.version != LPTF_VERSION) {
+    throw UnsupportedVersion(std::to_string(header.version),
+                             "Version provided is not a number");
+  }
+  if (header.type >= MessageType::END) {
+    throw InvalidType(
+        std::to_string(static_cast<std::uint8_t>(header.type)));
+  }
+}
+
 // TODO check existing method to copy/convert a string into a vector LOOK FOR .insert(iterator.end, iterator.begin, destination?) method
 void copyString(std::vector<std::uint8_t>& out, std::size_t offset,
                 const std::string& value) {
@@ -78,20 +94,31 @@ void validateResponsePayload(const ResponsePayload& payload) {
 }
 
 void validateDataPayload(const DataPayload& payload) {
-  if (payload.subtype > DataType::KEYLOGGER) {
+  if (payload.subtype >= DataType::END) {
     throw InvalidFieldValue(
         "data_type",
         std::to_string(static_cast<std::uint8_t>(payload.subtype)));
   }
   ensureFitsU16(payload.data.size(), "data length");
 }
+
+void validateErrorPayload(const ErrorPayload& payload) {
+  if (payload.code >= ErrorType::END) {
+    throw InvalidFieldValue(
+        "error_code", std::to_string(static_cast<std::uint8_t>(payload.code)));
+  }
+  if (payload.message.empty()) {
+    throw InvalidSize("error message length", "0");
+  }
+  ensureFitsU16(payload.message.size(), "error message length");
+}
 }  // namespace
 
 std::vector<std::uint8_t> ProtocolSerializer::serializeHeader(
     const LptfHeader& header) {
-  // TODO add validateHeader before serialization?
+  validateHeader(header);
+  
   std::vector<std::uint8_t> headerInByte(LPTF_HEADER_SIZE);
-  // headerInByte.resize(LPTF_HEADER_SIZE);
 
   for (std::size_t i = 0; i < sizeof(header.identifier); ++i) {
     headerInByte[i] = header.identifier[i];
@@ -168,7 +195,7 @@ std::vector<std::uint8_t> ProtocolSerializer::serializeDataPayload(
 
 std::vector<std::uint8_t> ProtocolSerializer::serializeErrorPayload(
     const ErrorPayload& payload) {
-  // TODO validate error payload ?
+  validateErrorPayload(payload);
 
   const std::size_t message_length{payload.message.size()};
   const std::size_t finalSize{ERROR_FIXED_BYTES + message_length};
@@ -178,8 +205,5 @@ std::vector<std::uint8_t> ProtocolSerializer::serializeErrorPayload(
   ConvertEndian::writeU16BE(payloadInByte, 1, message_length);
 
   copyString(payloadInByte, ERROR_FIXED_BYTES, payload.message);
-  // for (std::size_t i = 0; i < message_length; ++i) {
-  //   payloadInByte[i + ERROR_FIXED_BYTES] = payload.message[i];
-  // }
   return payloadInByte;
 }

@@ -35,6 +35,50 @@ TEST(ProtocolSerializer,
 }
 
 TEST(ProtocolSerializer,
+         should_throw_InvalidIdentifier_when_header_identifier_is_invalid) {
+    // Arrange
+    const LptfHeader input = {
+            {'B', 'A', 'D', '!'},
+            LPTF_VERSION,
+            MessageType::COMMAND,
+            1,
+    };
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeHeader(input), InvalidIdentifier);
+}
+
+TEST(ProtocolSerializer,
+         should_throw_UnsupportedVersion_when_header_version_is_invalid) {
+    // Arrange
+    const LptfHeader input = {
+            {LPTF_IDENTIFIER[0], LPTF_IDENTIFIER[1], LPTF_IDENTIFIER[2],
+             LPTF_IDENTIFIER[3]},
+            static_cast<std::uint8_t>(LPTF_VERSION + 1),
+            MessageType::COMMAND,
+            1,
+    };
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeHeader(input), UnsupportedVersion);
+}
+
+TEST(ProtocolSerializer,
+         should_throw_InvalidType_when_header_message_type_is_unknown) {
+    // Arrange
+    const LptfHeader input = {
+            {LPTF_IDENTIFIER[0], LPTF_IDENTIFIER[1], LPTF_IDENTIFIER[2],
+             LPTF_IDENTIFIER[3]},
+            LPTF_VERSION,
+            static_cast<MessageType>(255),
+            1,
+    };
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeHeader(input), InvalidType);
+}
+
+TEST(ProtocolSerializer,
      should_produce_corresponding_byteArray_when_errorPayload_is_valid) {
   // Arrange
   const ErrorPayload error = {
@@ -63,4 +107,35 @@ TEST(ProtocolSerializer,
 
   // Assert
   EXPECT_EQ(expected, result);
+}
+
+TEST(ProtocolSerializer,
+         should_throw_InvalidFieldValue_when_error_code_is_unknown) {
+    // Arrange
+    const ErrorPayload input = {static_cast<ErrorType>(255), "err"};
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeErrorPayload(input),
+                             InvalidFieldValue);
+}
+
+TEST(ProtocolSerializer,
+         should_throw_InvalidSize_when_error_message_is_empty) {
+    // Arrange
+    const ErrorPayload input = {ErrorType::EXECUTION_FAILED, ""};
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeErrorPayload(input), InvalidSize);
+}
+
+TEST(ProtocolSerializer,
+         should_throw_InvalidSize_when_error_message_exceeds_u16_limit) {
+    // Arrange
+    const ErrorPayload input = {
+            ErrorType::EXECUTION_FAILED,
+            std::string(KMAX_U16_VALUE + 1, 'a'),
+    };
+
+    // Act & Assert
+    EXPECT_THROW(ProtocolSerializer::serializeErrorPayload(input), InvalidSize);
 }

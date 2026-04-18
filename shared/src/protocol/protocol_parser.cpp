@@ -2,21 +2,21 @@
 
 namespace {
 // TODO const for argument almost everywhere ?
-OSType toOsType(std::uint8_t value) {
+OSType toOsType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(OSType::END)) {
     throw InvalidFieldValue("os_type", std::to_string(value));
   }
   return static_cast<OSType>(value);
 }
 
-ArchType toArchType(std::uint8_t value) {
+ArchType toArchType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(ArchType::END)) {
     throw InvalidFieldValue("arch", std::to_string(value));
   }
   return static_cast<ArchType>(value);
 }
 
-DataType toDataType(std::uint8_t value) {
+DataType toDataType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(DataType::END)) {
     throw InvalidFieldValue("data_type",
                             std::to_string(static_cast<unsigned int>(value)));
@@ -24,7 +24,7 @@ DataType toDataType(std::uint8_t value) {
   return static_cast<DataType>(value);
 }
 
-CommandType toCommandType(std::uint8_t value) {
+CommandType toCommandType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(CommandType::END)) {
     throw InvalidFieldValue("command_type",
                             std::to_string(static_cast<unsigned int>(value)));
@@ -32,7 +32,7 @@ CommandType toCommandType(std::uint8_t value) {
   return static_cast<CommandType>(value);
 }
 
-ResponseStatus toResponseStatus(std::uint8_t value) {
+ResponseStatus toResponseStatus(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(ResponseStatus::END)) {
     throw InvalidFieldValue("response_status",
                             std::to_string(static_cast<unsigned int>(value)));
@@ -40,7 +40,8 @@ ResponseStatus toResponseStatus(std::uint8_t value) {
   return static_cast<ResponseStatus>(value);
 }
 
-void validateChunkFields(std::uint8_t totalChunks, std::uint8_t chunkIndex) {
+void validateChunkFields(const std::uint8_t totalChunks,
+                         const std::uint8_t chunkIndex) {
   if (totalChunks == 0) {
     throw InvalidFieldValue("total_chunks", "0");
   }
@@ -50,12 +51,45 @@ void validateChunkFields(std::uint8_t totalChunks, std::uint8_t chunkIndex) {
   }
 }
 
-ErrorType toErrorType(std::uint8_t value) {
+ErrorType toErrorType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(ErrorType::END)) {
     throw InvalidFieldValue("error_code",
                             std::to_string(static_cast<unsigned int>(value)));
   }
   return static_cast<ErrorType>(value);
+}
+
+MessageType toMessageType(const std::uint8_t value) {
+  if (value > static_cast<std::uint8_t>(MessageType::ERROR)) {
+    throw InvalidType(std::to_string(static_cast<std::uint8_t>(value)));
+  }
+  return static_cast<MessageType>(value);
+}
+
+// TODO  does copying std::uint16_t cost less than using a reference ? Const
+// anyway ?
+// pass-by-value/copy generally better for small scalar types (uint8_t,
+// uint16_t, int, enums, pointers...)
+void validateNotNullLength(const std::uint16_t length,
+                           const std::size_t maxLen) {
+  if (length == 0 || length > maxLen) {
+    throw InvalidSize("Struct string length", std::to_string(length));
+  }
+}
+
+void validateExpectedLength(const std::vector<std::uint8_t>& input,
+                            const std::size_t expectedSize) {
+  if (input.size() != expectedSize) {
+    throw InvalidSize("Payload", std::to_string(input.size()));
+  }
+}
+
+void validateStringLength(const std::uint16_t length,
+                          const std::vector<std::uint8_t>& input,
+                          const std::size_t maxLen,
+                          const std::size_t expectedSize) {
+  validateNotNullLength(length, maxLen);
+  validateExpectedLength(input, expectedSize);
 }
 
 }  // namespace
@@ -84,36 +118,6 @@ LptfHeader ProtocolParser::parseHeader(const std::vector<std::uint8_t>& input) {
   header.type = toMessageType(input[5]);
   header.size = ConvertEndian::readU16BE(input, 6);
   return header;
-}
-
-MessageType ProtocolParser::toMessageType(std::uint8_t value) {
-  if (value > static_cast<std::uint8_t>(MessageType::ERROR)) {
-    throw InvalidType(std::to_string(static_cast<std::uint8_t>(value)));
-  }
-  return static_cast<MessageType>(value);
-}
-
-// TODO  does copying std::uint16_t cost less than using a reference ? Const
-// anyway ?
-void ProtocolParser::validateStringLength(
-    const std::uint16_t length, const std::vector<std::uint8_t>& input,
-    const std::size_t MAX_LEN, const std::size_t expectedSize) {
-  validateNotNullLength(length, MAX_LEN);
-  validateExpectedLength(input, expectedSize);
-}
-
-void ProtocolParser::validateNotNullLength(const std::uint16_t length,
-                                           const std::size_t MAX_LEN) {
-  if (length == 0 || length > MAX_LEN) {
-    throw InvalidSize("Struct string length", std::to_string(length));
-  }
-}
-
-void ProtocolParser::validateExpectedLength(const std::vector<std::uint8_t>& input,
-                              const std::size_t expectedSize) {
-  if (input.size() != expectedSize) {
-    throw InvalidSize("Payload", std::to_string(input.size()));
-  }
 }
 
 RegisterPayload ProtocolParser::parseRegisterPayload(
