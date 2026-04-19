@@ -28,7 +28,6 @@ void validateHeader(const LptfHeader& header) {
   }
 }
 
-// TODO check existing method to copy/convert a string into a vector LOOK FOR .insert(iterator.end, iterator.begin, destination?) method
 void copyString(std::vector<std::uint8_t>& out, std::size_t offset,
                 const std::string& value) {
   for (std::size_t i = 0; i < value.size(); ++i) {
