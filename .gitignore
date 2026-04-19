@@ -60,3 +60,6 @@ shared/build/
 
 # Environment
 .env
+
+# Notes perso
+notes*.md
