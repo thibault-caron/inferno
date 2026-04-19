@@ -1,7 +1,6 @@
 #include "protocol/protocol_parser.hpp"
 
 namespace {
-// TODO const for argument almost everywhere ?
 OSType toOsType(const std::uint8_t value) {
   if (value >= static_cast<std::uint8_t>(OSType::END)) {
     throw InvalidFieldValue("os_type", std::to_string(value));
@@ -66,7 +65,7 @@ MessageType toMessageType(const std::uint8_t value) {
   return static_cast<MessageType>(value);
 }
 
-// TODO  does copying std::uint16_t cost less than using a reference ? Const
+// INFO  does copying std::uint16_t cost less than using a reference ? Const
 // anyway ?
 // pass-by-value/copy generally better for small scalar types (uint8_t,
 // uint16_t, int, enums, pointers...)
