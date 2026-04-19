@@ -7,7 +7,8 @@ project(InfernoShared LANGUAGES CXX)
 add_library(shared_lib STATIC
     src/protocol/protocol_parser.cpp
     src/protocol/protocol_serializer.cpp
-    # src/protocol/serializer.cpp
+    src/socket/linux_socket.cpp
+    src/socket/socket_factory.cpp
 )
 
 # PUBLIC = these include dirs are inherited by any target that links shared_lib.
@@ -42,12 +43,16 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
         tests/protocol/serializer/protocol_serializer_test.cpp
     )
 
+    set(SOCKET_TESTS
+        tests/socket/socket_integration_test.cpp
+        )
+
     add_executable(shared_tests
         tests/convert_endian_test.cpp
         tests/protocol/protocol_roundtrip_test.cpp
         ${PARSER_TESTS}
         ${SERIALIZER_TESTS}
-        
+        ${SOCKET_TESTS}
     )
 
     target_include_directories(shared_tests PRIVATE
