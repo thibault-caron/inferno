@@ -7,6 +7,8 @@
 
 // TODO what's the difference between std::uint8_t and std::uint8_t OR
 // std::size_t and std::size_t...etc
+// std::uint8_t means “take uint8_t from namespace std”. Better.
+// uint8_t without std:: relies on it being available in global namespace on your compiler/environment.
 class ConvertEndian {
  public:
   ConvertEndian() = delete;

@@ -9,28 +9,34 @@
 ## First time setup
 
 **1. Clone the repo**
+
 ```bash
 git clone <repo-url>
 cd INFERNO
 ```
 
 **2. Create your `.env` file**
+
 ```bash
 cp .env.template .env
 ```
+
 Open `.env` and fill in the values. Ask a teammate if you don't know what to put.
 
 **3. Build the Docker images** (only needed once, or after a Dockerfile change)
+
 ```bash
 docker compose build
 ```
 
 **4. Start everything**
+
 ```bash
 docker compose up
 ```
 
 This will automatically:
+
 - Build the shared library
 - Run all tests (agent + server + shared)
 - If tests pass → run the server and agent binaries
@@ -41,16 +47,19 @@ This will automatically:
 ## Daily workflow
 
 ### Start the environment
+
 ```bash
 docker compose up
 ```
 
 ### Stop the environment
+
 ```bash
 docker compose down
 ```
 
 ### Rebuild after a Dockerfile change
+
 ```bash
 docker compose build
 docker compose up
@@ -63,11 +72,13 @@ docker compose up
 Sometimes you want to build or test something specific without restarting everything.
 
 **Open a shell inside the server container:**
+
 ```bash
 docker exec -it inferno-server bash
 ```
 
 **Open a shell inside the agent container:**
+
 ```bash
 docker exec -it inferno-agent bash
 ```
@@ -112,11 +123,13 @@ That's normal — it means nothing changed since the last build. The containers 
 Change `SERVER_PORT` in your `.env` to something free (e.g. `8889`) and restart.
 
 **Something is very broken and I want to start fresh:**
+
 ```bash
 docker compose down
 rm -rf agent/build server/build shared/build
 docker compose up
 ```
+
 This wipes all build caches and starts from scratch. Images are kept — you don't need to re-run `docker compose build`.
 
 ---

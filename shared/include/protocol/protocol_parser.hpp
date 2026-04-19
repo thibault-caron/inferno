@@ -10,15 +10,6 @@
 #include "protocol/lptf_protocol.hpp"
 
 class ProtocolParser {
- private:
-  static MessageType toMessageType(std::uint8_t value);
-  static void validateStringLength(const std::uint16_t length,
-                            const std::vector<std::uint8_t>& input,
-                            const std::size_t MAX_LEN, const std::size_t expectedSize);
-  static void validateNotNullLength(const std::uint16_t length, const std::size_t MAX_LEN);
-  static void validateExpectedLength(const std::vector<std::uint8_t>& input,
-                              const std::size_t expectedSize);
-
  public:
   ProtocolParser() = delete;
   ProtocolParser(const ProtocolParser&) = delete;

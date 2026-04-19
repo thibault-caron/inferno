@@ -36,8 +36,8 @@ services:
       - type: bind
         source: ./inferno.sh
         target: /app/inferno.sh
-    # command: ["bash", "./inferno.sh", "test", "shared"]
-    command: ["bash"]
+    command: ["bash", "./inferno.sh", "test", "shared"]
+    # command: ["bash"]
 
   # ============================================
   # C++ Server (Development)
