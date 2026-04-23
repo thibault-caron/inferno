@@ -8,21 +8,6 @@
 
 #include "protocol/lptf_protocol.hpp"
 
-// class AAAAAAAAAAAAAAA {
-// public:
-
-//     virtual int createSocket();
-//     virtual void sockadrrIn();
-//     virtual void bind(); // bind(serverSocket, (struct
-//     sockaddr*)&serverAddress, sizeof(serverAddress)); virtual void listen();
-//     virtual void accept();
-//     virtual void recv();
-//     virtual void close();
-
-//     // recv, send, accept, bind, listen, createSocket, define server adress
-//     (sockaddr_in), close
-// };
-
 constexpr std::uint16_t SERVER_PORT = 8080;
 
 enum class SocketStatus {
@@ -61,6 +46,7 @@ class ISocket {
   // I/O — works with your binary protocol buffers directly
   virtual SocketResult send(const std::uint8_t* data, std::size_t len) = 0;
   virtual SocketResult recv(std::uint8_t* data, std::size_t len) = 0;
+  virtual int getFd() = 0;
 
   // Convenience overloads for vectors
   SocketResult send(const std::vector<std::uint8_t>& buf) {

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 constexpr std::uint8_t LPTF_VERSION = 1;
 constexpr std::uint8_t LPTF_HEADER_SIZE =
@@ -33,6 +34,8 @@ constexpr std::size_t DATA_FIXED_BYTES =
     sizeof(std::uint16_t) + sizeof(std::uint8_t);
 constexpr std::size_t ERROR_FIXED_BYTES =
     sizeof(std::uint16_t) + sizeof(std::uint8_t);
+
+
 
 enum class MessageType : std::uint8_t {
   REGISTER = 0,
@@ -122,6 +125,12 @@ struct DataPayload {
 struct ErrorPayload {
   ErrorType code;
   std::string message;
+};
+
+// Generic struct for recv()
+struct Frame {
+  LptfHeader header;
+  std::vector<std::uint8_t> payload;
 };
 
 #endif

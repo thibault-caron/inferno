@@ -25,8 +25,10 @@ endif()
 
 # ── Server library (all logic, no main) ──────────────────────────────────────
 add_library(server_lib STATIC
-    src/placeholder.cpp
+    src/main.cpp
     src/tcp_server.cpp
+    src/client_session.cpp 
+    src/dispatcher.cpp
     # src/client_manager.cpp        ← add as you create files
     # src/command_dispatcher.cpp
 )
