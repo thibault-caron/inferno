@@ -60,19 +60,14 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 add_executable(server_tests
-    tests/c1/tcp_server_socket_test.cpp
-    tests/c1/tcp_server_buffer_test.cpp
-    tests/c1/tcp_server_output_test.cpp
-    tests/c1/test_client_session.cpp
-    tests/c1/test_dispatcher.cpp
-    tests/c1/test_tcp_server.cpp
-    tests/c1/test_server_flow.cpp
-    # tests/test_command_dispatcher.cpp
+    tests/client_session_test.cpp
+    tests/dispatcher_test.cpp
+    tests/server_integration_test.cpp
+    tests/tcp_server_test.cpp
 )
 
 target_include_directories(server_tests PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/tests
-${CMAKE_CURRENT_SOURCE_DIR}/tests/c1
 )
 
 target_link_libraries(server_tests PRIVATE

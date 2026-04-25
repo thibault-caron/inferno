@@ -14,7 +14,8 @@
 
 class Dispatcher {
  public:
-  explicit Dispatcher(ISocket& socket);
+  // explicit Dispatcher(std::unique_ptr<ISocket>& socket);
+  explicit Dispatcher();
   Dispatcher(const Dispatcher&) = delete;
   ~Dispatcher() = default;
   Dispatcher& operator=(const Dispatcher&) = delete;
@@ -23,25 +24,23 @@ class Dispatcher {
   // ── Incoming message handlers ───────────────────────
   void onRegister(ClientSession& client,
                   const std::vector<std::uint8_t>& payload);
-  void onResponse(const std::vector<std::uint8_t>& payload);
+  void onResponse(ClientSession& client, const std::vector<std::uint8_t>& payload);
   void onData(const std::vector<std::uint8_t>& payload);
   void onError(const std::vector<std::uint8_t>& payload);
 
   // ── Outgoing message builders ───────────────────────
-  void sendCommand(CommandType type, const std::string& data = "");
-  void sendError(ErrorType code, const std::string& msg);
-  void sendDisconnect();
+  void sendCommand(ClientSession& client, CommandType type, const std::string& data = "");
+  void sendError(ClientSession& client, ErrorType code, const std::string& msg);
+  void sendDisconnect(ClientSession& client);
 
   // ── I/O ─────────────────────────────────────────────
-  void sendRaw(
-    MessageType type, 
-    const std::vector<std::uint8_t>& payload = {}
-  );
+  void sendRaw(ClientSession& client, MessageType type,
+               const std::vector<std::uint8_t>& payload = {});
 
   std::uint16_t nextId();
 
  private:
-  ISocket& socket_;
+  // ISocket& socket_;
   std::uint16_t nextCmdId = 0;
 };
 

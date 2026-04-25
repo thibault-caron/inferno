@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "c1_test_helpers.hpp"
+#include "helpers_test.hpp"
 #include "client_session.hpp"
 
 // ─────────────────────────────────────────────────────────────

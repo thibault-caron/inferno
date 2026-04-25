@@ -8,9 +8,9 @@
 #include <thread>
 #include <vector>
 
-#include "c1_test_helpers.hpp"
 #include "client_session.hpp"
 #include "dispatcher.hpp"
+#include "helpers_test.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "socket/ISocket.hpp"
 #include "tcp_server.hpp"
@@ -156,23 +156,24 @@ TEST(ServerIntegration,
   ASSERT_NE(accepted, nullptr);
 
   ClientSession session(std::move(accepted));
-  Dispatcher dispatcher(*session.socket);
+  Dispatcher dispatcher;
 
   const std::optional<Frame> firstFrame = receiveOneFrame(session);
   ASSERT_TRUE(firstFrame.has_value());
   EXPECT_EQ(firstFrame->header.type, MessageType::REGISTER);
   EXPECT_FALSE(session.isRegistered());
 
-  dispatcher.dispatch(session, *firstFrame);
+  dispatcher.dispatch(session, firstFrame.value());
 
   EXPECT_TRUE(session.isRegistered());
-  EXPECT_EQ(session.getClientInfo().hostname, "worker-42");
+  std::string hostname = session.getClientInfo().hostname;
+  EXPECT_EQ(hostname, "worker-42");
 
   const std::optional<Frame> secondFrame = receiveOneFrame(session);
   ASSERT_TRUE(secondFrame.has_value());
   EXPECT_EQ(secondFrame->header.type, MessageType::RESPONSE);
 
-  dispatcher.dispatch(session, *secondFrame);
+  dispatcher.dispatch(session, secondFrame.value());
 
   clientThread.join();
 

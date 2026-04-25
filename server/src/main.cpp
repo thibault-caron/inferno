@@ -8,6 +8,7 @@
 #include "dispatcher.hpp"
 #include "socket/ISocket.hpp"
 #include "tcp_server.hpp"
+#include "exception/lptf_exception.hpp"
 
 SocketResult prealocate_ressources_for_buffer(ClientSession& client,
                                               std::size_t ressource_size) {
@@ -47,36 +48,52 @@ int main() {
             << client->remotePort() << '\n';
 
   clients.emplace(fd, ClientSession(std::move(client)));
-
+  std::vector<int> deconnectedClients;
+  Dispatcher dispatcher;
   while (true) {
-    for (auto it = clients.begin(); it != clients.end();) {
-      const int clientFd = it->first;
-      ClientSession& session = it->second;
-
+    // for (auto it = clients.begin(); it != clients.end();)
+    for (auto& [clientFd, session] : clients) {
       const SocketResult result =
           prealocate_ressources_for_buffer(session, 4096);
 
       if (result.error == SocketStatus::CONNECTION_RESET || !result.ok()) {
         std::cout << "Client " << clientFd << " disconnected\n";
-        it = clients.erase(it);
+        deconnectedClients.push_back(clientFd);
         continue;
       }
 
       while (std::optional<Frame> frame = session.tryExtractFrame()) {
-        Dispatcher dispatcher(*session.socket);
+        // Dispatcher dispatcher(session.socket);
 
-        if (!session.isRegistered()) {
-          if (frame->header.type != MessageType::REGISTER) {
-            dispatcher.sendError(ErrorType::INVALID_FORMAT,
-                                 "First message must be REGISTER");
-            continue;
-          }
+        if (!session.isRegistered() &&
+            frame->header.type != MessageType::REGISTER) {
+          dispatcher.sendError(session, ErrorType::INVALID_FORMAT,
+                               "First message must be REGISTER");
+          continue;
         }
 
-        dispatcher.dispatch(session, *frame);
+        // if (!session.isRegistered()) {
+        //   if (frame->header.type != MessageType::REGISTER) {
+        //     dispatcher.sendError(ErrorType::INVALID_FORMAT,
+        //                          "First message must be REGISTER");
+        //     continue;
+        //   }
+        // }
+
+        // is this check necesary ? Does the loop do it for us ?
+        if (!frame.has_value()) {
+          // here what kind of error we throw and what we do ?
+          throw InfernoException("frame has no value", 0);
+        }
+
+        dispatcher.dispatch(session, frame.value());
       }
 
-      ++it;
+      // ++it;
+    }
+
+    for (int clientFd : deconnectedClients) {
+      clients.erase(clientFd);
     }
   }
 

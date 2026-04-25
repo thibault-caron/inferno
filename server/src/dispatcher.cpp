@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-Dispatcher::Dispatcher(ISocket& socket) : socket_(socket) {}
+Dispatcher::Dispatcher() {}
 
 void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
   switch (frame.header.type) {
@@ -10,7 +10,7 @@ void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
       onRegister(client, frame.payload);
       break;
     case MessageType::RESPONSE:
-      onResponse(frame.payload);
+      onResponse(client, frame.payload);
       break;
     case MessageType::DATA:
       onData(frame.payload);
@@ -22,7 +22,7 @@ void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
       onError(frame.payload);
       break;
     default:
-      sendError(ErrorType::UNKNOWN_TYPE, "Unexpected message type");
+      sendError(client, ErrorType::UNKNOWN_TYPE, "Unexpected message type");
   }
 }
 
@@ -41,12 +41,12 @@ void Dispatcher::onRegister(ClientSession& client,
             << "  arch=" << static_cast<int>(clientInfo.arch) << "\n";
 
   // First command: ask the client for OS info.
-  sendCommand(CommandType::OS_INFO);
+  sendCommand(client, CommandType::OS_INFO);
 }
 
 // A RESPONSE carries the same id as the COMMAND it answers,
 // plus chunk metadata for large payloads split across messages.
-void Dispatcher::onResponse(const std::vector<std::uint8_t>& payload) {
+void Dispatcher::onResponse(ClientSession& client, const std::vector<std::uint8_t>& payload) {
   const auto rsp = ProtocolParser::parseResponsePayload(payload);
   std::cout << "[← RESPONSE] id=" << rsp.id
             << "  chunk=" << static_cast<int>(rsp.chunk_index) + 1 << "/"
@@ -56,7 +56,7 @@ void Dispatcher::onResponse(const std::vector<std::uint8_t>& payload) {
 
   // Only act once all chunks of this response have arrived.
   const bool lastChunk = rsp.chunk_index + 1 == rsp.total_chunks;
-  if (lastChunk) sendDisconnect();
+  if (lastChunk) sendDisconnect(client);
   // → To send more commands, push them here instead of disconnecting.
 }
 
@@ -78,32 +78,32 @@ void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
 
 // ── Outgoing senders ─────────────────────────────────────────
 
-void Dispatcher::sendCommand(CommandType type, const std::string& data) {
+void Dispatcher::sendCommand(ClientSession& client, CommandType type, const std::string& data) {
   CommandPayload cmd;
   cmd.id = nextId();
   cmd.type = type;
   cmd.data = data;
   const auto payload = ProtocolSerializer::serializeCommandPayload(cmd);
-  sendRaw(MessageType::COMMAND, payload);
+  sendRaw(client, MessageType::COMMAND, payload);
   std::cout << "[→ COMMAND] id=" << cmd.id
             << "  type=" << static_cast<int>(cmd.type) << "\n";
 }
 
-void Dispatcher::sendError(ErrorType code, const std::string& msg) {
+void Dispatcher::sendError(ClientSession& client, ErrorType code, const std::string& msg) {
   ErrorPayload err;
   err.code = code;
   err.message = msg;
   const auto payload = ProtocolSerializer::serializeErrorPayload(err);
-  sendRaw(MessageType::ERROR, payload);
+  sendRaw(client, MessageType::ERROR, payload);
 }
 
-void Dispatcher::sendDisconnect() {
-  sendRaw(MessageType::DISCONNECT);
+void Dispatcher::sendDisconnect(ClientSession& client) {
+  sendRaw(client, MessageType::DISCONNECT);
   std::cout << "[→ DISCONNECT]\n";
   //   running = false;
 }
 
-void Dispatcher::sendRaw(MessageType type,
+void Dispatcher::sendRaw(ClientSession& client, MessageType type,
                          const std::vector<std::uint8_t>& payload) {
   if (payload.size() > MAX_VALUE_INT16) {
     throw std::runtime_error("payload too large for LPTF header size field");
@@ -116,7 +116,7 @@ void Dispatcher::sendRaw(MessageType type,
 
   const auto headerBytes = ProtocolSerializer::serializeHeader(header);
   const std::size_t expectedHeaderBytes = headerBytes.size();
-  const SocketResult headerResult = socket_.send(headerBytes);
+  const SocketResult headerResult = client.socket->send(headerBytes);
   if (!headerResult.ok() ||
       static_cast<std::size_t>(headerResult.bytesTransferred) !=
           expectedHeaderBytes) {
@@ -125,7 +125,7 @@ void Dispatcher::sendRaw(MessageType type,
 
   if (!payload.empty()) {
     const std::size_t expectedPayloadBytes = payload.size();
-    const SocketResult payloadResult = socket_.send(payload);
+    const SocketResult payloadResult = client.socket->send(payload);
     if (!payloadResult.ok() ||
         static_cast<std::size_t>(payloadResult.bytesTransferred) !=
             expectedPayloadBytes) {

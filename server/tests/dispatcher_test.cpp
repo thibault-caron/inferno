@@ -1,10 +1,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "c1_test_helpers.hpp"
+#include "helpers_test.hpp"
 #include "client_session.hpp"
 #include "dispatcher.hpp"
 #include "mock_socket.hpp"
+#include "convert_endian.hpp"
 
 namespace {
 
@@ -16,11 +17,6 @@ auto CaptureSentBytes(std::vector<std::uint8_t>& destination) {
     destination.assign(data, data + byteCount);
     return SocketResult{static_cast<int>(byteCount), SocketStatus::OK};
   };
-}
-
-// The COMMAND payload starts with a big-endian 16-bit command id.
-std::uint16_t ReadBigEndianUint16(const std::uint8_t* data) {
-  return static_cast<std::uint16_t>((data[0] << 8) | data[1]);
 }
 
 }  // namespace
@@ -46,11 +42,11 @@ class DispatcherTest : public ::testing::Test {
   // Constructs a Frame from a MessageType and a serialized payload.
   static Frame makeFrame(MessageType type,
                          const std::vector<std::uint8_t>& payload = {}) {
-    LptfHeader hdr{{'L', 'P', 'T', 'F'},
+    LptfHeader header{{'L', 'P', 'T', 'F'},
                    LPTF_VERSION,
                    type,
                    static_cast<std::uint16_t>(payload.size())};
-    return Frame{hdr, payload};
+    return Frame{header, payload};
   }
 
   std::unique_ptr<MockSocket> transmitSocket;
@@ -62,7 +58,7 @@ class DispatcherTest : public ::testing::Test {
 
 TEST_F(DispatcherTest,
        should_store_hostname_in_client_session_when_register_is_received) {
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
 
   dispatcher.dispatch(
@@ -75,7 +71,7 @@ TEST_F(DispatcherTest,
 TEST_F(
     DispatcherTest,
     should_store_os_type_and_arch_in_client_session_when_register_is_received) {
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
 
   dispatcher.dispatch(
@@ -99,7 +95,7 @@ TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
         .WillOnce(ReturnAllBytes());
   }
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
                                                makeRegisterPayload("h")));
@@ -119,7 +115,7 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
         .WillOnce(CaptureSentBytes(capturedCommandPayload));
   }
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
                                                makeRegisterPayload("h")));
@@ -135,7 +131,7 @@ TEST_F(DispatcherTest,
   EXPECT_CALL(*transmitSocket, send(_, _))
       .WillOnce(Return(SocketResult{LPTF_HEADER_SIZE - 1, SocketStatus::OK}));
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
 
   EXPECT_THROW(
@@ -156,7 +152,7 @@ TEST_F(DispatcherTest,
         .WillOnce(Return(SocketResult{1, SocketStatus::OK}));
   }
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
 
   EXPECT_THROW(
@@ -174,7 +170,7 @@ TEST_F(DispatcherTest,
   // chunk_index=0, total_chunks=3 → not the last chunk, so no send expected.
   EXPECT_CALL(*transmitSocket, send(_, _)).Times(0);
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(clientSession,
                       makeFrame(MessageType::RESPONSE,
@@ -186,7 +182,7 @@ TEST_F(DispatcherTest,
   // chunk_index=1, total_chunks=3 → middle chunk: no send expected.
   EXPECT_CALL(*transmitSocket, send(_, _)).Times(0);
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(
       clientSession,
@@ -201,7 +197,7 @@ TEST_F(DispatcherTest,
   // DISCONNECT has no payload.
   EXPECT_CALL(*transmitSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   // chunk_index=2, total_chunks=3 → last chunk
   dispatcher.dispatch(
@@ -220,7 +216,7 @@ TEST_F(DispatcherTest,
       .WillOnce(CaptureSentBytes(capturedHeader));
   EXPECT_CALL(*transmitSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   // total_chunks=1, chunk_index=0 → only chunk = last chunk
   dispatcher.dispatch(
@@ -251,7 +247,7 @@ TEST_F(DispatcherTest,
         .WillOnce(ReturnAllBytes());
   }
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(clientSession, makeFrame(MessageType::DISCONNECT));
 
@@ -273,7 +269,7 @@ TEST_F(DispatcherTest,
         .WillOnce(ReturnAllBytes());
   }
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   ClientSession clientSession(nullptr);
   dispatcher.dispatch(clientSession, makeFrame(MessageType::COMMAND));
 
@@ -299,12 +295,13 @@ TEST_F(DispatcherTest,
         // Even calls are COMMAND payloads; id is in the first 2 bytes
         // (big-endian). Structure: [id_hi][id_lo][type]...
         if (sendCallCount % 2 == 0 && byteCount >= 2) {
-          sentCommandIds.push_back(ReadBigEndianUint16(data));
+          std::vector<std::uint8_t> dataVector(data, data + byteCount);
+          sentCommandIds.push_back(ConvertEndian::readU16BE(dataVector, 0));
         }
         return SocketResult{static_cast<int>(byteCount), SocketStatus::OK};
       });
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   for (int i = 0; i < 3; ++i) {
     ClientSession clientSession(nullptr);
     dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
@@ -322,7 +319,7 @@ TEST_F(DispatcherTest, should_wrap_command_id_to_zero_after_uint16_max) {
   // behavior (unsigned overflow). This test documents that we don't crash
   // and that the id wraps correctly.
 
-  Dispatcher dispatcher(*transmitSocket);
+  Dispatcher dispatcher;
   // Consume the whole uint16_t interval with nextId()
   for (int i = 0; i <= 65535; ++i) {
     (void)dispatcher.nextId();

@@ -22,8 +22,16 @@ class ClientSession {
   bool isValid() const { return socket && socket->isValid(); }
   std::unique_ptr<ISocket> socket;
   std::vector<std::uint8_t> buffer;
-  const RegisterPayload& getClientInfo() const { return clientInfo; }
-  void setClientInfo(const RegisterPayload& info) { clientInfo = info; }
+  const RegisterPayload& getClientInfo() const {
+    if (!isRegistered_) {
+      throw std::runtime_error("Client not registered");
+    }
+    return clientInfo;
+    }
+  void setClientInfo(const RegisterPayload& info) {
+    clientInfo = info;
+    isRegistered_ = true;
+  }
 
   bool isRegistered() const { return isRegistered_; }
   void setRegistered(bool registered) { isRegistered_ = registered; }
