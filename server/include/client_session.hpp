@@ -1,8 +1,10 @@
 #ifndef CLIENT_SESSION_HPP
 #define CLIENT_SESSION_HPP
 
+#include <cstddef>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 #include "protocol/lptf_protocol.hpp"
@@ -11,8 +13,10 @@
 
 class ClientSession {
  public:
+  ClientSession() = default;
   explicit ClientSession(std::unique_ptr<ISocket> sock)
       : socket(std::move(sock)) {}
+  ClientSession(std::nullptr_t) = delete;
 
   ClientSession(const ClientSession&) = delete;
   ClientSession& operator=(const ClientSession&) = delete;
@@ -27,7 +31,7 @@ class ClientSession {
       throw std::runtime_error("Client not registered");
     }
     return clientInfo;
-    }
+  }
   void setClientInfo(const RegisterPayload& info) {
     clientInfo = info;
     isRegistered_ = true;

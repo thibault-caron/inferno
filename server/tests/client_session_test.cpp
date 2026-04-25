@@ -1,7 +1,8 @@
+#include "client_session.hpp"
+
 #include <gtest/gtest.h>
 
 #include "helpers_test.hpp"
-#include "client_session.hpp"
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -19,13 +20,13 @@ static void feed(ClientSession& clientSession,
 // ─────────────────────────────────────────────────────────────
 
 TEST(ClientSessionBuffer, should_return_nullopt_when_buffer_is_empty) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   EXPECT_FALSE(clientSession.tryExtractFrame().has_value());
 }
 
 TEST(ClientSessionFrameExtraction,
      should_return_nullopt_and_leave_buffer_intact_when_header_is_incomplete) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   // 7 bytes - missing the low byte of the size field
   const std::vector<std::uint8_t> partial(
       {'L', 'P', 'T', 'F', LPTF_VERSION,
@@ -39,7 +40,7 @@ TEST(ClientSessionFrameExtraction,
 
 TEST(ClientSessionBuffer,
      should_return_nullopt_when_header_is_complete_but_payload_is_partial) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   // Header declares a 4-byte payload; only 2 bytes of it arrive.
   auto frame = makeRawFrame(MessageType::REGISTER, {0x01, 0x02, 0x03, 0x04});
   const std::size_t partial = LPTF_HEADER_SIZE + 2;  // header + 2/4 bytes
@@ -53,7 +54,7 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionBuffer,
      should_extract_frame_when_complete_frame_arrives_at_once) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload = makeRegisterPayload("server42");
   feed(clientSession, makeRawFrame(MessageType::REGISTER, payload));
 
@@ -65,7 +66,7 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionBuffer,
      should_extract_frame_with_zero_payload_when_disconnect_arrives) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   feed(clientSession, makeRawFrame(MessageType::DISCONNECT));
 
   const auto frame = clientSession.tryExtractFrame();
@@ -81,20 +82,20 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionFrameExtraction,
      should_return_payload_bytes_identical_to_what_was_sent) {
-  ClientSession cs(nullptr);
+  ClientSession clientSession;
   // Bytes distincts pour détecter toute corruption ou décalage
   const std::vector<std::uint8_t> payload = {0x00, 0x01, 0x7F, 0x80,
                                              0xFF, 0xAB, 0xCD, 0xEF};
-  feed(cs, makeRawFrame(MessageType::DATA, payload));
+  feed(clientSession, makeRawFrame(MessageType::DATA, payload));
 
-  const auto frame = cs.tryExtractFrame();
+  const auto frame = clientSession.tryExtractFrame();
   ASSERT_TRUE(frame.has_value());
   EXPECT_EQ(frame->payload, payload);
 }
 
 TEST(ClientSessionBuffer,
      should_consume_header_and_payload_bytes_after_extraction) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload = makeRegisterPayload("host");
   const auto raw = makeRawFrame(MessageType::REGISTER, payload);
   feed(clientSession, raw);
@@ -108,7 +109,7 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionBuffer,
      should_leave_trailing_bytes_intact_after_extracting_first_frame) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   // Two frames concatenated — second is partial (only its header)
   const auto frame1 = makeRawFrame(MessageType::DISCONNECT);
   const auto frame2 =
@@ -136,7 +137,7 @@ TEST(ClientSessionBuffer,
 TEST(
     ClientSessionReassembly,
     should_return_nullopt_for_every_byte_until_the_last_one_completes_the_frame) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload = makeRegisterPayload("fragmented-host");
   const auto rawFrame = makeRawFrame(MessageType::REGISTER, payload);
 
@@ -154,7 +155,7 @@ TEST(
 TEST(
     ClientSessionBuffer,
     should_extract_frame_when_header_and_payload_arrive_in_separate_recv_calls) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload = makeRegisterPayload("split");
   const auto rawFrame = makeRawFrame(MessageType::REGISTER, payload);
 
@@ -177,7 +178,7 @@ TEST(
 // extract both frames without losing or corrupting data
 TEST(ClientSessionConsecutiveFrames,
      should_extract_first_frame_and_leave_second_frame_header_in_state) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload2 = makeRegisterPayload("second");
   const auto rawFrame2 = makeRawFrame(MessageType::REGISTER, payload2);
 
@@ -197,7 +198,7 @@ TEST(ClientSessionConsecutiveFrames,
 
 TEST(ClientSessionBuffer,
      should_extract_two_consecutive_frames_without_data_loss) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload1 = makeRegisterPayload("host1");
   const auto payload2 = makeResponsePayload(0, "result");
 
@@ -220,7 +221,7 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionBuffer,
      should_extract_second_frame_only_after_it_becomes_complete) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload2 = makeRegisterPayload("late");
   const auto raw2 = makeRawFrame(MessageType::REGISTER, payload2);
 
@@ -245,7 +246,7 @@ TEST(ClientSessionBuffer,
 
 TEST(ClientSessionHeaderDecoding,
      should_decode_header_version_and_size_correctly) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   const auto payload = std::vector<std::uint8_t>(42, 0xAB);
   feed(clientSession, makeRawFrame(MessageType::COMMAND, payload));
 
@@ -258,7 +259,7 @@ TEST(ClientSessionHeaderDecoding,
 
 TEST(ClientSessionHeaderDecoding,
      should_decode_big_endian_16bit_size_field_correctly) {
-  ClientSession clientSession(nullptr);
+  ClientSession clientSession;
   // size = 0x01FF = 511 bytes
   const auto payload = std::vector<std::uint8_t>(511, 0x00);
   feed(clientSession, makeRawFrame(MessageType::DATA, payload));
