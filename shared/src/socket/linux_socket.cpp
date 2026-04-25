@@ -45,9 +45,9 @@ bool LinuxSocket::connect(const std::string& host, uint16_t port) {
   hints.ai_socktype = SOCK_STREAM;
 
   addrinfo* result = nullptr;
-  std::string portStr = std::to_string(port);
+  std::string portString = std::to_string(port);
 
-  int hostnameResolutionStatus = ::getaddrinfo(host.c_str(), portStr.c_str(), &hints, &result);
+  int hostnameResolutionStatus = ::getaddrinfo(host.c_str(), portString.c_str(), &hints, &result);
   if (hostnameResolutionStatus != 0) return false;
 
   bool connected = false;
@@ -87,20 +87,20 @@ std::unique_ptr<ISocket> LinuxSocket::accept() {
   return std::make_unique<LinuxSocket>(clientFd);
 }
 
-SocketResult LinuxSocket::send(const uint8_t* data, size_t len) {
+SocketResult LinuxSocket::send(const uint8_t* data, size_t length) {
   // MSG_NOSIGNAL: don't raise SIGPIPE if the peer closed the connection.
   // Without this, a broken pipe kills your process silently on Linux.
   ssize_t sent = ::send(socketFileDescriptor, static_cast<const void*>(data),
-                        len, MSG_NOSIGNAL);
+                        length, MSG_NOSIGNAL);
   if (sent == -1) {
     return {-1, translateStatus(errno)};
   }
   return {static_cast<int>(sent), SocketStatus::OK};
 }
 
-SocketResult LinuxSocket::recv(uint8_t* data, size_t len) {
+SocketResult LinuxSocket::recv(uint8_t* data, size_t length) {
   ssize_t received =
-      ::recv(socketFileDescriptor, static_cast<void*>(data), len, 0);
+      ::recv(socketFileDescriptor, static_cast<void*>(data), length, 0);
   if (received == -1) {
     return {-1, translateStatus(errno)};
   }
@@ -129,23 +129,23 @@ bool LinuxSocket::setNonBlocking(bool on) {
 bool LinuxSocket::isValid() const { return socketFileDescriptor != -1; }
 
 std::string LinuxSocket::remoteAddress() const {
-  sockaddr_in addr{};
-  socklen_t len = sizeof(addr);
-  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&addr),
-                    &len) == -1)
+  sockaddr_in address{};
+  socklen_t length = sizeof(address);
+  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&address),
+                    &length) == -1)
     return "";
-  char buf[INET_ADDRSTRLEN];
-  ::inet_ntop(AF_INET, &addr.sin_addr, buf, sizeof(buf));
-  return buf;
+  char buffer[INET_ADDRSTRLEN];
+  ::inet_ntop(AF_INET, &address.sin_addr, buffer, sizeof(buffer));
+  return buffer;
 }
 
 uint16_t LinuxSocket::remotePort() const {
-  sockaddr_in addr{};
-  socklen_t len = sizeof(addr);
-  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&addr),
-                    &len) == -1)
+  sockaddr_in address{};
+  socklen_t length = sizeof(address);
+  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&address),
+                    &length) == -1)
     return 0;
-  return ntohs(addr.sin_port);
+  return ntohs(address.sin_port);
 }
 
 SocketStatus LinuxSocket::translateStatus(int err) {

@@ -136,7 +136,7 @@ This wipes all build caches and starts from scratch. Images are kept — you don
 
 ## Project structure (quick reference)
 
-```
+```text
 INFERNO/
 ├── agent/          → agent source code (runs as daemon on the target host)
 │   ├── include/    → .hpp headers
