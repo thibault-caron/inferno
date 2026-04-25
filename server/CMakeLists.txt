@@ -25,7 +25,6 @@ endif()
 
 # ── Server library (all logic, no main) ──────────────────────────────────────
 add_library(server_lib STATIC
-    src/main.cpp
     src/tcp_server.cpp
     src/client_session.cpp 
     src/dispatcher.cpp
@@ -64,6 +63,10 @@ add_executable(server_tests
     tests/c1/tcp_server_socket_test.cpp
     tests/c1/tcp_server_buffer_test.cpp
     tests/c1/tcp_server_output_test.cpp
+    tests/c1/test_client_session.cpp
+    tests/c1/test_dispatcher.cpp
+    tests/c1/test_tcp_server.cpp
+    tests/c1/test_server_flow.cpp
     # tests/test_command_dispatcher.cpp
 )
 
