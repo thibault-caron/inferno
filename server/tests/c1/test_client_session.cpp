@@ -26,7 +26,7 @@ TEST(ClientSessionBuffer, should_return_nullopt_when_buffer_is_empty) {
 TEST(ClientSessionFrameExtraction,
      should_return_nullopt_and_leave_buffer_intact_when_header_is_incomplete) {
   ClientSession clientSession(nullptr);
-  // 7 bytes header
+  // 7 bytes - missing the low byte of the size field
   const std::vector<std::uint8_t> partial(
       {'L', 'P', 'T', 'F', LPTF_VERSION,
        static_cast<std::uint8_t>(MessageType::DISCONNECT), 0x00});
