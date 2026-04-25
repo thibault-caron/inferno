@@ -59,7 +59,9 @@ class DispatcherTest : public ::testing::Test {
 TEST_F(DispatcherTest,
        should_store_hostname_in_client_session_when_register_is_received) {
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  // std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  transmitSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(transmitSocket));
 
   dispatcher.dispatch(
       clientSession,
@@ -72,7 +74,8 @@ TEST_F(
     DispatcherTest,
     should_store_os_type_and_arch_in_client_session_when_register_is_received) {
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));
 
   dispatcher.dispatch(
       clientSession,
@@ -96,7 +99,8 @@ TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
   }
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));
   dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
                                                makeRegisterPayload("h")));
 
@@ -116,7 +120,8 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
   }
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
                                                makeRegisterPayload("h")));
 
@@ -132,7 +137,8 @@ TEST_F(DispatcherTest,
       .WillOnce(Return(SocketResult{LPTF_HEADER_SIZE - 1, SocketStatus::OK}));
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
 
   EXPECT_THROW(
       dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
@@ -153,7 +159,8 @@ TEST_F(DispatcherTest,
   }
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
 
   EXPECT_THROW(
       dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
@@ -171,7 +178,8 @@ TEST_F(DispatcherTest,
   EXPECT_CALL(*transmitSocket, send(_, _)).Times(0);
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   dispatcher.dispatch(clientSession,
                       makeFrame(MessageType::RESPONSE,
                                 makeResponsePayload(0, "partial", 3, 0)));
@@ -183,7 +191,8 @@ TEST_F(DispatcherTest,
   EXPECT_CALL(*transmitSocket, send(_, _)).Times(0);
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   dispatcher.dispatch(
       clientSession,
       makeFrame(MessageType::RESPONSE, makeResponsePayload(0, "middle", 3, 1)));
@@ -198,7 +207,8 @@ TEST_F(DispatcherTest,
   EXPECT_CALL(*transmitSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   // chunk_index=2, total_chunks=3 → last chunk
   dispatcher.dispatch(
       clientSession,
@@ -217,7 +227,8 @@ TEST_F(DispatcherTest,
   EXPECT_CALL(*transmitSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   // total_chunks=1, chunk_index=0 → only chunk = last chunk
   dispatcher.dispatch(
       clientSession,
@@ -248,7 +259,8 @@ TEST_F(DispatcherTest,
   }
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   dispatcher.dispatch(clientSession, makeFrame(MessageType::DISCONNECT));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
@@ -270,7 +282,8 @@ TEST_F(DispatcherTest,
   }
 
   Dispatcher dispatcher;
-  ClientSession clientSession(nullptr);
+  std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+  ClientSession clientSession(std::move(clientSocket));;
   dispatcher.dispatch(clientSession, makeFrame(MessageType::COMMAND));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
@@ -303,7 +316,8 @@ TEST_F(DispatcherTest,
 
   Dispatcher dispatcher;
   for (int i = 0; i < 3; ++i) {
-    ClientSession clientSession(nullptr);
+    std::unique_ptr<ISocket> clientSocket = std::make_unique<MockSocket>();
+    ClientSession clientSession(std::move(clientSocket));;
     dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
                                                  makeRegisterPayload("h")));
   }
