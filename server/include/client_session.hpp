@@ -22,14 +22,18 @@ class ClientSession {
   bool isValid() const { return socket && socket->isValid(); }
   std::unique_ptr<ISocket> socket;
   std::vector<std::uint8_t> buffer;
-  RegisterPayload getClientInfo() { return clientInfo; };
-  void setClientInfo(RegisterPayload& info) { clientInfo = info; };
+  const RegisterPayload& getClientInfo() const { return clientInfo; }
+  void setClientInfo(const RegisterPayload& info) { clientInfo = info; }
+
+  bool isRegistered() const { return isRegistered_; }
+  void setRegistered(bool registered) { isRegistered_ = registered; }
 
  private:
   std::optional<LptfHeader> header;
   void consume(std::size_t n);
   std::vector<std::uint8_t> slice(std::size_t offset, std::size_t len) const;
   RegisterPayload clientInfo;
+  bool isRegistered_ = false;
 };
 
 #endif

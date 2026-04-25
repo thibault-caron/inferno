@@ -10,6 +10,9 @@ TcpServer::TcpServer(const std::uint16_t port, const int backlog)
     : port_(port), backlog_(backlog) {}
 
 bool TcpServer::start() {
+  if (serverSocket_ && serverSocket_->isValid()) {
+    return false;
+  }
   serverSocket_ = SocketFactory::createTCP();
   if (!serverSocket_ || !serverSocket_->isValid()) {
     return false;

@@ -1,5 +1,9 @@
 #include "dispatcher.hpp"
 
+#include <stdexcept>
+
+Dispatcher::Dispatcher(ISocket& socket) : socket_(socket) {}
+
 void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
   switch (frame.header.type) {
     case MessageType::REGISTER:
@@ -12,7 +16,7 @@ void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
       onData(frame.payload);
       break;
     // case MessageType::DISCONNECT:
-    //   m_running = false;
+    //   running = false;
     //   break;
     case MessageType::ERROR:
       onError(frame.payload);
@@ -26,9 +30,11 @@ void Dispatcher::dispatch(ClientSession& client, const Frame& frame) {
 
 // The first message from the client must always be REGISTER.
 // Once we know who it is, we kick off the command sequence.
-void Dispatcher::onRegister(ClientSession& client,const std::vector<std::uint8_t>& payload) {
+void Dispatcher::onRegister(ClientSession& client,
+                            const std::vector<std::uint8_t>& payload) {
   RegisterPayload clientInfo = ProtocolParser::parseRegisterPayload(payload);
   client.setClientInfo(clientInfo);
+  client.setRegistered(true);
 
   std::cout << "[← REGISTER] hostname=" << clientInfo.hostname
             << "  os=" << static_cast<int>(clientInfo.os_type)
@@ -67,7 +73,7 @@ void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
   const auto err = ProtocolParser::parseErrorPayload(payload);
   std::cerr << "[← ERROR] code=" << static_cast<int>(err.code)
             << "  msg=" << err.message << "\n";
-//   m_running = false; 
+  //   running = false;
 }
 
 // ── Outgoing senders ─────────────────────────────────────────
@@ -94,7 +100,38 @@ void Dispatcher::sendError(ErrorType code, const std::string& msg) {
 void Dispatcher::sendDisconnect() {
   sendRaw(MessageType::DISCONNECT);
   std::cout << "[→ DISCONNECT]\n";
-//   m_running = false;
+  //   running = false;
 }
 
-// std::uint16_t Dispatcher::nextId() { return m_nextCmdId++; }
+void Dispatcher::sendRaw(MessageType type,
+                         const std::vector<std::uint8_t>& payload) {
+  if (payload.size() > MAX_VALUE_INT16) {
+    throw std::runtime_error("payload too large for LPTF header size field");
+  }
+
+  LptfHeader header{{'L', 'P', 'T', 'F'},
+                    LPTF_VERSION,
+                    type,
+                    static_cast<std::uint16_t>(payload.size())};
+
+  const auto headerBytes = ProtocolSerializer::serializeHeader(header);
+  const std::size_t expectedHeaderBytes = headerBytes.size();
+  const SocketResult headerResult = socket_.send(headerBytes);
+  if (!headerResult.ok() ||
+      static_cast<std::size_t>(headerResult.bytesTransferred) !=
+          expectedHeaderBytes) {
+    throw std::runtime_error("failed to send LPTF header");
+  }
+
+  if (!payload.empty()) {
+    const std::size_t expectedPayloadBytes = payload.size();
+    const SocketResult payloadResult = socket_.send(payload);
+    if (!payloadResult.ok() ||
+        static_cast<std::size_t>(payloadResult.bytesTransferred) !=
+            expectedPayloadBytes) {
+      throw std::runtime_error("failed to send LPTF payload");
+    }
+  }
+}
+
+std::uint16_t Dispatcher::nextId() { return nextCmdId++; }
