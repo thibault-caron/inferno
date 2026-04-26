@@ -3,6 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <functional>
+
 #include "client_session.hpp"
 #include "convert_endian.hpp"
 #include "helpers_test.hpp"
@@ -12,7 +14,8 @@ namespace {
 
 // Captures all bytes sent in a mocked send() call and returns a successful
 // "all bytes sent" socket result.
-auto CaptureSentBytes(std::vector<std::uint8_t>& destination) {
+std::function<SocketResult(const std::uint8_t*, std::size_t)> CaptureSentBytes(
+    std::vector<std::uint8_t>& destination) {
   return [&destination](const std::uint8_t* data,
                         std::size_t byteCount) -> SocketResult {
     destination.assign(data, data + byteCount);
@@ -31,13 +34,16 @@ using ::testing::Gt;       // Gt(n) = argument greater than n
 using ::testing::InSequence;  // InSequence s; EXPECT_CALL(...)...;
                               // EXPECT_CALL(...)...; → these calls must happen
                               // in this order.
-using ::testing::Ne;      // Ne(value) = argument not equal to value
+using ::testing::Ne;          // Ne(value) = argument not equal to value
 using ::testing::Return;  // Return(value) = return value from a mocked method
                           // when called with matching arguments.
 
 // ── Fixture ──────────────────────────────────────────────────
 class DispatcherTest : public ::testing::Test {
  protected:
+  using MockedClientSession =
+      std::pair<ClientSession, std::reference_wrapper<MockSocket>>;
+
   // Constructs a Frame from a MessageType and a serialized payload.
   static Frame makeFrame(MessageType type,
                          const std::vector<std::uint8_t>& payload = {}) {
@@ -49,18 +55,18 @@ class DispatcherTest : public ::testing::Test {
   }
 
   // Helper to create a ClientSession with a MockSocket that we can set
-  // expectations on. Returns a pair: (session, mockSocketPtr).
-  // The mock is owned by ClientSession but we hold a raw pointer for testing.
-  static std::pair<ClientSession, MockSocket*> makeClientSessionWithMock() {
-    auto mock = std::make_unique<MockSocket>();
-    auto* mockPtr = mock.get();
+  // expectations on. Returns a pair: (session, mockSocketRef).
+  // The mock is owned by ClientSession and exposed as a reference for testing.
+  static MockedClientSession makeClientSessionWithMock() {
+    std::unique_ptr<MockSocket> mock = std::make_unique<MockSocket>();
+    MockSocket& mockRef = *mock;
     ClientSession session(std::move(mock));
 
     // Set default expectations (can be overridden in tests)
-    ON_CALL(*mockPtr, isValid()).WillByDefault(Return(true));
-    ON_CALL(*mockPtr, send(_, _)).WillByDefault(ReturnAllBytes());
+    ON_CALL(mockRef, isValid()).WillByDefault(Return(true));
+    ON_CALL(mockRef, send(_, _)).WillByDefault(ReturnAllBytes());
 
-    return {std::move(session), mockPtr};
+    return {std::move(session), std::ref(mockRef)};
   }
 };
 
@@ -101,9 +107,9 @@ TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
   {
     InSequence orderedSends;
-    EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+    EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
         .WillOnce(CaptureSentBytes(capturedHeader));
-    EXPECT_CALL(*mockSocket,
+    EXPECT_CALL(mockSocket.get(),
                 send(_, Gt(std::size_t{0})))  // payload of the command
         .WillOnce(ReturnAllBytes());
   }
@@ -122,9 +128,9 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
   {
     InSequence orderedSends;
-    EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+    EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
         .WillOnce(ReturnAllBytes());
-    EXPECT_CALL(*mockSocket, send(_, Gt(std::size_t{0})))
+    EXPECT_CALL(mockSocket.get(), send(_, Gt(std::size_t{0})))
         .WillOnce(CaptureSentBytes(capturedCommandPayload));
   }
 
@@ -141,7 +147,7 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
 TEST_F(DispatcherTest,
        should_throw_when_header_send_is_shorter_than_serialized_header) {
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
-  EXPECT_CALL(*mockSocket, send(_, _))
+  EXPECT_CALL(mockSocket.get(), send(_, _))
       .WillOnce(Return(SocketResult{LPTF_HEADER_SIZE - 1, SocketStatus::OK}));
 
   Dispatcher dispatcher;
@@ -157,11 +163,11 @@ TEST_F(DispatcherTest,
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
   {
     InSequence orderedSends;
-    EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+    EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
         .WillOnce([](const std::uint8_t*, std::size_t byteCount) {
           return SocketResult{static_cast<int>(byteCount), SocketStatus::OK};
         });
-    EXPECT_CALL(*mockSocket, send(_, Gt(std::size_t{0})))
+    EXPECT_CALL(mockSocket.get(), send(_, Gt(std::size_t{0})))
         .WillOnce(Return(SocketResult{1, SocketStatus::OK}));
   }
 
@@ -181,7 +187,7 @@ TEST_F(DispatcherTest,
        should_not_send_anything_when_response_chunk_is_not_the_last_one) {
   // chunk_index=0, total_chunks=3 → not the last chunk, so no send expected.
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
-  EXPECT_CALL(*mockSocket, send(_, _)).Times(0);
+  EXPECT_CALL(mockSocket.get(), send(_, _)).Times(0);
 
   Dispatcher dispatcher;
   dispatcher.dispatch(clientSession,
@@ -193,7 +199,7 @@ TEST_F(DispatcherTest,
        should_not_send_anything_when_intermediate_chunk_arrives) {
   // chunk_index=1, total_chunks=3 → middle chunk: no send expected.
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
-  EXPECT_CALL(*mockSocket, send(_, _)).Times(0);
+  EXPECT_CALL(mockSocket.get(), send(_, _)).Times(0);
 
   Dispatcher dispatcher;
   dispatcher.dispatch(
@@ -205,10 +211,10 @@ TEST_F(DispatcherTest,
        should_send_disconnect_when_last_response_chunk_is_received) {
   std::vector<std::uint8_t> capturedHeader;
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
-  EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+  EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
       .WillOnce(CaptureSentBytes(capturedHeader));
   // DISCONNECT has no payload.
-  EXPECT_CALL(*mockSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
+  EXPECT_CALL(mockSocket.get(), send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
   Dispatcher dispatcher;
   // chunk_index=2, total_chunks=3 → last chunk
@@ -225,9 +231,9 @@ TEST_F(DispatcherTest,
        should_send_disconnect_when_single_chunk_response_is_received) {
   std::vector<std::uint8_t> capturedHeader;
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
-  EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+  EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
       .WillOnce(CaptureSentBytes(capturedHeader));
-  EXPECT_CALL(*mockSocket, send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
+  EXPECT_CALL(mockSocket.get(), send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
 
   Dispatcher dispatcher;
   // total_chunks=1, chunk_index=0 → only chunk = last chunk
@@ -253,9 +259,9 @@ TEST_F(DispatcherTest,
   auto [clientSession, mockSocket] = makeClientSessionWithMock();
   {
     InSequence orderedSends;
-    EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+    EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
         .WillOnce(CaptureSentBytes(capturedHeader));
-    EXPECT_CALL(*mockSocket,
+    EXPECT_CALL(mockSocket.get(),
                 send(_, Gt(std::size_t{0})))  // payload of the error
         .WillOnce(ReturnAllBytes());
   }
@@ -276,9 +282,9 @@ TEST_F(DispatcherTest,
     // Sequence ensures the header send is checked before any payload
     // send for all EXPECT_CALLs in this block.
     InSequence orderedSends;
-    EXPECT_CALL(*mockSocket, send(_, LPTF_HEADER_SIZE))
+    EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
         .WillOnce(CaptureSentBytes(capturedHeader));
-    EXPECT_CALL(*mockSocket, send(_, Gt(std::size_t{0})))
+    EXPECT_CALL(mockSocket.get(), send(_, Gt(std::size_t{0})))
         .WillOnce(ReturnAllBytes());
   }
 
@@ -304,7 +310,7 @@ TEST_F(DispatcherTest,
     auto [clientSession, mockSocket] = makeClientSessionWithMock();
     int sendCallCount = 0;
 
-    EXPECT_CALL(*mockSocket, send(_, _))
+    EXPECT_CALL(mockSocket.get(), send(_, _))
         .Times(AtLeast(2))  // header + payload
         .WillRepeatedly([&](const std::uint8_t* data, std::size_t byteCount) {
           ++sendCallCount;

