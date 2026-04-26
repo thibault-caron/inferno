@@ -32,8 +32,7 @@ int main() {
   }
   std::cout << "Listening on port " << SERVER_PORT << '\n';
 
-  // std::unordered_map<int, ClientSession> clients;
-  std::unordered_map<int, std::unique_ptr<ClientSession>> clients;
+  std::unordered_map<int, ClientSession> clients;
 
   // Accept the first client for now; the loop below is ready for more clients
   // once accept() becomes part of a non-blocking poll/select/epoll flow.
@@ -48,29 +47,24 @@ int main() {
   std::cout << "Client connected: " << client->remoteAddress() << ':'
             << client->remotePort() << '\n';
 
-  clients.emplace(fd, std::make_unique<ClientSession>(std::move(client)));
+  // clients.emplace(fd, std::make_unique<ClientSession>(std::move(client)));
+  clients.emplace(fd, ClientSession(std::move(client)));
   std::vector<int> disconnectedClients;
   Dispatcher dispatcher;
 
   bool running = true;
   // set running = false on SIGINT via signal handler
 
-  while (running && !clients.empty()) {
-    // for (auto& [clientFd, session] : clients)  =
-    // for (auto it = clients.begin(); it != clients.end();)
-    //   for (std::unordered_map<int, ClientSession>::value_type& clientEntry :
-    //    clients) {
-    // const int clientFd = clientEntry.first;
-    // ClientSession& session = clientEntry.second;
-    for (auto& [clientFd, sessionPtr] : clients) {
-      if (!sessionPtr) {
-        disconnectedClients.push_back(clientFd);
-        continue;
-      }
+  while (running) {
+    for (auto& [clientFd, clientSession] : clients) {
+      // if (!clientSession) {
+      //   disconnectedClients.push_back(clientFd);
+      //   continue;
+      // }
 
-      ClientSession& session = *sessionPtr;
+      // ClientSession& session = *sessionPtr;
       const SocketResult result =
-          prealocate_ressources_for_buffer(session, 4096);
+          prealocate_ressources_for_buffer(clientSession, 4096);
 
       if (result.error == SocketStatus::CONNECTION_RESET || !result.ok()) {
         std::cout << "Client " << clientFd << " disconnected\n";
@@ -78,35 +72,18 @@ int main() {
         continue;
       }
 
-      while (std::optional<Frame> frame = session.tryExtractFrame()) {
+      while (std::optional<Frame> frame = clientSession.tryExtractFrame()) {
         // Dispatcher dispatcher(session.socket);
 
-        if (!session.isRegistered() &&
+        if (!clientSession.isRegistered() &&
             frame->header.type != MessageType::REGISTER) {
-          dispatcher.sendError(session, ErrorType::INVALID_FORMAT,
+          dispatcher.sendError(clientSession, ErrorType::INVALID_FORMAT,
                                "First message must be REGISTER");
           continue;
         }
 
-        // if (!session.isRegistered()) {
-        //   if (frame->header.type != MessageType::REGISTER) {
-        //     dispatcher.sendError(ErrorType::INVALID_FORMAT,
-        //                          "First message must be REGISTER");
-        //     continue;
-        //   }
-        // }
-
-        // redundant: while (std::optional<Frame> frame = session.tryExtractFrame())
-        //  -> only enter when frame has value
-        if (!frame.has_value()) {
-          // here what kind of error we throw and what we do ?
-          throw InfernoException("frame has no value", 0);
-        }
-
-        dispatcher.dispatch(session, frame.value());
+        dispatcher.dispatch(clientSession, frame.value());
       }
-
-      // ++it;
     }
 
     for (int clientFd : disconnectedClients) {
