@@ -2,12 +2,12 @@
 
 ## 1. Overview
 
-LPTF is a custom binary client-server protocol:
+LPTF is a custom binary agent-server protocol:
 
-- Client connects and registers itself.
+- Agent connects and registers itself.
 - Server sends COMMANDS.
-- Client executes commands and sends RESPONSES (possibly chunked).
-- Client may send unsolicited DATA.
+- Agent executes commands and sends RESPONSES (possibly chunked).
+- Agent may send unsolicited DATA.
 - TCP sockets are used as the transport.
 
 The protocol is designed to be:
@@ -44,10 +44,10 @@ Payload immediately follows the header.
 
 | Value | Name       | Description                  |
 | ----- | ---------- | ---------------------------- |
-| 0     | REGISTER   | Client → Server registration |
-| 1     | DATA       | Unsolicited client data      |
-| 2     | COMMAND    | Server → Client instruction  |
-| 3     | RESPONSE   | Client → Server result       |
+| 0     | REGISTER   | Agent → Server registration |
+| 1     | DATA       | Unsolicited agent data      |
+| 2     | COMMAND    | Server → Agent instruction  |
+| 3     | RESPONSE   | Agent → Server result       |
 | 4     | DISCONNECT | Close connection             |
 | 5     | ERROR      | Error reporting              |
 
@@ -55,7 +55,7 @@ Payload immediately follows the header.
 
 ### 4.1 REGISTER
 
-Client sends REGISTER immediately after connecting.
+Agent sends REGISTER immediately after connecting.
 
 ```c++
 struct RegisterPayload {
@@ -96,7 +96,7 @@ struct CommandPayload {
 
 ### 4.3 RESPONSE
 
-Client sends RESPONSE after executing a command. Supports chunking:
+Agent sends RESPONSE after executing a command. Supports chunking:
 
 ```c++
 struct ResponsePayload {
@@ -120,7 +120,7 @@ struct ResponsePayload {
 
 ### 4.4 DATA
 
-For unsolicited client data:
+For unsolicited agent data:
 
 ```c++
 struct DataPayload {
@@ -154,7 +154,7 @@ struct ErrorPayload {
 
 - No payload
 - Server may force disconnect
-- Client must:
+- Agent must:
   - Close socket
   - Optionally reconnect
 
@@ -178,18 +178,18 @@ Important: bytes from different messages never interleave, but a single message 
 
 ## 6. Versioning
 
-- Client version < protocol version → reject
-- Client version > protocol version → accept (backward-compatible)
+- Agent version < protocol version → reject
+- Agent version > protocol version → accept (backward-compatible)
 - Always check version in REGISTER
 
 ## 7. Limits & Timeouts
 
 - Max payload = 65535 bytes (chunking for larger data)
-- Optional: limit number of concurrent clients
+- Optional: limit number of concurrent agents
 
 ### Optional constraints
 
-- Limit number of concurrent clients
+- Limit number of concurrent agents
 - Disconnect if message incomplete after timeout
 
 ## 8. Notes

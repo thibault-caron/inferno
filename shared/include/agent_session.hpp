@@ -1,5 +1,5 @@
-#ifndef CLIENT_SESSION_HPP
-#define CLIENT_SESSION_HPP
+#ifndef AGENT_SESSION_HPP
+#define AGENT_SESSION_HPP
 
 #include <cstddef>
 #include <memory>
@@ -11,29 +11,32 @@
 #include "protocol/protocol_parser.hpp"
 #include "socket/ISocket.hpp"
 
-class ClientSession {
+class AgentSession {
  public:
-  ClientSession() = default;
-  explicit ClientSession(std::unique_ptr<ISocket> sock)
+  AgentSession() = default;
+  explicit AgentSession(std::unique_ptr<ISocket> sock)
       : socket(std::move(sock)) {}
-  ClientSession(std::nullptr_t) = delete;
+  AgentSession(std::nullptr_t) = delete;
 
-  ClientSession(const ClientSession&) = delete;
-  ClientSession& operator=(const ClientSession&) = delete;
-  ClientSession(ClientSession&&) = default;
+  AgentSession(const AgentSession&) = delete;
+  AgentSession& operator=(const AgentSession&) = delete;
+  AgentSession(AgentSession&&) = default;
 
   std::optional<Frame> tryExtractFrame();
   bool isValid() const { return socket && socket->isValid(); }
+
   std::unique_ptr<ISocket> socket;
   std::vector<std::uint8_t> buffer;
-  const RegisterPayload& getClientInfo() const {
+
+  const RegisterPayload& getAgentInfo() const {
     if (!isRegistered_) {
-      throw std::runtime_error("Client not registered");
+      throw std::runtime_error("Agent not registered");
     }
-    return clientInfo;
+    return agentInfo_;
   }
-  void setClientInfo(const RegisterPayload& info) {
-    clientInfo = info;
+
+  void setAgentInfo(const RegisterPayload& info) {
+    agentInfo_ = info;
     isRegistered_ = true;
   }
 
@@ -41,10 +44,11 @@ class ClientSession {
   void setRegistered(bool registered) { isRegistered_ = registered; }
 
  private:
-  std::optional<LptfHeader> header;
+  std::optional<LptfHeader> header_;
   void consume(std::size_t n);
   std::vector<std::uint8_t> slice(std::size_t offset, std::size_t len) const;
-  RegisterPayload clientInfo;
+
+  RegisterPayload agentInfo_;
   bool isRegistered_ = false;
 };
 

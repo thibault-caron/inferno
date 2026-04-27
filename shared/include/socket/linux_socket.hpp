@@ -18,7 +18,7 @@
 
 class LinuxSocket : public ISocket {
  public:
-  // Create a fresh socket (client or server use)
+  // Create a fresh socket (agent or server use)
   LinuxSocket();
 
   // Wrap an already-accepted fd (used internally by accept())
@@ -40,7 +40,8 @@ class LinuxSocket : public ISocket {
   int getFd() override { return socketFileDescriptor; }
 
  private:
-  int socketFileDescriptor = -1; // naming convention m_fd for member file descriptor
+  int socketFileDescriptor =
+      -1;  // naming convention m_fd for member file descriptor
 
   // Translates errno → your SocketError
   static SocketStatus translateStatus(int err);

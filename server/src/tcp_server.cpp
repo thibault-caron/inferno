@@ -23,17 +23,16 @@ bool TcpServer::start() {
   return serverSocket_->listen(backlog_);
 }
 
-std::unique_ptr<ISocket> TcpServer::acceptClient() const {
+std::unique_ptr<ISocket> TcpServer::acceptAgent() const {
   if (!serverSocket_) {
     return nullptr;
   }
   return serverSocket_->accept();
 }
 
-
-// SocketResult TcpServer::receiveFromClient(std::unique_ptr<ISocket>& client) {
+// SocketResult TcpServer::receiveFromAgent(std::unique_ptr<ISocket>& agent) {
 //   std::vector<std::uint8_t> tmp(2048, 0);
-//   const SocketResult recvResult = client->recv(tmp.data(), tmp.size());
+//   const SocketResult recvResult = agent->recv(tmp.data(), tmp.size());
 //   if (recvResult.ok() && recvResult.bytesTransferred > 0) {
 //     appendToReceiveBuffer(
 //         tmp.data(), static_cast<std::size_t>(recvResult.bytesTransferred));
@@ -41,9 +40,9 @@ std::unique_ptr<ISocket> TcpServer::acceptClient() const {
 //   return recvResult;
 // }
 
-// SocketResult TcpServer::sendToClient(
-//     ISocket& client, const std::vector<std::uint8_t>& payload) const {
-//   return client.send(payload);
+// SocketResult TcpServer::sendToAgent(
+//     ISocket& agent, const std::vector<std::uint8_t>& payload) const {
+//   return agent.send(payload);
 // }
 
 // void TcpServer::appendToReceiveBuffer(const std::uint8_t* data,
@@ -55,7 +54,7 @@ std::unique_ptr<ISocket> TcpServer::acceptClient() const {
 //   std::size_t parsedCount = 0;
 
 //   // while(receiveBuffer_.size() < LPTF_HEADER_SIZE ) {
-   
+
 //   // }
 //   while (receiveBuffer_.size() >= LPTF_HEADER_SIZE) {
 //     LptfHeader header;
@@ -76,7 +75,7 @@ std::unique_ptr<ISocket> TcpServer::acceptClient() const {
 //                                       static_cast<std::size_t>(header.size))};
 //       parsedFrames_.push_back(frame);
 //       printParsedPayload(frame);
-  
+
 //       receiveBuffer_.erase(
 //           receiveBuffer_.begin(),
 //           receiveBuffer_.begin() + static_cast<std::ptrdiff_t>(frameSize));
@@ -96,12 +95,15 @@ std::unique_ptr<ISocket> TcpServer::acceptClient() const {
 
 // void TcpServer::clearParsedFrames() { parsedFrames_.clear(); }
 
-// std::vector<std::uint8_t> TcpServer::slice(const std::vector<std::uint8_t>& src,
+// std::vector<std::uint8_t> TcpServer::slice(const std::vector<std::uint8_t>&
+// src,
 //                                            const std::size_t offset,
 //                                            const std::size_t len) {
-//   const std::vector<std::uint8_t>::const_iterator beginIt = src.begin() + static_cast<std::ptrdiff_t>(offset);
-//   const std::vector<std::uint8_t>::const_iterator endIt = beginIt + static_cast<std::ptrdiff_t>(len);
-//   return std::vector<std::uint8_t>(beginIt, endIt);
+//   const std::vector<std::uint8_t>::const_iterator beginIt = src.begin() +
+//   static_cast<std::ptrdiff_t>(offset); const
+//   std::vector<std::uint8_t>::const_iterator endIt = beginIt +
+//   static_cast<std::ptrdiff_t>(len); return std::vector<std::uint8_t>(beginIt,
+//   endIt);
 // }
 
 // TODO : put inside shared library with every other toMessageType ...etc
@@ -138,15 +140,13 @@ std::unique_ptr<ISocket> TcpServer::acceptClient() const {
 // }
 
 // void TcpServer::run() {
-//   std::unique_ptr<ISocket> client = acceptClient();
+//   std::unique_ptr<ISocket> agent = acceptAgent();
 //   bool run = true;
 //   while (run) {
-    
+
 //   }
 
-//   const SocketResult result = receiveFromClient(client);
+//   const SocketResult result = receiveFromAgent(agent);
 //   std::size_t parsedCount = parseAvailableFrames();
-
-
 
 // }

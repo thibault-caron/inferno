@@ -5,6 +5,7 @@ project(InfernoShared LANGUAGES CXX)
 # STATIC = compiled once into a .a archive, then linked into agent and server.
 # No Dockerfile, no executable — this is purely a library.
 add_library(shared_lib STATIC
+    src/agent_session.cpp
     src/protocol/protocol_parser.cpp
     src/protocol/protocol_serializer.cpp
     src/socket/linux_socket.cpp

@@ -8,7 +8,7 @@
 #include <thread>
 #include <vector>
 
-#include "client_session.hpp"
+#include "agent_session.hpp"
 #include "dispatcher.hpp"
 #include "helpers_test.hpp"
 #include "protocol/protocol_parser.hpp"
@@ -67,7 +67,7 @@ std::vector<std::uint8_t> recvExact(int fd, std::size_t size) {
   return bytes;
 }
 
-SocketResult receiveIntoSession(ClientSession& session) {
+SocketResult receiveIntoSession(AgentSession& session) {
   std::vector<std::uint8_t> temp(kChunkSize);
   const SocketResult result = session.socket->recv(temp.data(), temp.size());
 
@@ -79,7 +79,7 @@ SocketResult receiveIntoSession(ClientSession& session) {
   return result;
 }
 
-std::optional<Frame> receiveOneFrame(ClientSession& session) {
+std::optional<Frame> receiveOneFrame(AgentSession& session) {
   while (true) {
     if (std::optional<Frame> frame = session.tryExtractFrame()) {
       return frame;
@@ -95,16 +95,16 @@ std::optional<Frame> receiveOneFrame(ClientSession& session) {
 }  // namespace
 
 TEST(ServerIntegration,
-     should_register_client_before_accepting_other_message_types) {
+     should_register_agent_before_accepting_other_message_types) {
   TcpServer server(kPort);
   ASSERT_TRUE(server.start());
 
-  bool clientSawCommand = false;
-  bool clientSawDisconnect = false;
-  std::uint16_t clientObservedCommandId = 0;
-  CommandType clientObservedCommandType = CommandType::END;
+  bool agentSawCommand = false;
+  bool agentSawDisconnect = false;
+  std::uint16_t agentObservedCommandId = 0;
+  CommandType agentObservedCommandType = CommandType::END;
 
-  std::thread clientThread([&] {
+  std::thread agentThread([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     const int fd = connectLoopback(kPort);
     if (fd == -1) return;
@@ -121,16 +121,16 @@ TEST(ServerIntegration,
     if (commandHeaderBytes.size() == LPTF_HEADER_SIZE) {
       const LptfHeader commandHeader =
           ProtocolParser::parseHeader(commandHeaderBytes);
-      clientSawCommand = commandHeader.type == MessageType::COMMAND;
+      agentSawCommand = commandHeader.type == MessageType::COMMAND;
 
-      if (clientSawCommand) {
+      if (agentSawCommand) {
         const std::vector<std::uint8_t> commandPayloadBytes =
             recvExact(fd, commandHeader.size);
         if (commandPayloadBytes.size() == commandHeader.size) {
           const CommandPayload command =
               ProtocolParser::parseCommandPayload(commandPayloadBytes);
-          clientObservedCommandId = command.id;
-          clientObservedCommandType = command.type;
+          agentObservedCommandId = command.id;
+          agentObservedCommandType = command.type;
 
           const auto responseFrame = makeRawFrame(
               MessageType::RESPONSE, makeResponsePayload(command.id, "done"));
@@ -140,7 +140,7 @@ TEST(ServerIntegration,
             if (disconnectHeaderBytes.size() == LPTF_HEADER_SIZE) {
               const LptfHeader disconnectHeader =
                   ProtocolParser::parseHeader(disconnectHeaderBytes);
-              clientSawDisconnect =
+              agentSawDisconnect =
                   disconnectHeader.type == MessageType::DISCONNECT &&
                   disconnectHeader.size == 0;
             }
@@ -152,10 +152,10 @@ TEST(ServerIntegration,
     ::close(fd);
   });
 
-  std::unique_ptr<ISocket> accepted = server.acceptClient();
+  std::unique_ptr<ISocket> accepted = server.acceptAgent();
   ASSERT_NE(accepted, nullptr);
 
-  ClientSession session(std::move(accepted));
+  AgentSession session(std::move(accepted));
   Dispatcher dispatcher;
 
   const std::optional<Frame> firstFrame = receiveOneFrame(session);
@@ -166,7 +166,7 @@ TEST(ServerIntegration,
   dispatcher.dispatch(session, firstFrame.value());
 
   EXPECT_TRUE(session.isRegistered());
-  std::string hostname = session.getClientInfo().hostname;
+  std::string hostname = session.getAgentInfo().hostname;
   EXPECT_EQ(hostname, "worker-42");
 
   const std::optional<Frame> secondFrame = receiveOneFrame(session);
@@ -175,10 +175,10 @@ TEST(ServerIntegration,
 
   dispatcher.dispatch(session, secondFrame.value());
 
-  clientThread.join();
+  agentThread.join();
 
-  EXPECT_TRUE(clientSawCommand);
-  EXPECT_EQ(clientObservedCommandId, 0);
-  EXPECT_EQ(clientObservedCommandType, CommandType::OS_INFO);
-  EXPECT_TRUE(clientSawDisconnect);
+  EXPECT_TRUE(agentSawCommand);
+  EXPECT_EQ(agentObservedCommandId, 0);
+  EXPECT_EQ(agentObservedCommandType, CommandType::OS_INFO);
+  EXPECT_TRUE(agentSawDisconnect);
 }

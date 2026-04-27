@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "client_session.hpp"
+#include "agent_session.hpp"
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
@@ -20,21 +20,23 @@ class Dispatcher {
   ~Dispatcher() = default;
   Dispatcher& operator=(const Dispatcher&) = delete;
 
-  void dispatch(ClientSession& client, const Frame& frame);
+  void dispatch(AgentSession& agent, const Frame& frame);
   // ── Incoming message handlers ───────────────────────
-  void onRegister(ClientSession& client,
+  void onRegister(AgentSession& agent,
                   const std::vector<std::uint8_t>& payload);
-  void onResponse(ClientSession& client, const std::vector<std::uint8_t>& payload);
+  void onResponse(AgentSession& agent,
+                  const std::vector<std::uint8_t>& payload);
   void onData(const std::vector<std::uint8_t>& payload);
   void onError(const std::vector<std::uint8_t>& payload);
 
   // ── Outgoing message builders ───────────────────────
-  void sendCommand(ClientSession& client, CommandType type, const std::string& data = "");
-  void sendError(ClientSession& client, ErrorType code, const std::string& msg);
-  void sendDisconnect(ClientSession& client);
+  void sendCommand(AgentSession& agent, CommandType type,
+                   const std::string& data = "");
+  void sendError(AgentSession& agent, ErrorType code, const std::string& msg);
+  void sendDisconnect(AgentSession& agent);
 
   // ── I/O ─────────────────────────────────────────────
-  void sendRaw(ClientSession& client, MessageType type,
+  void sendRaw(AgentSession& agent, MessageType type,
                const std::vector<std::uint8_t>& payload = {});
 
   std::uint16_t nextId();

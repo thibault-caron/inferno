@@ -1,3 +1,5 @@
+#include "tcp_server.hpp"
+
 #include <arpa/inet.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -8,7 +10,6 @@
 #include <thread>
 
 #include "socket/ISocket.hpp"
-#include "tcp_server.hpp"
 
 // ─────────────────────────────────────────────────────────────
 // Unit tests (no real network)
@@ -36,10 +37,10 @@ TEST(TcpServerUnit,
 }
 
 TEST(TcpServerUnit,
-     should_return_nullptr_when_acceptClient_called_before_start) {
+     should_return_nullptr_when_acceptAgent_called_before_start) {
   TcpServer server(19877);
   // start() was never called — serverSocket_ is null
-  EXPECT_EQ(server.acceptClient(), nullptr);
+  EXPECT_EQ(server.acceptAgent(), nullptr);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -78,25 +79,25 @@ TEST(TcpServerIntegration,
 }
 
 TEST(TcpServerIntegration,
-     should_return_valid_socket_when_client_connects_after_start) {
+     should_return_valid_socket_when_agent_connects_after_start) {
   constexpr std::uint16_t port = 19879;
   TcpServer server(port);
   ASSERT_TRUE(server.start());
 
   // Connect from a background thread so accept() doesn't block the test.
-  int clientFd = -1;
+  int agentFd = -1;
   std::thread connector([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    clientFd = connectLoopback(port);
+    agentFd = connectLoopback(port);
   });
 
-  auto accepted = server.acceptClient();
+  auto accepted = server.acceptAgent();
   connector.join();
 
   EXPECT_NE(accepted, nullptr);
   EXPECT_TRUE(accepted->isValid());
 
-  if (clientFd != -1) ::close(clientFd);
+  if (agentFd != -1) ::close(agentFd);
 }
 
 TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
@@ -104,9 +105,9 @@ TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
   TcpServer server(port);
   ASSERT_TRUE(server.start());
 
-  // ── Client thread: send 4 bytes, expect them echoed back ──
+  // ── Agent thread: send 4 bytes, expect them echoed back ──
   std::vector<std::uint8_t> received;
-  std::thread client([&] {
+  std::thread agent([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     int fd = connectLoopback(port);
     ASSERT_NE(fd, -1);
@@ -119,7 +120,7 @@ TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
   });
 
   // ── Server side: accept, receive, echo back ───────────────
-  auto socket = server.acceptClient();
+  auto socket = server.acceptAgent();
   ASSERT_NE(socket, nullptr);
 
   std::vector<std::uint8_t> temp(4);
@@ -128,13 +129,13 @@ TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
   EXPECT_EQ(result.bytesTransferred, 4);
   socket->send(temp.data(), result.bytesTransferred);  // echo
 
-  client.join();
+  agent.join();
 
   EXPECT_EQ(received, (std::vector<std::uint8_t>{0x01, 0x02, 0x03, 0x04}));
 }
 
 TEST(TcpServerIntegration,
-     should_return_valid_remote_address_for_accepted_client) {
+     should_return_valid_remote_address_for_accepted_agent) {
   constexpr std::uint16_t port = 19881;
   TcpServer server(port);
   ASSERT_TRUE(server.start());
@@ -148,7 +149,7 @@ TEST(TcpServerIntegration,
     }
   });
 
-  auto socket = server.acceptClient();
+  auto socket = server.acceptAgent();
   connector.join();
 
   ASSERT_NE(socket, nullptr);

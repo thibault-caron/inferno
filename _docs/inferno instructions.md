@@ -26,17 +26,17 @@ class T
 
 ## Cercle 01
 
-envoie de message (client + server) ⚠️ prévoir le cross platform
-reception de message (client + server) ⚠️ prévoir le cross platform
+envoie de message (agent + server) ⚠️ prévoir le cross platform
+reception de message (agent + server) ⚠️ prévoir le cross platform
 
 <details>
 <summary>détails</summary>
 
-- Développer deux programmes console, un *client* et un *serveur*, capables de communiquer via le réseau
+- Développer deux programmes console, un *agent* et un *serveur*, capables de communiquer via le réseau
 - Ces programmes doivent s’appuyer sur une class **LPTF_Socket**, encapsulant les différents **Syscall** nécessaires aux échanges en réseau.
 - Aucun syscall réseau en dehors de la class LPTF_Socket.
 - N'utiliser ni Thread, ni Fork.
-- Objectif: serveur est capable d'échanger simultanément avec plusieurs clients.
+- Objectif: serveur est capable d'échanger simultanément avec plusieurs agents.
 
 reacteur: meme thread, execution rapide
 
@@ -141,9 +141,9 @@ Where the field names would not have to be transmitted at all, and where, for ex
 <details>
 <summary>détails</summary>
 
-client specs:
+agent specs:
 
- Le programme client doit désormais être capable, à la demande du serveur de:
+ Le programme agent doit désormais être capable, à la demande du serveur de:
 
 - Retourner des informations sur l’ordinateur hôte, telles que son nom, le nom du user et son OS.
 - Démarrer ou stopper la captation de toutes les touches tapées par l’utilisateur, y compris lorsque le programme n’est pas en focus (KeyLogger on/off) et de les lui renvoyer
@@ -157,8 +157,8 @@ Les prototypages de ces différents types de demandes et leurs réponses doivent
 ## Cercle 04
 
 - GUI du server (Qt imposé)
-- liste des clients avec leur adresse IP
-- Actions ( les actions du cercles 3 + déconnexion du client visé)
+- liste des agents avec leur adresse IP
+- Actions ( les actions du cercles 3 + déconnexion du agent visé)
 - Result action panel + keylogger stream panel
 
 <details>
@@ -167,23 +167,23 @@ Les prototypages de ces différents types de demandes et leurs réponses doivent
 
 le programme serveur doit avoir une GUI avec Qt
 
-- La GUI doit afficher une liste des clients connectés.
+- La GUI doit afficher une liste des agents connectés.
 - Pour chacun, il doit être possible d'exécuter les requêtes prévues lors de la traversée du cercle 03, d’en recevoir et d’en afficher les réponses.
-- Il doit en plus être possible de voir l’adresse IP de chaque client ainsi que de le déconnecter du serveur.
+- Il doit en plus être possible de voir l’adresse IP de chaque agent ainsi que de le déconnecter du serveur.
 
 </details>
 
 ## Cercle 05
 
-- Sauvegarde des data from client to PostgreSQL (imposé)
-- Display client status (online/offline)
+- Sauvegarde des data from agent to PostgreSQL (imposé)
+- Display agent status (online/offline)
 
 <details>
 
 <summary>détails</summary>
 
-- Le programme serveur doit offrir la possibilité d’afficher directement les réponses arrivant des clients (retours de commandes, flux de keylogging) dans la GUI et / ou de les enregistrer dans une base de données SQL **Postgresql**.
-- Les calls à la base de données, ainsi que la construction des requêtes doivent être fait depuis une class **LPTF_Database**. Lors du lancement, la GUI du serveur charge les informations de la base de données et les rend accessibles à l'utilisateur avec une distinction graphique entre les clients online et offline.
+- Le programme serveur doit offrir la possibilité d’afficher directement les réponses arrivant des agents (retours de commandes, flux de keylogging) dans la GUI et / ou de les enregistrer dans une base de données SQL **Postgresql**.
+- Les calls à la base de données, ainsi que la construction des requêtes doivent être fait depuis une class **LPTF_Database**. Lors du lancement, la GUI du serveur charge les informations de la base de données et les rend accessibles à l'utilisateur avec une distinction graphique entre les agents online et offline.
 
 </details>
 
@@ -195,7 +195,7 @@ le programme serveur doit avoir une GUI avec Qt
 
 <summary>détails</summary>
 
-Créer un widget dans la GUI du serveur qui permet de lancer une analyse dans les données provenant des différents clients afin d’en extraire:
+Créer un widget dans la GUI du serveur qui permet de lancer une analyse dans les données provenant des différents agents afin d’en extraire:
 
 - Numéros de téléphone
 - Adresses email
@@ -214,7 +214,7 @@ Les différentes méthodes d’analyse doivent être implémentées dans une cla
 
 <summary>détails</summary>
 
-- Programme client doit être exécutable sur Windows et Linux.
+- Programme agent doit être exécutable sur Windows et Linux.
 - Chaques classes qui encapsulent des fonctions système doit hériter d’une interface. Créer une classe par OS. Lors de la compilation de votre programme, les instructions données au préprocesseur devront lui permettre de transformer le code source en un langage compréhensible par la machine qui le lit.
 
 </details>
@@ -227,14 +227,14 @@ cacher le programme dans un wrapper, le mettre dans un endroit du FS un peu diff
 
 <summary>détails</summary>
 
-- Cacher la console du programme client
+- Cacher la console du programme agent
 - Intégrer son code compilé dans un programme wrapper
-- Installer client dans un endroit discret du file system de l'hôte
-- wrapper ajoute client à la startup list de l'hôte
-- en cas de coupure avec le serveur, le client essaie de s’y connecter régulièrement.
+- Installer agent dans un endroit discret du file system de l'hôte
+- wrapper ajoute agent à la startup list de l'hôte
+- en cas de coupure avec le serveur, le agent essaie de s’y connecter régulièrement.
 
 </details>
 
 ## Cercle 09
 
-Distribuer le client.
+Distribuer le agent.

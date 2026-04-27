@@ -34,12 +34,13 @@ class ISocket {
  public:
   virtual ~ISocket() = default;
 
-  // Client side
+  // Agent side
   virtual bool connect(const std::string& host, std::uint16_t port) = 0;
 
   // Server side
   virtual bool bind(std::uint16_t port) = 0;
-  virtual bool listen(int backlog = 10) = 0; // virtual pure AVEC argument par défaut
+  virtual bool listen(
+      int backlog = 10) = 0;  // virtual pure AVEC argument par défaut
   // Returns nullptr on failure
   virtual std::unique_ptr<ISocket> accept() = 0;
 

@@ -24,10 +24,10 @@ class TcpServer {
   ~TcpServer() = default;
 
   bool start();
-  std::unique_ptr<ISocket> acceptClient() const;
+  std::unique_ptr<ISocket> acceptAgent() const;
 
-  // SocketResult receiveFromClient(std::unique_ptr<ISocket>& client);
-  // SocketResult sendToClient(ISocket& client,
+  // SocketResult receiveFromAgent(std::unique_ptr<ISocket>& agent);
+  // SocketResult sendToAgent(ISocket& agent,
   //                           const std::vector<std::uint8_t>& payload) const;
 
   // void appendToReceiveBuffer(const std::uint8_t* data, std::size_t len);
@@ -39,8 +39,10 @@ class TcpServer {
   // void run();
 
  private:
-  // static std::vector<std::uint8_t> slice(const std::vector<std::uint8_t>& src,
-  //                                        std::size_t offset, std::size_t len);
+  // static std::vector<std::uint8_t> slice(const std::vector<std::uint8_t>&
+  // src,
+  //                                        std::size_t offset, std::size_t
+  //                                        len);
   // static std::string messageTypeToString(MessageType type);
   // static void printParsedPayload(const ParsedFrame& frame);
 

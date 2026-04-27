@@ -13,6 +13,7 @@ Je vais te faire une cartographie propre des zones où tu DOIS séparer par OS, 
 ## 🧠 Vue globale : où ça diverge vraiment selon l’OS
 
 ### 🔴 1. Réseau (Cercle 1 & 2) → ⚠️ DIFFÉRENT mais maîtrisable
+
 Pourquoi
 
 Windows ≠ Linux au niveau des sockets (Winsock vs POSIX)
@@ -250,7 +251,7 @@ Franchement, si tu veux éviter de souffrir :
     LinuxCommandExecutor
     ...
 
-/client
+/agent
 /server
 /gui (Qt)
 ```
@@ -277,7 +278,7 @@ Tu es sur la bonne approche. Priorités :
 
 → pour ton protocole
 
-3. Étudier :
+1. Étudier :
 Winsock vs POSIX
 Keylogger Windows vs Linux
 

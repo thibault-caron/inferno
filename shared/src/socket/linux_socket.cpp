@@ -47,12 +47,15 @@ bool LinuxSocket::connect(const std::string& host, uint16_t port) {
   addrinfo* result = nullptr;
   std::string portString = std::to_string(port);
 
-  int hostnameResolutionStatus = ::getaddrinfo(host.c_str(), portString.c_str(), &hints, &result);
+  int hostnameResolutionStatus =
+      ::getaddrinfo(host.c_str(), portString.c_str(), &hints, &result);
   if (hostnameResolutionStatus != 0) return false;
 
   bool connected = false;
-  for (addrinfo* candidate = result; candidate != nullptr; candidate = candidate->ai_next) {
-    if (::connect(socketFileDescriptor, candidate->ai_addr, candidate->ai_addrlen) == 0) {
+  for (addrinfo* candidate = result; candidate != nullptr;
+       candidate = candidate->ai_next) {
+    if (::connect(socketFileDescriptor, candidate->ai_addr,
+                  candidate->ai_addrlen) == 0) {
       connected = true;
       break;
     }
@@ -75,16 +78,17 @@ bool LinuxSocket::listen(int backlog) {
   return ::listen(socketFileDescriptor, backlog) == 0;
 }
 
-// blocking call - Each call to accept() gives you a new socket for each new client.
+// blocking call - Each call to accept() gives you a new socket for each new
+// agent.
 std::unique_ptr<ISocket> LinuxSocket::accept() {
-  sockaddr_in clientAddr{};
-  socklen_t addrLen = sizeof(clientAddr);
+  sockaddr_in agentAddr{};
+  socklen_t addrLen = sizeof(agentAddr);
 
-  int clientFd = ::accept(socketFileDescriptor,
-                          reinterpret_cast<sockaddr*>(&clientAddr), &addrLen);
-  if (clientFd == -1) return nullptr;
+  int agentFd = ::accept(socketFileDescriptor,
+                         reinterpret_cast<sockaddr*>(&agentAddr), &addrLen);
+  if (agentFd == -1) return nullptr;
 
-  return std::make_unique<LinuxSocket>(clientFd);
+  return std::make_unique<LinuxSocket>(agentFd);
 }
 
 SocketResult LinuxSocket::send(const uint8_t* data, size_t length) {
@@ -157,9 +161,9 @@ SocketStatus LinuxSocket::translateStatus(int err) {
     case ETIMEDOUT:
       return SocketStatus::TIMED_OUT;
     case EAGAIN:  // EAGAIN and EWOULDBLOCK are often the same value,
-    #if EAGAIN != EWOULDBLOCK
+#if EAGAIN != EWOULDBLOCK
     case EWOULDBLOCK:
-    #endif
+#endif
       return SocketStatus::WOULD_BLOCK;  // but not always
     case EADDRINUSE:
       return SocketStatus::ADDRESS_IN_USE;

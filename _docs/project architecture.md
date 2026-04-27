@@ -6,9 +6,9 @@
 inferno/
 ├── apps/
 │   ├── server/                 # Qt app bootstrap + composition root
-│   └── client/                 # agent bootstrap + composition root
+│   └── agent/                 # agent bootstrap + composition root
 ├── contexts/
-│   ├── connection/             # sessions, client registry, routing
+│   ├── connection/             # sessions, agent registry, routing
 │   ├── protocol/               # packet model, serializer, versioning
 │   ├── command-exec/           # authorized remote command use-cases
 │   ├── host-info/              # host metadata collection use-cases
@@ -29,7 +29,7 @@ inferno/
 ├── tests/
 │   ├── unit/                   # domain + application services (fast)
 │   ├── integration/            # DB/network adapters
-│   ├── contract/               # client<->server protocol compatibility
+│   ├── contract/               # agent<->server protocol compatibility
 │   └── e2e/                    # full scenarios
 ├── docs/
 │   ├── rfc/                    # binary protocol RFC docs
@@ -44,7 +44,7 @@ inferno/
 
 ```text
 inferno/
-├── common/                   # Shared between client and server (Circle 07 prep)
+├── common/                   # Shared between agent and server (Circle 07 prep)
 │   ├── include/
 │   │   ├── ISocket.hpp       # OS-agnostic Interface (Circle 07 prep)
 │   │   ├── LPTF_Socket.hpp
@@ -55,17 +55,17 @@ inferno/
 ├── server/
 │   ├── include/
 │   │   ├── Server.hpp        # Holds the Reactor loop
-│   │   └── ClientSession.hpp # Buffers data for a single client
+│   │   └── AgentSession.hpp # Buffers data for a single agent
 │   └── src/
 │       ├── main.cpp
 │       ├── Server.cpp
-│       └── ClientSession.cpp
-└── client/
+│       └── AgentSession.cpp
+└── agent/
     ├── include/
-    │   └── Client.hpp
+    │   └── Agent.hpp
     └── src/
         ├── main.cpp
-        └── Client.cpp
+        └── Agent.cpp
 ```
 
 anticipates the strict constraints and future requirements (like the Qt GUI and binary protocol) of the later circles.
@@ -82,14 +82,14 @@ Create a strict separation of concerns early on to make building the final execu
 
     Since you cannot use threads or forks for networking, your server must use non-blocking I/O with select() or poll().
 
-   - Create a Server class that maintains a list of connected clients.
+   - Create a Server class that maintains a list of connected agents.
    - The Server::run() method contains an infinite loop that calls poll().
    - When integrating Qt in Circle 04, you will simply hook this non-blocking poll() step into a QTimer or Qt's event loop, keeping the GUI perfectly responsive without needing threads for the network.
 
-3. The ClientSession Wrapper
+3. The AgentSession Wrapper
 
 TCP is a stream, not a packet system. A single recv() might yield half a message, or two messages glued together.
-Wrap each LPTF_Socket in a ClientSession class on the server side. It should contain:
+Wrap each LPTF_Socket in a AgentSession class on the server side. It should contain:
 
 A reference to the LPTF_Socket.
 An incoming buffer (std::vector<uint8_t> rx_buffer).
@@ -118,15 +118,15 @@ Your LPTF_Packet class should manage the header and the raw payload bytes.
 void serialize(std::vector<uint8_t>& out_buffer) const;
 bool parse(const std::vector<uint8_t>& in_buffer);
 How it scales:
-When the server wants the client's process list (Circle 03), it constructs an LPTF_Packet with command_id = 0x05, empty payload, and serializes it. The client receives it, reads the command ID, executes the local system call, packs the result into a new payload, sets command_id = 0x06 (Response), and sends it back.
+When the server wants the agent's process list (Circle 03), it constructs an LPTF_Packet with command_id = 0x05, empty payload, and serializes it. The agent receives it, reads the command ID, executes the local system call, packs the result into a new payload, sets command_id = 0x06 (Response), and sends it back.
 
-4. Handling the 25-line Limit
+1. Handling the 25-line Limit
 The strict Coplien form and 25-line limit mean your code needs to be highly modular.
 Instead of a massive switch(command_id) inside your server to handle incoming packets, use a Command Pattern or a std::map of function pointers/handlers.
 
 ```c++
 // Inside Server or a PacketDispatcher class
-using CommandHandler = void (*)(ClientSession&, const LPTF_Packet&);
+using CommandHandler = void (*)(AgentSession&, const LPTF_Packet&);
 std::map<uint16_t, CommandHandler> handlers;
 
 // Register them early:

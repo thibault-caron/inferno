@@ -5,7 +5,7 @@
 
 #include <functional>
 
-#include "client_session.hpp"
+#include "agent_session.hpp"
 #include "convert_endian.hpp"
 #include "helpers_test.hpp"
 #include "mock_socket.hpp"
@@ -41,8 +41,8 @@ using ::testing::Return;  // Return(value) = return value from a mocked method
 // ── Fixture ──────────────────────────────────────────────────
 class DispatcherTest : public ::testing::Test {
  protected:
-  using MockedClientSession =
-      std::pair<ClientSession, std::reference_wrapper<MockSocket>>;
+  using MockedAgentSession =
+      std::pair<AgentSession, std::reference_wrapper<MockSocket>>;
 
   // Constructs a Frame from a MessageType and a serialized payload.
   static Frame makeFrame(MessageType type,
@@ -54,13 +54,13 @@ class DispatcherTest : public ::testing::Test {
     return Frame{header, payload};
   }
 
-  // Helper to create a ClientSession with a MockSocket that we can set
+  // Helper to create a AgentSession with a MockSocket that we can set
   // expectations on. Returns a pair: (session, mockSocketRef).
-  // The mock is owned by ClientSession and exposed as a reference for testing.
-  static MockedClientSession makeClientSessionWithMock() {
+  // The mock is owned by AgentSession and exposed as a reference for testing.
+  static MockedAgentSession makeAgentSessionWithMock() {
     std::unique_ptr<MockSocket> mock = std::make_unique<MockSocket>();
     MockSocket& mockRef = *mock;
-    ClientSession session(std::move(mock));
+    AgentSession session(std::move(mock));
 
     // Set default expectations (can be overridden in tests)
     ON_CALL(mockRef, isValid()).WillByDefault(Return(true));
@@ -75,36 +75,36 @@ class DispatcherTest : public ::testing::Test {
 // ─────────────────────────────────────────────────────────────
 
 TEST_F(DispatcherTest,
-       should_store_hostname_in_client_session_when_register_is_received) {
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+       should_store_hostname_in_agent_session_when_register_is_received) {
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   Dispatcher dispatcher;
 
   dispatcher.dispatch(
-      clientSession,
+      agentSession,
       makeFrame(MessageType::REGISTER, makeRegisterPayload("worker-42")));
 
-  EXPECT_EQ(clientSession.getClientInfo().hostname, "worker-42");
+  EXPECT_EQ(agentSession.getAgentInfo().hostname, "worker-42");
 }
 
 TEST_F(
     DispatcherTest,
-    should_store_os_type_and_arch_in_client_session_when_register_is_received) {
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+    should_store_os_type_and_arch_in_agent_session_when_register_is_received) {
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   Dispatcher dispatcher;
 
   dispatcher.dispatch(
-      clientSession,
+      agentSession,
       makeFrame(MessageType::REGISTER,
                 makeRegisterPayload("host", OSType::WINDOWS, ArchType::X64)));
 
-  EXPECT_EQ(clientSession.getClientInfo().os_type, OSType::WINDOWS);
-  EXPECT_EQ(clientSession.getClientInfo().arch, ArchType::X64);
+  EXPECT_EQ(agentSession.getAgentInfo().os_type, OSType::WINDOWS);
+  EXPECT_EQ(agentSession.getAgentInfo().arch, ArchType::X64);
 }
 
 TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
   // Verify byte 5 of the serialized header = MessageType::COMMAND
   std::vector<std::uint8_t> capturedHeader;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   {
     InSequence orderedSends;
     EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
@@ -115,8 +115,8 @@ TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
   }
 
   Dispatcher dispatcher;
-  dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
-                                               makeRegisterPayload("h")));
+  dispatcher.dispatch(
+      agentSession, makeFrame(MessageType::REGISTER, makeRegisterPayload("h")));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
   EXPECT_EQ(capturedHeader[5], static_cast<std::uint8_t>(MessageType::COMMAND));
@@ -125,7 +125,7 @@ TEST_F(DispatcherTest, should_send_command_message_immediately_after_register) {
 TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
   // Byte 2 of a COMMAND payload = CommandType
   std::vector<std::uint8_t> capturedCommandPayload;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   {
     InSequence orderedSends;
     EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
@@ -135,8 +135,8 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
   }
 
   Dispatcher dispatcher;
-  dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
-                                               makeRegisterPayload("h")));
+  dispatcher.dispatch(
+      agentSession, makeFrame(MessageType::REGISTER, makeRegisterPayload("h")));
 
   // Structure CommandPayload: [id_hi][id_lo][type][data_len_hi][data_len_lo]
   ASSERT_GE(capturedCommandPayload.size(), std::size_t(3));
@@ -146,21 +146,21 @@ TEST_F(DispatcherTest, should_send_os_info_command_type_after_register) {
 
 TEST_F(DispatcherTest,
        should_throw_when_header_send_is_shorter_than_serialized_header) {
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   EXPECT_CALL(mockSocket.get(), send(_, _))
       .WillOnce(Return(SocketResult{LPTF_HEADER_SIZE - 1, SocketStatus::OK}));
 
   Dispatcher dispatcher;
 
   EXPECT_THROW(
-      dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
-                                                   makeRegisterPayload("h"))),
+      dispatcher.dispatch(agentSession, makeFrame(MessageType::REGISTER,
+                                                  makeRegisterPayload("h"))),
       std::runtime_error);
 }
 
 TEST_F(DispatcherTest,
        should_throw_when_payload_send_is_shorter_than_expected) {
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   {
     InSequence orderedSends;
     EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
@@ -174,8 +174,8 @@ TEST_F(DispatcherTest,
   Dispatcher dispatcher;
 
   EXPECT_THROW(
-      dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
-                                                   makeRegisterPayload("h"))),
+      dispatcher.dispatch(agentSession, makeFrame(MessageType::REGISTER,
+                                                  makeRegisterPayload("h"))),
       std::runtime_error);
 }
 
@@ -186,11 +186,11 @@ TEST_F(DispatcherTest,
 TEST_F(DispatcherTest,
        should_not_send_anything_when_response_chunk_is_not_the_last_one) {
   // chunk_index=0, total_chunks=3 → not the last chunk, so no send expected.
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   EXPECT_CALL(mockSocket.get(), send(_, _)).Times(0);
 
   Dispatcher dispatcher;
-  dispatcher.dispatch(clientSession,
+  dispatcher.dispatch(agentSession,
                       makeFrame(MessageType::RESPONSE,
                                 makeResponsePayload(0, "partial", 3, 0)));
 }
@@ -198,19 +198,19 @@ TEST_F(DispatcherTest,
 TEST_F(DispatcherTest,
        should_not_send_anything_when_intermediate_chunk_arrives) {
   // chunk_index=1, total_chunks=3 → middle chunk: no send expected.
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   EXPECT_CALL(mockSocket.get(), send(_, _)).Times(0);
 
   Dispatcher dispatcher;
   dispatcher.dispatch(
-      clientSession,
+      agentSession,
       makeFrame(MessageType::RESPONSE, makeResponsePayload(0, "middle", 3, 1)));
 }
 
 TEST_F(DispatcherTest,
        should_send_disconnect_when_last_response_chunk_is_received) {
   std::vector<std::uint8_t> capturedHeader;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
       .WillOnce(CaptureSentBytes(capturedHeader));
   // DISCONNECT has no payload.
@@ -219,7 +219,7 @@ TEST_F(DispatcherTest,
   Dispatcher dispatcher;
   // chunk_index=2, total_chunks=3 → last chunk
   dispatcher.dispatch(
-      clientSession,
+      agentSession,
       makeFrame(MessageType::RESPONSE, makeResponsePayload(0, "final", 3, 2)));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
@@ -230,7 +230,7 @@ TEST_F(DispatcherTest,
 TEST_F(DispatcherTest,
        should_send_disconnect_when_single_chunk_response_is_received) {
   std::vector<std::uint8_t> capturedHeader;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
       .WillOnce(CaptureSentBytes(capturedHeader));
   EXPECT_CALL(mockSocket.get(), send(_, Ne(LPTF_HEADER_SIZE))).Times(0);
@@ -238,7 +238,7 @@ TEST_F(DispatcherTest,
   Dispatcher dispatcher;
   // total_chunks=1, chunk_index=0 → only chunk = last chunk
   dispatcher.dispatch(
-      clientSession,
+      agentSession,
       makeFrame(MessageType::RESPONSE, makeResponsePayload(0, "result", 1, 0)));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
@@ -250,13 +250,13 @@ TEST_F(DispatcherTest,
 // Dispatch — Protocol Application
 // ─────────────────────────────────────────────────────────────
 
-// The client should never send DISCONNECT (it's the server that
+// The agent should never send DISCONNECT (it's the server that
 // initiates it). If it happens, the server must reject the message
 // with ERROR — that's the correct behavior.
 TEST_F(DispatcherTest,
-       should_send_error_when_client_violates_protocol_by_sending_disconnect) {
+       should_send_error_when_agent_violates_protocol_by_sending_disconnect) {
   std::vector<std::uint8_t> capturedHeader;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   {
     InSequence orderedSends;
     EXPECT_CALL(mockSocket.get(), send(_, LPTF_HEADER_SIZE))
@@ -267,7 +267,7 @@ TEST_F(DispatcherTest,
   }
 
   Dispatcher dispatcher;
-  dispatcher.dispatch(clientSession, makeFrame(MessageType::DISCONNECT));
+  dispatcher.dispatch(agentSession, makeFrame(MessageType::DISCONNECT));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
   EXPECT_EQ(capturedHeader[5], static_cast<std::uint8_t>(MessageType::ERROR));
@@ -275,9 +275,9 @@ TEST_F(DispatcherTest,
 
 TEST_F(DispatcherTest,
        should_send_error_when_server_receives_command_type_message) {
-  // COMMAND is a server → client message. Receiving it is a protocol violation.
+  // COMMAND is a server → agent message. Receiving it is a protocol violation.
   std::vector<std::uint8_t> capturedHeader;
-  auto [clientSession, mockSocket] = makeClientSessionWithMock();
+  auto [agentSession, mockSocket] = makeAgentSessionWithMock();
   {
     // Sequence ensures the header send is checked before any payload
     // send for all EXPECT_CALLs in this block.
@@ -289,7 +289,7 @@ TEST_F(DispatcherTest,
   }
 
   Dispatcher dispatcher;
-  dispatcher.dispatch(clientSession, makeFrame(MessageType::COMMAND));
+  dispatcher.dispatch(agentSession, makeFrame(MessageType::COMMAND));
 
   ASSERT_EQ(capturedHeader.size(), LPTF_HEADER_SIZE);
   EXPECT_EQ(capturedHeader[5], static_cast<std::uint8_t>(MessageType::ERROR));
@@ -307,7 +307,7 @@ TEST_F(DispatcherTest,
   Dispatcher dispatcher;
 
   for (int i = 0; i < 3; ++i) {
-    auto [clientSession, mockSocket] = makeClientSessionWithMock();
+    auto [agentSession, mockSocket] = makeAgentSessionWithMock();
     int sendCallCount = 0;
 
     EXPECT_CALL(mockSocket.get(), send(_, _))
@@ -323,8 +323,8 @@ TEST_F(DispatcherTest,
           return SocketResult{static_cast<int>(byteCount), SocketStatus::OK};
         });
 
-    dispatcher.dispatch(clientSession, makeFrame(MessageType::REGISTER,
-                                                 makeRegisterPayload("h")));
+    dispatcher.dispatch(agentSession, makeFrame(MessageType::REGISTER,
+                                                makeRegisterPayload("h")));
   }
 
   ASSERT_EQ(sentCommandIds.size(), std::size_t(3));
