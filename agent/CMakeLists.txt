@@ -35,9 +35,8 @@ target_include_directories(agent_lib PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# shared_lib is PUBLIC in its own CMakeLists, so linking it here
-# automatically gives agent_lib access to all shared headers too.
-target_link_libraries(agent_lib PRIVATE
+# Link shared_lib as PUBLIC so both agent and tests inherit shared includes.
+target_link_libraries(agent_lib PUBLIC
     shared_lib
 )
 

@@ -26,6 +26,10 @@ class TcpServer {
   bool start();
   std::unique_ptr<ISocket> acceptAgent() const;
 
+  bool setNonBlocking() {
+    return serverSocket_ && serverSocket_->setNonBlocking(true);
+  }
+
   // SocketResult receiveFromAgent(std::unique_ptr<ISocket>& agent);
   // SocketResult sendToAgent(ISocket& agent,
   //                           const std::vector<std::uint8_t>& payload) const;

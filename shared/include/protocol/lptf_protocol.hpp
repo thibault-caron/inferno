@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+// ! send() second arg is size_t
 constexpr std::uint8_t LPTF_VERSION = 1;
 constexpr std::uint8_t LPTF_HEADER_SIZE =
     sizeof(std::uint8_t) * 6 +
