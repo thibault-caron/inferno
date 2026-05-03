@@ -6,10 +6,13 @@ project(InfernoShared LANGUAGES CXX)
 # No Dockerfile, no executable — this is purely a library.
 add_library(shared_lib STATIC
     src/agent_session.cpp
+    src/env_helper.cpp
+    src/Idispatcher.cpp
     src/protocol/protocol_parser.cpp
     src/protocol/protocol_serializer.cpp
     src/socket/linux_socket.cpp
     src/socket/socket_factory.cpp
+    src/socket/socket_helper.cpp
 )
 
 # PUBLIC = these include dirs are inherited by any target that links shared_lib.
@@ -47,9 +50,10 @@ if(CMAKE_PROJECT_NAME STREQUAL "InfernoShared")
     set(SOCKET_TESTS
         tests/socket/socket_integration_test.cpp
         )
-
-    add_executable(shared_tests
+        
+        add_executable(shared_tests
         tests/convert_endian_test.cpp
+        tests/agent_session_test.cpp
         tests/protocol/protocol_roundtrip_test.cpp
         ${PARSER_TESTS}
         ${SERIALIZER_TESTS}

@@ -8,8 +8,6 @@
 
 #include "protocol/lptf_protocol.hpp"
 
-constexpr std::uint16_t SERVER_PORT = 8888;
-
 enum class SocketStatus {
   OK,
   CONNECTION_REFUSED,

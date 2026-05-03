@@ -3,7 +3,7 @@
 #include <thread>
 #include <vector>
 
-#include "socket/SocketFactory.hpp"
+#include "socket/socket_factory.hpp"
 
 #define TEST_PORT 9876
 

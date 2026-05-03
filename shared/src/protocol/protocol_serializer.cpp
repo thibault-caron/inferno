@@ -4,8 +4,6 @@
 
 namespace {
 
-// constexpr std::size_t kMaxU16Value = 65535u;
-
 void ensureFitsU16(std::size_t sourceSize, const std::string& source) {
   if (sourceSize > KMAX_U16_VALUE) {
     throw InvalidSize(source, std::to_string(sourceSize));

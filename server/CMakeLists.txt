@@ -26,7 +26,7 @@ endif()
 # ── Server library (all logic, no main) ──────────────────────────────────────
 add_library(server_lib STATIC
     src/tcp_server.cpp
-    src/dispatcher.cpp
+    src/server_dispatcher.cpp
     # src/agent_manager.cpp        ← add as you create files
     # src/command_dispatcher.cpp
 )
@@ -59,7 +59,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 add_executable(server_tests
-    tests/agent_session_test.cpp
+    # tests/agent_session_test.cpp
     tests/dispatcher_test.cpp
     tests/server_integration_test.cpp
     tests/tcp_server_test.cpp

@@ -17,8 +17,6 @@ constexpr std::string_view LPTF_IDENTIFIER_STR(LPTF_IDENTIFIER, 4);
 constexpr std::size_t REGISTER_FIXED_BYTES =
     sizeof(std::uint16_t) +
     2 * sizeof(std::uint8_t);  // hostname_len + os_type + arch
-// constexpr std::uint16_t REGISTER_MAX_HOSTNAME_LEN =
-//     static_cast<std::uint16_t>(65535u - REGISTER_FIXED_BYTES);
 
 constexpr std::size_t KMAX_U16_VALUE = 65535u;
 constexpr std::uint16_t MAX_VALUE_INT16 =

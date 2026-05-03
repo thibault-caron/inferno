@@ -25,13 +25,13 @@ endif()
 
 # ── Agent library (all logic, no main) ───────────────────────────────────────
 add_library(agent_lib STATIC
-    src/placeholder.cpp
+    src/agent_dispatcher.cpp
     # src/socket/SocketLinux.cpp    ← add as you create files
 )
 
 # PRIVATE here because nothing links agent_lib downstream.
 # If another target ever needed agent_lib's headers, switch to PUBLIC.
-target_include_directories(agent_lib PRIVATE
+target_include_directories(agent_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 

