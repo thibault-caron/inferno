@@ -60,12 +60,15 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 add_executable(agent_tests
+    tests/agent_dispatcher_test.cpp
+    tests/agent_integration_test.cpp
     tests/main_test.cpp
     # tests/test_socket_linux.cpp   ← add as you create tests
 )
 
 target_include_directories(agent_tests PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/tests
+${CMAKE_CURRENT_SOURCE_DIR}/../shared/tests
 )
 
 target_link_libraries(agent_tests PRIVATE

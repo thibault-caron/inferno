@@ -1,7 +1,11 @@
-#ifndef MOCK_SOCKET_HPP
-#define MOCK_SOCKET_HPP
+#ifndef SHARED_TEST_MOCK_SOCKET_HPP
+#define SHARED_TEST_MOCK_SOCKET_HPP
 
 #include <gmock/gmock.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <vector>
 
 #include "socket/ISocket.hpp"
 

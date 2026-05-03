@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "socket/ISocket.hpp"
+#include "socket/socket_test_helpers.hpp"
 
 // ─────────────────────────────────────────────────────────────
 // Unit tests (no real network)
@@ -46,22 +47,6 @@ TEST(TcpServerUnit,
 // ─────────────────────────────────────────────────────────────
 // Integration tests (real loopback TCP)
 // ─────────────────────────────────────────────────────────────
-
-// Helper: open a raw loopback socket and connect to host:port.
-static int connectLoopback(std::uint16_t port) {
-  int fd = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (fd == -1) return -1;
-  sockaddr_in address{};
-  address.sin_family = AF_INET;
-  address.sin_port = htons(port);
-  ::inet_pton(AF_INET, "localhost", &address.sin_addr);
-  if (::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) !=
-      0) {
-    ::close(fd);
-    return -1;
-  }
-  return fd;
-}
 
 TEST(TcpServerIntegration,
      should_return_true_when_start_is_called_on_available_port) {

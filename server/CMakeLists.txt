@@ -67,6 +67,7 @@ add_executable(server_tests
 
 target_include_directories(server_tests PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/tests
+${CMAKE_CURRENT_SOURCE_DIR}/../shared/tests
 )
 
 target_link_libraries(server_tests PRIVATE

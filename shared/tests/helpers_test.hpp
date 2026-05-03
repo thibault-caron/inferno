@@ -7,6 +7,12 @@
 
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_serializer.hpp"
+#include "socket/socket_helper.hpp"
+
+inline Frame makeFrame(MessageType type,
+                       const std::vector<std::uint8_t>& payload = {}) {
+  return {SocketHelper::createHeader(type, payload), payload};
+}
 
 // ── Raw frame builder ─────────────────────────────────────────
 // Builds a complete wire-format frame (header + payload).
