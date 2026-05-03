@@ -20,7 +20,7 @@
 
 namespace {
 
-constexpr std::chrono::seconds kRetryDelay{10};
+constexpr std::chrono::seconds kRetryDelay{5};
 
 void runAgentLoop(const std::string& host, std::uint16_t port) {
   bool running = true;

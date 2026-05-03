@@ -24,9 +24,14 @@ void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
       }
     }
     // TODO : how agent handle disconnect command from server
-    // case MessageType::DISCONNECT:
-    //   std::cout << "[agent] received DISCONNECT\n";
-    //   return false;
+    case MessageType::DISCONNECT:
+      std::cout << "[agent] received DISCONNECT\n";
+      if (session.socket) {
+        session.socket->close();
+        session.socket.reset();
+      }
+      session.setRegistered(false);
+      return;
     case MessageType::ERROR: {
       try {
         const ErrorPayload payload =
