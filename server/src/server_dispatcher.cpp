@@ -31,7 +31,7 @@ void ServerDispatcher::handleFrame(AgentSession& agent, const Frame& frame) {
 // The first message from the agent must always be REGISTER.
 // Once we know who it is, we kick off the command sequence.
 void ServerDispatcher::onRegister(AgentSession& agent,
-                            const std::vector<std::uint8_t>& payload) {
+                                  const std::vector<std::uint8_t>& payload) {
   RegisterPayload agentInfo = ProtocolParser::parseRegisterPayload(payload);
   agent.setAgentInfo(agentInfo);
   agent.setRegistered(true);
@@ -47,7 +47,7 @@ void ServerDispatcher::onRegister(AgentSession& agent,
 // A RESPONSE carries the same id as the COMMAND it answers,
 // plus chunk metadata for large payloads split across messages.
 void ServerDispatcher::onResponse(AgentSession& agent,
-                            const std::vector<std::uint8_t>& payload) {
+                                  const std::vector<std::uint8_t>& payload) {
   const ResponsePayload response =
       ProtocolParser::parseResponsePayload(payload);
   std::cout << "[← RESPONSE] id=" << response.id
@@ -74,7 +74,7 @@ void ServerDispatcher::onData(const std::vector<std::uint8_t>& payload) {
 // ── Outgoing senders ─────────────────────────────────────────
 
 void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
-                             const std::string& data) {
+                                   const std::string& data) {
   CommandPayload command;
   command.id = nextId();
   command.type = type;
@@ -92,7 +92,8 @@ void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
 
 void ServerDispatcher::sendDisconnect(AgentSession& agent) {
   const std::vector<uint8_t> payload{};
-  Frame frame = {SocketHelper::createHeader(MessageType::DISCONNECT, payload)};
+  Frame frame = {SocketHelper::createHeader(MessageType::DISCONNECT, payload),
+                 payload};
   // sendRaw(agent, MessageType::DISCONNECT);
   sendFrame(agent, frame, senderName);
   std::cout << "[→ DISCONNECT]\n";

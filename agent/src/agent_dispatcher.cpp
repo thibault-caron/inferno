@@ -42,6 +42,7 @@ void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
       } catch (...) {
         std::cerr << "[agent] received malformed ERROR payload\n";
       }
+      return;
     }
     default:
       return sendError(session, ErrorType::UNKNOWN_TYPE,
