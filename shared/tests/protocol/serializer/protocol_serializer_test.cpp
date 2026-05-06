@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "protocol/lptf_protocol.hpp"
+#include "exception/lptf_exception.hpp"
 
 TEST(ProtocolSerializer,
      should_produce_corresponding_byteArray_when_input_is_valid) {

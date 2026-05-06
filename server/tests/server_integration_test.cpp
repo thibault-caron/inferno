@@ -12,7 +12,7 @@
 #include "helpers_test.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "server_dispatcher.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_test_helpers.hpp"
 #include "tcp_server.hpp"
 

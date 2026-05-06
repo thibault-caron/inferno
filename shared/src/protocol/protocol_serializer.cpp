@@ -1,6 +1,11 @@
 #include "protocol/protocol_serializer.hpp"
 
 #include <cstddef>
+#include <string>
+#include "convert_endian.hpp"
+
+#include "exception/lptf_exception.hpp"
+
 
 namespace {
 

@@ -1,6 +1,6 @@
-#ifndef SOCKET_FACTORY
-#define SOCKET_FACTORY
-#include "ISocket.hpp"
+#ifndef SOCKET_FACTORY_HPP
+#define SOCKET_FACTORY_HPP
+#include "i_socket.hpp"
 #include <memory>
 
 #ifdef _WIN32

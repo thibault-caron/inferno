@@ -8,7 +8,7 @@
 #include "exception/socket_exception.hpp"
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_serializer.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 

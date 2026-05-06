@@ -1,13 +1,17 @@
-#ifndef LPTF_SERIALIZER
-#define LPTF_SERIALIZER
+#ifndef LPTF_SERIALIZER_HPP
+#define LPTF_SERIALIZER_HPP
 
-#include <cstddef>
-#include <cstring>
-#include <string>
+// #include <cstddef>
+// #include <cstring>
+
 #include <vector>
 
-#include "convert_endian.hpp"
-#include "exception/lptf_exception.hpp"
+#include <cstdint>
+
+
+#include "protocol/lptf_protocol.hpp"
+
+
 #include "protocol/lptf_protocol.hpp"
 
 class ProtocolSerializer {

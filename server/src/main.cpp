@@ -12,7 +12,7 @@
 #include "agent_session.hpp"
 #include "server_dispatcher.hpp"
 #include "env_helper.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 #include "tcp_server.hpp"

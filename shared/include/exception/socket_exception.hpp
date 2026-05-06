@@ -1,5 +1,5 @@
-#ifndef SOCKET_EXCEPTION
-#define SOCKET_EXCEPTION
+#ifndef SOCKET_EXCEPTION_HPP
+#define SOCKET_EXCEPTION_HPP
 #include "lptf_exception.hpp"
 #include <exception>
 #include <string>

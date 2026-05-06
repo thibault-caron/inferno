@@ -1,5 +1,5 @@
-#ifndef SOCKET_HELPER
-#define SOCKET_HELPER
+#ifndef SOCKET_HELPER_HPP
+#define SOCKET_HELPER_HPP
 
 #include <iostream>
 
@@ -7,7 +7,7 @@
 #include "exception/lptf_exception.hpp"
 #include "exception/socket_exception.hpp"
 #include "protocol/protocol_serializer.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
 // #include "tcp_server.hpp"
 

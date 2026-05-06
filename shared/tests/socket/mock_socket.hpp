@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 
 class MockSocket : public ISocket {
  public:

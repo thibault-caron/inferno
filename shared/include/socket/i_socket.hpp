@@ -1,5 +1,5 @@
-#ifndef ISOCKET
-#define ISOCKET
+#ifndef I_SOCKET_HPP
+#define I_SOCKET_HPP
 #include <cstdint>
 #include <memory>
 #include <string>

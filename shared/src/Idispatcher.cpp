@@ -1,4 +1,4 @@
-#include "Idispatcher.hpp"
+#include "i_dispatcher.hpp"
 
 
 void IDispatcher::sendFrame(AgentSession& session, Frame& frame,

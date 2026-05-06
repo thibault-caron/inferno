@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thread>
 
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_test_helpers.hpp"
 
 // ─────────────────────────────────────────────────────────────

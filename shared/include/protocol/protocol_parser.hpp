@@ -1,12 +1,13 @@
-#ifndef LPTF_PARSER
-#define LPTF_PARSER
+#ifndef LPTF_PARSER_HPP
+#define LPTF_PARSER_HPP
 
-#include <cstring>
-#include <string>
+// #include <cstring>
+
+#include <cstdint>
 #include <vector>
 
-#include "convert_endian.hpp"
-#include "exception/lptf_exception.hpp"
+// #include "convert_endian.hpp"
+// #include "exception/lptf_exception.hpp"
 #include "protocol/lptf_protocol.hpp"
 
 class ProtocolParser {
