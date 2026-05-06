@@ -3,6 +3,8 @@
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_test_helpers.hpp"
+#include "convert_endian.hpp"
+#include "exception/lptf_exception.hpp"
 
 namespace {
 

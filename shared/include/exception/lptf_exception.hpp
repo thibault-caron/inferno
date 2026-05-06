@@ -1,5 +1,5 @@
-#ifndef LPTF_EXCEPTION
-#define LPTF_EXCEPTION
+#ifndef LPTF_EXCEPTION_HPP
+#define LPTF_EXCEPTION_HPP
 
 #include <exception>
 #include <string>

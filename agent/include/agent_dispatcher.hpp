@@ -1,18 +1,15 @@
-#ifndef SERVER_DISPATCHER_HPP
-#define SERVER_DISPATCHER_HPP
+#ifndef AGENT_DISPATCHER_HPP
+#define AGENT_DISPATCHER_HPP
 
 #include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "Idispatcher.hpp"
+#include "i_dispatcher.hpp"
 #include "agent_session.hpp"
 #include "protocol/lptf_protocol.hpp"
-#include "protocol/protocol_parser.hpp"
-#include "protocol/protocol_serializer.hpp"
-#include "socket/ISocket.hpp"
-#include "socket/socket_helper.hpp"
+
 
 class AgentDispatcher : public IDispatcher {
  public:

@@ -6,6 +6,7 @@
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "protocol/protocol_test_helpers.hpp"
+#include "exception/lptf_exception.hpp"
 
 TEST(ProtocolSerializerResponse,
      should_produce_corresponding_byteArray_when_response_is_valid) {

@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 
 #include "protocol/lptf_protocol.hpp"
+#include "convert_endian.hpp"
+#include "exception/lptf_exception.hpp"
 
 // TEST(SharedSanity, AlwaysPasses) { EXPECT_EQ(1 + 1, 2); }
 

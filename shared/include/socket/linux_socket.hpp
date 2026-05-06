@@ -1,5 +1,5 @@
-#ifndef LINUX_SOCKET
-#define LINUX_SOCKET
+#ifndef LINUX_SOCKET_HPP
+#define LINUX_SOCKET_HPP
 
 #include <arpa/inet.h>  // inet_pton, inet_ntop
 #include <fcntl.h>      // fcntl(), O_NONBLOCK
@@ -14,7 +14,7 @@
 #include <cstring>  // strerror
 
 #include "convert_endian.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 
 class LinuxSocket : public ISocket {
  public:

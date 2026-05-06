@@ -1,5 +1,12 @@
 #include "agent_dispatcher.hpp"
 
+
+
+#include "protocol/protocol_parser.hpp"
+#include "protocol/protocol_serializer.hpp"
+#include "socket/i_socket.hpp"
+#include "socket/socket_helper.hpp"
+
 AgentDispatcher::AgentDispatcher() = default;
 
 void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {

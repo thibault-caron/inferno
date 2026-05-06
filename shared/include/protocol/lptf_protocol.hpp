@@ -1,5 +1,5 @@
-#ifndef LPTF_PROTOCOL
-#define LPTF_PROTOCOL
+#ifndef LPTF_PROTOCOL_HPP
+#define LPTF_PROTOCOL_HPP
 
 #include <cstddef>
 #include <cstdint>

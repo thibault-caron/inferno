@@ -5,7 +5,7 @@
 #include <string>
 
 #include "agent_session.hpp"
-#include "socket/ISocket.hpp"
+#include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
 class EnvHelper {
  public:
