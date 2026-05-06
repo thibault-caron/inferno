@@ -6,12 +6,12 @@
 #include <string>
 #include <vector>
 
-#include "i_dispatcher.hpp"
+#include "dispatcher.hpp"
 #include "agent_session.hpp"
 #include "protocol/lptf_protocol.hpp"
 
 
-class AgentDispatcher : public IDispatcher {
+class AgentDispatcher : public Dispatcher {
  public:
   std::string getSenderName() override { return senderName; };
   explicit AgentDispatcher();

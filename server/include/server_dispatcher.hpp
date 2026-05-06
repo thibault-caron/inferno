@@ -6,13 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "I_dispatcher.hpp"
+#include "dispatcher.hpp"
 #include "agent_session.hpp"
 #include "protocol/lptf_protocol.hpp"
 
 
 
-class ServerDispatcher : public IDispatcher {
+class ServerDispatcher : public Dispatcher {
  public:
   explicit ServerDispatcher();
   ServerDispatcher(const ServerDispatcher&) = delete;

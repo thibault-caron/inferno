@@ -1,7 +1,7 @@
-#include "i_dispatcher.hpp"
+#include "dispatcher.hpp"
 
 
-void IDispatcher::sendFrame(AgentSession& session, Frame& frame,
+void Dispatcher::sendFrame(AgentSession& session, Frame& frame,
                              const std::string& senderName) {
   if (frame.payload.size() > MAX_VALUE_INT16) {
     std::cerr << "payload too large\n";
@@ -43,14 +43,14 @@ void IDispatcher::sendFrame(AgentSession& session, Frame& frame,
 }
 
 
-void IDispatcher::onError(const std::vector<std::uint8_t>& payload) {
+void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
   const ErrorPayload error = ProtocolParser::parseErrorPayload(payload);
   std::cerr << "[← ERROR] code=" << static_cast<int>(error.code)
             << "  msg=" << error.message << "\n";
   //   running = false;
 }
 
-void IDispatcher::sendError(AgentSession& agent, ErrorType code,
+void Dispatcher::sendError(AgentSession& agent, ErrorType code,
                            const std::string& msg) {
   ErrorPayload error;
   error.code = code;
