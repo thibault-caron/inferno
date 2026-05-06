@@ -54,6 +54,7 @@ compile_commands.json
 *_qmlcache.qrc
 
 # Build artifacts
+build/
 agent/build/
 server/build/
 shared/build/
