@@ -1,5 +1,5 @@
-#ifndef I_DISPATCHER_HPP
-#define I_DISPATCHER_HPP
+#ifndef DISPATCHER_HPP
+#define DISPATCHER_HPP
 
 #include <iostream>
 
@@ -12,10 +12,10 @@
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 
-class IDispatcher {
+class Dispatcher {
  public:
   const std::string senderName{"server"};
-  virtual ~IDispatcher() = default;
+  virtual ~Dispatcher() = default;
   // Must be overriden by children
   virtual std::string getSenderName() { return senderName; };
   virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
