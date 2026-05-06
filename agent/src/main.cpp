@@ -61,8 +61,8 @@ void runAgentLoop(const std::string& host, std::uint16_t port) {
         // connected = false;
         // break;
       }
-
-      while (session.isValid() && std::optional<Frame> frame = session.tryExtractFrame()) {
+      std::optional<Frame> frame;
+      while (session.isValid() && (frame = session.tryExtractFrame())) {
         std::cout << "[agent] extracted frame type="
                   << SocketHelper::messageTypeToString(frame->header.type)
                   << " payload_size=" << frame->payload.size() << "\n";
