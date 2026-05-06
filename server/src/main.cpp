@@ -10,13 +10,12 @@
 #include <vector>
 
 #include "agent_session.hpp"
-#include "server_dispatcher.hpp"
 #include "env_helper.hpp"
+#include "server_dispatcher.hpp"
 #include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 #include "tcp_server.hpp"
-
 
 int main() {
   // Disable buffering on stdout and stderr to ensure logs are flushed
@@ -27,8 +26,8 @@ int main() {
   TcpServer server(serverPort);
   // 1. Start — TcpServer owns the listening socket
   if (!server.start()) {
-    std::cerr << "[server] Failed to bind/listen on port "
-              << serverPort << '\n';
+    std::cerr << "[server] Failed to bind/listen on port " << serverPort
+              << '\n';
     return 1;
   }
   server.setNonBlocking();

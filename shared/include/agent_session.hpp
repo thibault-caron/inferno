@@ -9,7 +9,7 @@
 
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
-#include "socket/I_socket.hpp"
+#include "socket/i_socket.hpp"
 
 class AgentSession {
  public:

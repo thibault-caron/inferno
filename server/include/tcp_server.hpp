@@ -3,12 +3,10 @@
 
 // #include <cstddef>
 #include <cstdint>
-#include <vector>
 #include <memory>
+#include <vector>
+
 #include "socket/i_socket.hpp"
-
-
-
 
 class TcpServer {
  public:

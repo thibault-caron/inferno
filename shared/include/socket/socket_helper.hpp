@@ -21,8 +21,8 @@ class SocketHelper {
 
   static const char* messageTypeToString(const MessageType type);
 
-  static LptfHeader createHeader(
-      MessageType type, const std::vector<std::uint8_t>& payload);
+  static LptfHeader createHeader(MessageType type,
+                                 const std::vector<std::uint8_t>& payload);
 
  private:
   static const std::size_t kReceiveChunkSize = 4096;
