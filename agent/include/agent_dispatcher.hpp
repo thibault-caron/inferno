@@ -6,14 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "dispatcher.hpp"
 #include "agent_session.hpp"
+#include "dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
-
 
 class AgentDispatcher : public Dispatcher {
  public:
-  std::string getSenderName() override { return senderName; };
+  std::string getsenderName_() override { return senderName_; };
   explicit AgentDispatcher();
 
   AgentDispatcher(const AgentDispatcher&) = delete;
@@ -25,11 +24,11 @@ class AgentDispatcher : public Dispatcher {
   void sendResponse(AgentSession& session, std::uint16_t id,
                     ResponseStatus status, const std::string& data);
 
-  bool getRegisterWasSent() { return registerWasSent; };
+  bool getregisterWasSent_() { return registerWasSent_; };
 
  private:
-  const std::string senderName{"agent"};
-  bool registerWasSent{false};
+  const std::string senderName_{"agent"};
+  bool registerWasSent_{false};
 };
 
 #endif

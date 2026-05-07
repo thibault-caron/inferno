@@ -90,7 +90,7 @@ void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
 
   Frame frame = {SocketHelper::createHeader(MessageType::COMMAND, payload),
                  payload};
-  sendFrame(agent, frame, senderName);
+  sendFrame(agent, frame, senderName_);
   // sendRaw(agent, MessageType::COMMAND, payload);
   std::cout << "[→ COMMAND] id=" << command.id
             << "  type=" << static_cast<int>(command.type) << "\n";
@@ -101,7 +101,7 @@ void ServerDispatcher::sendDisconnect(AgentSession& agent) {
   Frame frame = {SocketHelper::createHeader(MessageType::DISCONNECT, payload),
                  payload};
   // sendRaw(agent, MessageType::DISCONNECT);
-  sendFrame(agent, frame, senderName);
+  sendFrame(agent, frame, senderName_);
   std::cout << "[→ DISCONNECT]\n";
   //   running = false;
 }

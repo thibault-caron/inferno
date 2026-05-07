@@ -2,15 +2,12 @@
 #define SERVER_DISPATCHER_HPP
 
 #include <cstdint>
-
 #include <string>
 #include <vector>
 
-#include "dispatcher.hpp"
 #include "agent_session.hpp"
+#include "dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
-
-
 
 class ServerDispatcher : public Dispatcher {
  public:
@@ -34,7 +31,7 @@ class ServerDispatcher : public Dispatcher {
   std::uint16_t nextId();
 
  private:
-  const std::string senderName{"server"};
+  const std::string senderName_{"server"};
   std::uint16_t nextCmdId = 0;
 };
 

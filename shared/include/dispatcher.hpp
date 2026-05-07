@@ -14,10 +14,10 @@
 
 class Dispatcher {
  public:
-  const std::string senderName{"server"};
+  const std::string senderName_{"server"};
   virtual ~Dispatcher() = default;
   // Must be overriden by children
-  virtual std::string getSenderName() { return senderName; };
+  virtual std::string getsenderName_() { return senderName_; };
   virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
 
   // ── Incoming message handlers ───────────────────────
@@ -28,7 +28,7 @@ class Dispatcher {
 
   // ── I/O ─────────────────────────────────────────────
   void sendFrame(AgentSession& session, Frame& frame,
-                 const std::string& senderName);
+                 const std::string& senderName_);
 };
 
 #endif

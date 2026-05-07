@@ -1,7 +1,5 @@
 #include "agent_dispatcher.hpp"
 
-
-
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/i_socket.hpp"
@@ -23,11 +21,11 @@ void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
         }
 
         return sendError(session, ErrorType::UNKNOWN_COMMAND,
-                                 "Command not implemented in minimal agent");
+                         "Command not implemented in minimal agent");
       } catch (const std::exception& ex) {
         std::cerr << "[agent] invalid COMMAND payload: " << ex.what() << "\n";
         return sendError(session, ErrorType::INVALID_FORMAT,
-                                 "Invalid COMMAND payload");
+                         "Invalid COMMAND payload");
       }
     }
     // TODO : how agent handle disconnect command from server
@@ -53,7 +51,7 @@ void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
     }
     default:
       return sendError(session, ErrorType::UNKNOWN_TYPE,
-                               "Unexpected message type for agent");
+                       "Unexpected message type for agent");
   }
 }
 
@@ -70,13 +68,14 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
       SocketHelper::createHeader(MessageType::REGISTER, registerPayload),
       registerPayload};
 
-  sendFrame(session, frame, senderName);
+  sendFrame(session, frame, senderName_);
   std::cout << "at the end of sendRegister\n";
-  registerWasSent = true;
+  registerWasSent_ = true;
 }
 
 void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
-                  ResponseStatus status, const std::string& data) {
+                                   ResponseStatus status,
+                                   const std::string& data) {
   ResponsePayload payload;
   payload.id = id;
   payload.status = status;
@@ -87,9 +86,8 @@ void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
   const std::vector<std::uint8_t> responsePayload =
       ProtocolSerializer::serializeResponsePayload(payload);
 
-      Frame frame = {
-        SocketHelper::createHeader(MessageType::RESPONSE, responsePayload),
-        responsePayload
-      };
-      sendFrame(session, frame, senderName);
+  Frame frame = {
+      SocketHelper::createHeader(MessageType::RESPONSE, responsePayload),
+      responsePayload};
+  sendFrame(session, frame, senderName_);
 }
