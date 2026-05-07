@@ -37,11 +37,11 @@ class LinuxSocket : public ISocket {
   bool isValid() const override;
   std::string remoteAddress() const override;
   uint16_t remotePort() const override;
-  int getFd() override { return socketFileDescriptor; }
+  int getFd() override { return socketFileDescriptor_; }
 
  private:
-  int socketFileDescriptor =
-      -1;  // naming convention m_fd for member file descriptor
+  int socketFileDescriptor_ =
+      -1;  
 
   // Translates errno → your SocketError
   static SocketStatus translateStatus(int err);
