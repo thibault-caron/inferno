@@ -6,14 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "dispatcher.hpp"
 #include "agent_session.hpp"
+#include "dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
-
 
 class AgentDispatcher : public Dispatcher {
  public:
-  std::string getSenderName() override { return senderName; };
+  // std::string getSenderName() override { return senderName; };
   explicit AgentDispatcher();
 
   AgentDispatcher(const AgentDispatcher&) = delete;
@@ -21,15 +20,19 @@ class AgentDispatcher : public Dispatcher {
   AgentDispatcher& operator=(const AgentDispatcher&) = delete;
 
   void handleFrame(AgentSession& agent, const Frame& frame) override;
-  void sendRegister(AgentSession& session);
-  void sendResponse(AgentSession& session, std::uint16_t id,
-                    ResponseStatus status, const std::string& data);
 
   bool getRegisterWasSent() { return registerWasSent; };
+  void sendRegister(AgentSession& session);
 
  private:
-  const std::string senderName{"agent"};
+  // const std::string senderName{"agent"};
   bool registerWasSent{false};
+  void sendResponse(AgentSession& session, std::uint16_t id,
+                    ResponseStatus status, const std::string& data);
+  void onCommand(AgentSession& session,
+                 const std::vector<std::uint8_t>& payload);
+  void onDisconnect(AgentSession& session);
+  void onError(const std::vector<std::uint8_t>& payload);
 };
 
 #endif

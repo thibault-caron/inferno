@@ -26,12 +26,13 @@ SocketResult SocketHelper::receiveIntoBuffer(AgentSession& session) {
   if (result.ok() && result.bytesTransferred > 0) {
     temp.resize(static_cast<std::size_t>(result.bytesTransferred));
     session.buffer.insert(session.buffer.end(), temp.begin(), temp.end());
-    std::cout << "[agent] recv bytes=" << result.bytesTransferred
-              << " buffer_size=" << session.buffer.size() << "\n";
-  } else {
-    std::cout << "[agent] recv status=" << static_cast<int>(result.error)
-              << " bytes=" << result.bytesTransferred << "\n";
-  }
+    // std::cout << "[agent] recv bytes=" << result.bytesTransferred
+    //           << " buffer_size=" << session.buffer.size() << "\n";
+  } 
+  // else {
+  //   std::cout << "[agent] recv status=" << static_cast<int>(result.error)
+  //             << " bytes=" << result.bytesTransferred << "\n";
+  // }
   return result;
 };
 

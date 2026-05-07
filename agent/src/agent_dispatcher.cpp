@@ -1,59 +1,79 @@
 #include "agent_dispatcher.hpp"
 
-
+#include <sstream>
 
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/i_socket.hpp"
 #include "socket/socket_helper.hpp"
+#include "logger.hpp"
 
-AgentDispatcher::AgentDispatcher() = default;
+AgentDispatcher::AgentDispatcher() : Dispatcher("agent") {}
 
 void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
   switch (frame.header.type) {
-    case MessageType::COMMAND: {
-      try {
-        const CommandPayload cmd =
-            ProtocolParser::parseCommandPayload(frame.payload);
-
-        if (cmd.type == CommandType::OS_INFO) {
-          std::cout << "[agent] received COMMAND OS_INFO id=" << cmd.id << "\n";
-          return sendResponse(session, cmd.id, ResponseStatus::OK,
-                              "hello world from agent");
-        }
-
-        return sendError(session, ErrorType::UNKNOWN_COMMAND,
-                                 "Command not implemented in minimal agent");
-      } catch (const std::exception& ex) {
-        std::cerr << "[agent] invalid COMMAND payload: " << ex.what() << "\n";
-        return sendError(session, ErrorType::INVALID_FORMAT,
-                                 "Invalid COMMAND payload");
-      }
-    }
-    // TODO : how agent handle disconnect command from server
+    case MessageType::COMMAND:
+      return onCommand(session, frame.payload);
     case MessageType::DISCONNECT:
-      std::cout << "[agent] received DISCONNECT\n";
-      if (session.socket) {
-        session.socket->close();
-        session.socket.reset();
-      }
-      session.setRegistered(false);
-      return;
+      return onDisconnect(session);
     case MessageType::ERROR: {
-      try {
-        const ErrorPayload payload =
-            ProtocolParser::parseErrorPayload(frame.payload);
-        std::cerr << "[agent] server ERROR code="
-                  << static_cast<int>(payload.code)
-                  << " message=" << payload.message << "\n";
-      } catch (...) {
-        std::cerr << "[agent] received malformed ERROR payload\n";
-      }
-      return;
+      return onError(frame.payload);
     }
     default:
       return sendError(session, ErrorType::UNKNOWN_TYPE,
-                               "Unexpected message type for agent");
+                       "Unexpected message type for agent");
+  }
+}
+void AgentDispatcher::onError(
+                              const std::vector<std::uint8_t>& payload) {
+  std::ostringstream what;
+  try {
+    const ErrorPayload errorPayload =
+        ProtocolParser::parseErrorPayload(payload);
+    what << "server ERROR code=" << static_cast<int>(errorPayload.code)
+         << " message=" << errorPayload.message;
+    logger_.error(what.str());
+    // std::cerr << "[agent] server ERROR code=" <<
+    // static_cast<int>(payload.code)
+    //           << " message=" << payload.message << "\n";
+  } catch (...) {
+    logger_.error("received malformed ERROR payload");
+  }
+}
+void AgentDispatcher::onDisconnect(AgentSession& session) {
+  logger_.info("received DISCONNECT");
+  // std::cout << "[agent] received DISCONNECT\n";
+  if (session.socket) {
+    session.socket->close();
+    session.socket.reset();
+  }
+  session.setRegistered(false);
+}
+
+void AgentDispatcher::onCommand(AgentSession& session,
+                                const std::vector<std::uint8_t>& payload) {
+  try {
+    const CommandPayload cmd = ProtocolParser::parseCommandPayload(payload);
+
+    if (cmd.type == CommandType::OS_INFO) {
+      std::ostringstream what;
+      what << "received COMMAND OS_INFO id=" << cmd.id;
+      logger_.info(what.str());
+      // std::cout << "[agent] received COMMAND OS_INFO id=" << cmd.id <<
+      // "\n";
+      return sendResponse(session, cmd.id, ResponseStatus::OK,
+                          "hello world from agent");
+    }
+
+    return sendError(session, ErrorType::UNKNOWN_COMMAND,
+                     "Command not implemented in minimal agent");
+  } catch (const std::exception& ex) {
+    std::ostringstream what;
+    what << "invalid COMMAND payload: " << ex.what();
+    logger_.error(what.str());
+    // std::cerr << "[agent] invalid COMMAND payload: " << ex.what() << "\n";
+    return sendError(session, ErrorType::INVALID_FORMAT,
+                     "Invalid COMMAND payload");
   }
 }
 
@@ -70,13 +90,14 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
       SocketHelper::createHeader(MessageType::REGISTER, registerPayload),
       registerPayload};
 
-  sendFrame(session, frame, senderName);
+  sendFrame(session, frame);
   std::cout << "at the end of sendRegister\n";
   registerWasSent = true;
 }
 
 void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
-                  ResponseStatus status, const std::string& data) {
+                                   ResponseStatus status,
+                                   const std::string& data) {
   ResponsePayload payload;
   payload.id = id;
   payload.status = status;
@@ -87,9 +108,8 @@ void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
   const std::vector<std::uint8_t> responsePayload =
       ProtocolSerializer::serializeResponsePayload(payload);
 
-      Frame frame = {
-        SocketHelper::createHeader(MessageType::RESPONSE, responsePayload),
-        responsePayload
-      };
-      sendFrame(session, frame, senderName);
+  Frame frame = {
+      SocketHelper::createHeader(MessageType::RESPONSE, responsePayload),
+      responsePayload};
+  sendFrame(session, frame);
 }

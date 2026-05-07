@@ -9,12 +9,13 @@
 #include "server_dispatcher.hpp"
 #include "tcp_server.hpp"
 #include "poller/i_poller.hpp"
+#include "logger.hpp"
 
 class Reactor {
  public:
   explicit Reactor(TcpServer& server, ServerDispatcher& dispatcher, IPoller& poller)
       : dispatcher_(dispatcher), server_(server), poller_(poller) {}
-  explicit Reactor() = delete;
+  Reactor() = delete;
   Reactor(const Reactor&) = delete;
   Reactor& operator=(const Reactor&) = delete;
   ~Reactor() = default;
@@ -26,6 +27,7 @@ class Reactor {
   ServerDispatcher& dispatcher_;
   TcpServer& server_;
   IPoller& poller_;
+  Logger logger_{"reactor"};
 
   
   bool running_ = false;
