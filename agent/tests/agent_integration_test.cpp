@@ -42,7 +42,7 @@ TEST(AgentIntegration, should_register_respond_and_disconnect) {
     dispatcher.sendRegister(session);
 
     while (session.isValid()) {
-      const SocketResult result = SocketHelper::receiveIntoBuffer(session);
+      const SocketResult result = session.receiveIntoBuffer();
       if (!result.ok() || result.bytesTransferred <= 0) {
         agentOk = false;
         return;

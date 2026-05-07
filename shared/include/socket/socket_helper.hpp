@@ -17,15 +17,16 @@ class SocketHelper {
   SocketHelper(const SocketHelper&) = delete;
   SocketHelper& operator=(const SocketHelper&) = delete;
 
-  static SocketResult receiveIntoBuffer(AgentSession& session);
+  // static SocketResult receiveIntoBuffer(AgentSession& session);
 
   static const char* messageTypeToString(const MessageType type);
 
   static LptfHeader createHeader(MessageType type,
                                  const std::vector<std::uint8_t>& payload);
 
- private:
   static const std::size_t kReceiveChunkSize = 4096;
+
+ private:
 };
 
 #endif

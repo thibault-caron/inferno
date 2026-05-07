@@ -1,4 +1,5 @@
 #include "agent_session.hpp"
+#include "socket/socket_helper.hpp"
 
 std::optional<Frame> AgentSession::tryExtractFrame() {
   if (!header_ && buffer.size() >= LPTF_HEADER_SIZE) {
@@ -25,3 +26,20 @@ std::vector<std::uint8_t> AgentSession::slice(std::size_t offset,
   return {buffer.begin() + static_cast<std::ptrdiff_t>(offset),
           buffer.begin() + static_cast<std::ptrdiff_t>(offset + len)};
 }
+
+SocketResult AgentSession::receiveIntoBuffer() {
+  std::vector<std::uint8_t> temp(SocketHelper::kReceiveChunkSize);
+  const SocketResult result = socket->recv(temp.data(), temp.size());
+
+  if (result.ok() && result.bytesTransferred > 0) {
+    temp.resize(static_cast<std::size_t>(result.bytesTransferred));
+    buffer.insert(buffer.end(), temp.begin(), temp.end());
+    // std::cout << "[agent] recv bytes=" << result.bytesTransferred
+    //           << " buffer_size=" << session.buffer.size() << "\n";
+  } 
+  // else {
+  //   std::cout << "[agent] recv status=" << static_cast<int>(result.error)
+  //             << " bytes=" << result.bytesTransferred << "\n";
+  // }
+  return result;
+};

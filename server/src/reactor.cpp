@@ -1,5 +1,7 @@
 #include "reactor.hpp"
 
+#include <sstream>
+
 void Reactor::run() {
   poller_.add(server_.getFd(), WatchFlags::READ | WatchFlags::ERROR);
   running_ = true;
@@ -29,22 +31,32 @@ void Reactor::onNewConnection() {
   if (incoming) {
     const int fd = incoming->getFd();
     if (!poller_.add(fd, WatchFlags::READ | WatchFlags::ERROR)) {
-      std::cerr << "[Reactor] Failed to watch agent fd " << fd << '\n';
+      std::ostringstream what;
+      what << "Failed to watch agent fd " << fd;
+      logger_.error(what.str());
+      // std::cerr << "[Reactor] Failed to watch agent fd " << fd << '\n';
       return;
     }
-    std::cout << "[server] Agent connected: " << incoming->remoteAddress()
-              << ':' << incoming->remotePort() << '\n';
+    std::ostringstream what;
+    what << "Agent connected: " << incoming->remoteAddress() << ':'
+         << incoming->remotePort();
+    // std::cout << "[server] Agent connected: " << incoming->remoteAddress()
+    //           << ':' << incoming->remotePort() << '\n';
+    logger_.info(what.str());
     agents_.emplace(fd, AgentSession(std::move(incoming)));
   }
 }
 
 void Reactor::onAgentReady(int fileDescriptor) {
   AgentSession& session = agents_.at(fileDescriptor);
-  const SocketResult result = SocketHelper::receiveIntoBuffer(session);
+  const SocketResult result = session.receiveIntoBuffer();
 
   if (!result.ok() || result.error == SocketStatus::CONNECTION_RESET ||
       result.bytesTransferred <= 0) {
-    std::cout << "[server] Agent " << fileDescriptor << " disconnected\n";
+        std::ostringstream what;
+        what << "Agent " << fileDescriptor << " disconnected\n";
+        logger_.info(what.str());
+    // std::cout << "[server] Agent " << fileDescriptor << " disconnected\n";
     onAgentDisconnected(fileDescriptor);
     return;
   }

@@ -16,12 +16,10 @@
 
 class Dispatcher {
  public:
-  //   const std::string senderName{"server"};
-  //   Dispatcher(std::string who) : logger_(const std::string& who) {};
   Dispatcher(const std::string& who) : logger_(who) {}
   virtual ~Dispatcher() = default;
+  
   // Must be overriden by children
-  //   virtual std::string getSenderName() { return senderName; };
   virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
 
   // ── Incoming message handlers ───────────────────────
