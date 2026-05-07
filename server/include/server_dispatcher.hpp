@@ -32,7 +32,7 @@ class ServerDispatcher : public Dispatcher {
 
  private:
   const std::string senderName_{"server"};
-  std::uint16_t nextCmdId = 0;
+  std::uint16_t nextCmdId_ = 0;
 };
 
 #endif
