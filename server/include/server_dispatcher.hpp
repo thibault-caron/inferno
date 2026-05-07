@@ -18,8 +18,6 @@ class ServerDispatcher : public Dispatcher {
 
   void handleFrame(AgentSession& agent, const Frame& frame) override;
 
-  std::uint16_t nextId();
-
  private:
   // ── Incoming message handlers ───────────────────────
   void onRegister(AgentSession& agent,
@@ -31,8 +29,11 @@ class ServerDispatcher : public Dispatcher {
   void sendCommand(AgentSession& agent, CommandType type,
                    const std::string& data = "");
   void sendDisconnect(AgentSession& agent);
-  // const std::string senderName{"server"};
-  std::uint16_t nextCmdId = 0;
+
+  std::uint16_t nextId();
+
+ private:
+  std::uint16_t nextCmdId_ = 0;
 };
 
 #endif

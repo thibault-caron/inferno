@@ -92,7 +92,7 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
 
   sendFrame(session, frame);
   std::cout << "at the end of sendRegister\n";
-  registerWasSent = true;
+  registerWasSent_ = true;
 }
 
 void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,

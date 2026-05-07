@@ -131,4 +131,4 @@ void ServerDispatcher::sendDisconnect(AgentSession& agent) {
   //   running = false;
 }
 
-std::uint16_t ServerDispatcher::nextId() { return nextCmdId++; }
+std::uint16_t ServerDispatcher::nextId() { return nextCmdId_++; }
