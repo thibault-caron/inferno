@@ -40,7 +40,7 @@ void runAgentLoop(const std::string& host, std::uint16_t port) {
     AgentSession session(std::move(socket));
 
     dispatcher.sendRegister(session);
-    if (!dispatcher.getRegisterWasSent()) {
+    if (dispatcher.getRegistered_() != StatusRegister::SENT) {
       std::cerr << "[agent] failed to send REGISTER, reconnecting...\n";
       session.socket->close();
       ::sleep(static_cast<unsigned>(kRetryDelay.count()));
@@ -52,7 +52,7 @@ void runAgentLoop(const std::string& host, std::uint16_t port) {
     // bool connected = true;
     // while (connected && session.isValid())
     while (session.isValid()) {
-      const SocketResult result = SocketHelper::receiveIntoBuffer(session);
+      const SocketResult result = session.receiveIntoBuffer();
       if (!result.ok() || result.bytesTransferred <= 0) {
         std::cout << "[agent] connection loop break status="
                   << static_cast<int>(result.error)

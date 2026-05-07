@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "logger.hpp"
 #include "socket/i_socket.hpp"
 
 class TcpServer {
@@ -18,6 +19,8 @@ class TcpServer {
   bool start();
   std::unique_ptr<ISocket> acceptAgent() const;
 
+  int getFd() const { return serverSocket_ ? serverSocket_->getFd() : -1; }
+
   bool setNonBlocking() {
     return serverSocket_ && serverSocket_->setNonBlocking(true);
   }
@@ -27,6 +30,7 @@ class TcpServer {
   int backlog_;
   std::unique_ptr<ISocket> serverSocket_;
   std::vector<std::uint8_t> receiveBuffer_;
+  Logger logger_{"server"};
 };
 
 #endif

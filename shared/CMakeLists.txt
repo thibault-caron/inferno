@@ -7,6 +7,7 @@ project(InfernoShared LANGUAGES CXX)
 add_library(shared_lib STATIC
     src/agent_session.cpp
     src/env_helper.cpp
+    src/logger.cpp
     src/dispatcher.cpp
     src/protocol/protocol_parser.cpp
     src/protocol/protocol_serializer.cpp

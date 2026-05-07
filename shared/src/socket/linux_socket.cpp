@@ -13,8 +13,8 @@ also called socket, the compiler would get confused.
 LinuxSocket::LinuxSocket() {
   // SOCK_STREAM = TCP. Use SOCK_DGRAM for UDP.
   // AF_INET = IPv4. Use AF_INET6 for IPv6, or handle both.
-  socketFileDescriptor = ::socket(AF_INET, SOCK_STREAM, 0);
-  // socketFileDescriptor == -1 on failure, isValid() will return false
+  socketFileDescriptor_ = ::socket(AF_INET, SOCK_STREAM, 0);
+  // socketFileDescriptor_ == -1 on failure, isValid() will return false
   /*
   AF_INET = use IPv4 addresses (the classic 192.168.x.x style)
   SOCK_STREAM = use TCP (reliable, ordered, connection-based)
@@ -22,9 +22,9 @@ LinuxSocket::LinuxSocket() {
   */
 
   // Useful for servers: reuse address immediately after restart
-  if (socketFileDescriptor != -1) {
+  if (socketFileDescriptor_ != -1) {
     int opt = 1;
-    ::setsockopt(socketFileDescriptor, SOL_SOCKET, SO_REUSEADDR, &opt,
+    ::setsockopt(socketFileDescriptor_, SOL_SOCKET, SO_REUSEADDR, &opt,
                  sizeof(opt));
 
     // Disable Nagle's algorithm if your protocol sends small packets
@@ -33,7 +33,7 @@ LinuxSocket::LinuxSocket() {
 }
 
 LinuxSocket::LinuxSocket(int fileDescriptor)
-    : socketFileDescriptor(fileDescriptor) {}
+    : socketFileDescriptor_(fileDescriptor) {}
 
 LinuxSocket::~LinuxSocket() { close(); }
 
@@ -54,7 +54,7 @@ bool LinuxSocket::connect(const std::string& host, uint16_t port) {
   bool connected = false;
   for (addrinfo* candidate = result; candidate != nullptr;
        candidate = candidate->ai_next) {
-    if (::connect(socketFileDescriptor, candidate->ai_addr,
+    if (::connect(socketFileDescriptor_, candidate->ai_addr,
                   candidate->ai_addrlen) == 0) {
       connected = true;
       break;
@@ -70,12 +70,12 @@ bool LinuxSocket::bind(uint16_t port) {
   addr.sin_addr.s_addr = INADDR_ANY;  // Listen on all interfaces
   addr.sin_port = htons(port);        // htons = host-to-network byte order
                                       // (but you already handle endianness!)
-  return ::bind(socketFileDescriptor, reinterpret_cast<sockaddr*>(&addr),
+  return ::bind(socketFileDescriptor_, reinterpret_cast<sockaddr*>(&addr),
                 sizeof(addr)) == 0;
 }
 
 bool LinuxSocket::listen(int backlog) {
-  return ::listen(socketFileDescriptor, backlog) == 0;
+  return ::listen(socketFileDescriptor_, backlog) == 0;
 }
 
 // blocking call - Each call to accept() gives you a new socket for each new
@@ -84,7 +84,7 @@ std::unique_ptr<ISocket> LinuxSocket::accept() {
   sockaddr_in agentAddr{};
   socklen_t addrLen = sizeof(agentAddr);
 
-  int agentFd = ::accept(socketFileDescriptor,
+  int agentFd = ::accept(socketFileDescriptor_,
                          reinterpret_cast<sockaddr*>(&agentAddr), &addrLen);
   if (agentFd == -1) return nullptr;
 
@@ -94,7 +94,7 @@ std::unique_ptr<ISocket> LinuxSocket::accept() {
 SocketResult LinuxSocket::send(const uint8_t* data, size_t length) {
   // MSG_NOSIGNAL: don't raise SIGPIPE if the peer closed the connection.
   // Without this, a broken pipe kills your process silently on Linux.
-  ssize_t sent = ::send(socketFileDescriptor, static_cast<const void*>(data),
+  ssize_t sent = ::send(socketFileDescriptor_, static_cast<const void*>(data),
                         length, MSG_NOSIGNAL);
   if (sent == -1) {
     return {-1, translateStatus(errno)};
@@ -104,7 +104,7 @@ SocketResult LinuxSocket::send(const uint8_t* data, size_t length) {
 
 SocketResult LinuxSocket::recv(uint8_t* data, size_t length) {
   ssize_t received =
-      ::recv(socketFileDescriptor, static_cast<void*>(data), length, 0);
+      ::recv(socketFileDescriptor_, static_cast<void*>(data), length, 0);
   if (received == -1) {
     return {-1, translateStatus(errno)};
   }
@@ -116,26 +116,26 @@ SocketResult LinuxSocket::recv(uint8_t* data, size_t length) {
 }
 
 void LinuxSocket::close() {
-  if (socketFileDescriptor != -1) {
+  if (socketFileDescriptor_ != -1) {
     ::close(
-        socketFileDescriptor);  // Linux: close() the fd. Windows: closesocket()
-    socketFileDescriptor = -1;
+        socketFileDescriptor_);  // Linux: close() the fd. Windows: closesocket()
+    socketFileDescriptor_ = -1;
   }
 }
 
 bool LinuxSocket::setNonBlocking(bool on) {
-  int flags = ::fcntl(socketFileDescriptor, F_GETFL, 0);
+  int flags = ::fcntl(socketFileDescriptor_, F_GETFL, 0);
   if (flags == -1) return false;
   flags = on ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
-  return ::fcntl(socketFileDescriptor, F_SETFL, flags) == 0;
+  return ::fcntl(socketFileDescriptor_, F_SETFL, flags) == 0;
 }
 
-bool LinuxSocket::isValid() const { return socketFileDescriptor != -1; }
+bool LinuxSocket::isValid() const { return socketFileDescriptor_ != -1; }
 
 std::string LinuxSocket::remoteAddress() const {
   sockaddr_in address{};
   socklen_t length = sizeof(address);
-  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&address),
+  if (::getpeername(socketFileDescriptor_, reinterpret_cast<sockaddr*>(&address),
                     &length) == -1)
     return "";
   char buffer[INET_ADDRSTRLEN];
@@ -146,7 +146,7 @@ std::string LinuxSocket::remoteAddress() const {
 uint16_t LinuxSocket::remotePort() const {
   sockaddr_in address{};
   socklen_t length = sizeof(address);
-  if (::getpeername(socketFileDescriptor, reinterpret_cast<sockaddr*>(&address),
+  if (::getpeername(socketFileDescriptor_, reinterpret_cast<sockaddr*>(&address),
                     &length) == -1)
     return 0;
   return ntohs(address.sin_port);

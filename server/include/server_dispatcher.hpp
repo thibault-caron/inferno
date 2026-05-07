@@ -2,15 +2,12 @@
 #define SERVER_DISPATCHER_HPP
 
 #include <cstdint>
-
 #include <string>
 #include <vector>
 
-#include "dispatcher.hpp"
 #include "agent_session.hpp"
+#include "dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
-
-
 
 class ServerDispatcher : public Dispatcher {
  public:
@@ -20,6 +17,8 @@ class ServerDispatcher : public Dispatcher {
   ServerDispatcher& operator=(const ServerDispatcher&) = delete;
 
   void handleFrame(AgentSession& agent, const Frame& frame) override;
+
+ private:
   // ── Incoming message handlers ───────────────────────
   void onRegister(AgentSession& agent,
                   const std::vector<std::uint8_t>& payload);
@@ -34,8 +33,7 @@ class ServerDispatcher : public Dispatcher {
   std::uint16_t nextId();
 
  private:
-  const std::string senderName{"server"};
-  std::uint16_t nextCmdId = 0;
+  std::uint16_t nextCmdId_ = 0;
 };
 
 #endif

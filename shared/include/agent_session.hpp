@@ -25,6 +25,7 @@ class AgentSession {
   std::optional<Frame> tryExtractFrame();
   bool isValid() const { return socket && socket->isValid(); }
 
+  // TODO : socket and buffer should be private ?
   std::unique_ptr<ISocket> socket;
   std::vector<std::uint8_t> buffer;
 
@@ -42,6 +43,7 @@ class AgentSession {
 
   bool isRegistered() const { return isRegistered_; }
   void setRegistered(bool registered) { isRegistered_ = registered; }
+  SocketResult receiveIntoBuffer();
 
  private:
   std::optional<LptfHeader> header_;
