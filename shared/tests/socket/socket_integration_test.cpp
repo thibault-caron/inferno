@@ -4,8 +4,9 @@
 #include <vector>
 
 #include "socket/socket_factory.hpp"
+#include "test_constants.hpp"
 
-#define TEST_PORT 9876
+
 
 // Helper: runs a server that accepts one agent, receives data, sends it back
 // "echoes" everything it receives — classic test pattern
@@ -25,13 +26,13 @@ void runEchoServer(uint16_t port, bool& serverReady) {
 }
 
 TEST(SocketIntegration, SendAndReceiveData) {
-  // const uint16_t TEST_PORT = 9876;
+
   bool serverReady = false;
   // TODO how not to use thread while still be os agnostic (::socketpair() on
   // linux) ? Run the server in a background thread (otherwise it would block
   // our test)
-  std::thread serverThread(runEchoServer, static_cast<uint16_t>(TEST_PORT),
-                           std::ref(serverReady));
+  std::thread serverThread(runEchoServer, TestConstants::SOCKET_ECHO_PORT, 
+                            std::ref(serverReady));
 
   // Wait until server is actually listening before we try to connect
   while (!serverReady) {
@@ -40,7 +41,7 @@ TEST(SocketIntegration, SendAndReceiveData) {
 
   // Agent side
   auto agentSocket = SocketFactory::createTCP();
-  bool connected = agentSocket->connect("127.0.0.1", TEST_PORT);
+  bool connected = agentSocket->connect("127.0.0.1", TestConstants::SOCKET_ECHO_PORT);
   ASSERT_TRUE(connected) << "Agent failed to connect";
 
   // Send some bytes
@@ -67,6 +68,6 @@ TEST(SocketIntegration, SendAndReceiveData) {
 TEST(SocketIntegration, ConnectToNonExistentServer) {
   auto socket = SocketFactory::createTCP();
   bool connected =
-      socket->connect("127.0.0.1", 19999);  // nothing listening here
+      socket->connect("127.0.0.1", TestConstants::SOCKET_UNUSED_PORT);  // nothing listening here
   EXPECT_FALSE(connected);
 }
