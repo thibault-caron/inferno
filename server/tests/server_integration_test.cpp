@@ -15,10 +15,10 @@
 #include "socket/i_socket.hpp"
 #include "socket/socket_test_helpers.hpp"
 #include "tcp_server.hpp"
+#include "test_constants.hpp"
 
 namespace {
 
-constexpr std::uint16_t kPort = 19882;
 constexpr std::size_t kChunkSize = 4096;
 
 SocketResult receiveIntoSession(AgentSession& session) {
@@ -49,7 +49,7 @@ std::optional<Frame> receiveOneFrame(AgentSession& session) {
 }  // namespace
 
 TEST(ServerIntegration, should_handle_register_response_and_disconnect) {
-  TcpServer server(kPort);
+  TcpServer server(TestConstants::SERVER_INTEGRATION_PORT);
   ASSERT_TRUE(server.start());
 
   bool agentSawCommand = false;
@@ -59,7 +59,7 @@ TEST(ServerIntegration, should_handle_register_response_and_disconnect) {
 
   std::thread agentThread([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    const int fd = connectLoopback(kPort);
+    const int fd = connectLoopback(TestConstants::SERVER_INTEGRATION_PORT);
     if (fd == -1) return;
 
     const auto registerFrame =
