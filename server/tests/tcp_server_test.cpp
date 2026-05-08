@@ -58,8 +58,8 @@ TEST(TcpServerIntegration,
      should_return_false_when_start_is_called_a_second_time_on_same_instance) {
   TcpServer server(19873);
   ASSERT_TRUE(server.start());
-  // Le deuxième start() va tenter de re-créer et binder le socket.
-  // Comme le port est occupé par la première instance, ça doit échouer.
+// The second start() will attempt to recreate and bind the socket.
+// Since the port is already occupied by the first instance, it should fail.
   EXPECT_FALSE(server.start());
 }
 
