@@ -6,7 +6,6 @@
 #include <unordered_map>
 
 #include "agent_session.hpp"
-// #include "server_dispatcher.hpp"
 #include "dispatcher/i_dispatcher.hpp"
 #include "logger.hpp"
 #include "poller/i_poller.hpp"

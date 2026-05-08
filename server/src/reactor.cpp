@@ -59,7 +59,7 @@ void Reactor::onAgentReady(int fileDescriptor) {
   }
 
   while (std::optional<Frame> frame = session.tryExtractFrame()) {
-    if (!session.isRegistered() &&
+    if (!session.getIsRegistered() &&
         frame->header.type != MessageType::REGISTER) {
       dispatcher_.sendError(session, ErrorType::INVALID_FORMAT,
                             "First message must be REGISTER");

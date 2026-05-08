@@ -15,7 +15,10 @@ TcpServer::TcpServer(const std::uint16_t port, const int backlog)
 
 bool TcpServer::start() {
   if (serverSocket_ && serverSocket_->isValid()) {
-    std::cout << "[start] Socket is already valid on port " << port_ << '\n';
+    std::ostringstream what;
+    what << "[start] Socket is already valid on port " << port_ ;
+    logger_.error(what.str());
+    // std::cout << "[start] Socket is already valid on port " << port_ << '\n';
     return false;
   }
   serverSocket_ = SocketFactory::createTCP();

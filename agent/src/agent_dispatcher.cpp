@@ -44,7 +44,7 @@ void AgentDispatcher::onDisconnect(AgentSession& session) {
     session.socket->close();
     session.socket.reset();
   }
-  session.setRegistered(false);
+  // session.setRegistered(false);
 }
 
 void AgentDispatcher::onCommand(AgentSession& session,
@@ -87,10 +87,12 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
       registerPayload};
 
   sendFrame(session, frame);
+  session.setAgentInfo(payload);
+  session.setRegistered_(RegisterState::SENT);
   std::ostringstream what;
   what << "at the end of sendRegister";
   logger_.info(what.str());
-  registered_ = StatusRegister::SENT;
+  // session.registered_ = StatusRegister::SENT;
 }
 
 void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,

@@ -10,11 +10,11 @@
 #include "dispatcher/dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
 
-enum class StatusRegister : std::uint8_t {
-  SENT,
-  OK,
-  REJECTED
-};
+// enum class StatusRegister : std::uint8_t {
+//   SENT,
+//   OK,
+//   REJECTED
+// };
 
 class AgentDispatcher : public Dispatcher {
  public:
@@ -26,11 +26,11 @@ class AgentDispatcher : public Dispatcher {
 
   void handleFrame(AgentSession& agent, const Frame& frame) override;
 
-  StatusRegister getRegistered_() const { return registered_; };
+  // StatusRegister getRegistered_() const { return registered_; };
   void sendRegister(AgentSession& session);
 
  private:
-  StatusRegister registered_{StatusRegister::REJECTED};
+  // StatusRegister registered_{StatusRegister::REJECTED};
   void sendResponse(AgentSession& session, std::uint16_t id,
                     ResponseStatus status, const std::string& data);
   void onCommand(AgentSession& session,

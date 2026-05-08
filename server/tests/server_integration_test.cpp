@@ -114,11 +114,11 @@ TEST(ServerIntegration, should_handle_register_response_and_disconnect) {
   const std::optional<Frame> firstFrame = receiveOneFrame(session);
   ASSERT_TRUE(firstFrame.has_value());
   EXPECT_EQ(firstFrame->header.type, MessageType::REGISTER);
-  EXPECT_FALSE(session.isRegistered());
+  EXPECT_FALSE(session.getIsRegistered());
 
   dispatcher.handleFrame(session, firstFrame.value());
 
-  EXPECT_TRUE(session.isRegistered());
+  EXPECT_TRUE(session.getIsRegistered());
   EXPECT_EQ(session.getAgentInfo().hostname, "worker-42");
 
   const std::optional<Frame> secondFrame = receiveOneFrame(session);
