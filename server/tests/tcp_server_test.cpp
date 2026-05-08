@@ -11,6 +11,7 @@
 
 #include "socket/i_socket.hpp"
 #include "socket/socket_test_helpers.hpp"
+#include "test_constants.hpp"
 
 // ─────────────────────────────────────────────────────────────
 // Unit tests (no real network)
@@ -25,13 +26,13 @@ TEST(TcpServerUnit,
   sockaddr_in address{};
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(19876);
+  address.sin_port = htons(TestConstants::TCP_SERVER_OCCUPIED_PORT);
   ASSERT_EQ(
       ::bind(occupier, reinterpret_cast<sockaddr*>(&address), sizeof(address)),
       0);
   ASSERT_EQ(::listen(occupier, 1), 0);
 
-  TcpServer server(19876);
+  TcpServer server(TestConstants::TCP_SERVER_OCCUPIED_PORT);
   EXPECT_FALSE(server.start());
 
   ::close(occupier);
@@ -39,7 +40,7 @@ TEST(TcpServerUnit,
 
 TEST(TcpServerUnit,
      should_return_nullptr_when_acceptAgent_called_before_start) {
-  TcpServer server(19877);
+  TcpServer server(TestConstants::TCP_SERVER_NOT_STARTED_PORT);
   // start() was never called — serverSocket_ is null
   EXPECT_EQ(server.acceptAgent(), nullptr);
 }
@@ -50,13 +51,13 @@ TEST(TcpServerUnit,
 
 TEST(TcpServerIntegration,
      should_return_true_when_start_is_called_on_available_port) {
-  TcpServer server(19872);
+  TcpServer server(TestConstants::TCP_SERVER_AVAILABLE_PORT);
   EXPECT_TRUE(server.start());
 }
 
 TEST(TcpServerIntegration,
      should_return_false_when_start_is_called_a_second_time_on_same_instance) {
-  TcpServer server(19873);
+  TcpServer server(TestConstants::TCP_SERVER_DOUBLE_START_PORT);
   ASSERT_TRUE(server.start());
 // The second start() will attempt to recreate and bind the socket.
 // Since the port is already occupied by the first instance, it should fail.
@@ -65,7 +66,7 @@ TEST(TcpServerIntegration,
 
 TEST(TcpServerIntegration,
      should_return_valid_socket_when_agent_connects_after_start) {
-  constexpr std::uint16_t port = 19879;
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_AGENT_CONNECT_PORT;
   TcpServer server(port);
   ASSERT_TRUE(server.start());
 
@@ -86,7 +87,7 @@ TEST(TcpServerIntegration,
 }
 
 TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
-  constexpr std::uint16_t port = 19880;
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_ECHO_PORT;
   TcpServer server(port);
   ASSERT_TRUE(server.start());
 
@@ -121,7 +122,7 @@ TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
 
 TEST(TcpServerIntegration,
      should_return_valid_remote_address_for_accepted_agent) {
-  constexpr std::uint16_t port = 19881;
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_REMOTE_ADDR_PORT;
   TcpServer server(port);
   ASSERT_TRUE(server.start());
 
