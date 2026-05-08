@@ -16,15 +16,11 @@
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 #include "socket/socket_test_helpers.hpp"
+#include "test_constants.hpp"
 
-namespace {
-
-constexpr std::uint16_t kPort = 19892;
-
-}  // namespace
 
 TEST(AgentIntegration, should_register_respond_and_disconnect) {
-  const int serverFd = startServer(kPort);
+  const int serverFd = startServer(TestConstants::AGENT_INTEGRATION_PORT);
   ASSERT_NE(serverFd, -1);
 
   std::atomic<bool> agentExited{false};
@@ -32,7 +28,7 @@ TEST(AgentIntegration, should_register_respond_and_disconnect) {
 
   std::thread agent([&] {
     auto socket = SocketFactory::createTCP();
-    if (!socket || !socket->connect("127.0.0.1", kPort)) {
+    if (!socket || !socket->connect("127.0.0.1", TestConstants::AGENT_INTEGRATION_PORT)) {
       agentOk = false;
       return;
     }
