@@ -6,14 +6,15 @@
 #include <unordered_map>
 
 #include "agent_session.hpp"
-#include "server_dispatcher.hpp"
-#include "tcp_server.hpp"
-#include "poller/i_poller.hpp"
+// #include "server_dispatcher.hpp"
+#include "dispatcher/i_dispatcher.hpp"
 #include "logger.hpp"
+#include "poller/i_poller.hpp"
+#include "tcp_server.hpp"
 
 class Reactor {
  public:
-  explicit Reactor(TcpServer& server, ServerDispatcher& dispatcher, IPoller& poller)
+  explicit Reactor(TcpServer& server, IDispatcher& dispatcher, IPoller& poller)
       : dispatcher_(dispatcher), server_(server), poller_(poller) {}
   Reactor() = delete;
   Reactor(const Reactor&) = delete;
@@ -21,15 +22,14 @@ class Reactor {
   ~Reactor() = default;
 
   void run();
-  void stop();
+  void stop() { running_ = false; };
 
  private:
-  ServerDispatcher& dispatcher_;
+  IDispatcher& dispatcher_;
   TcpServer& server_;
   IPoller& poller_;
   Logger logger_{"reactor"};
 
-  
   bool running_ = false;
   std::unordered_map<int, AgentSession> agents_;
 

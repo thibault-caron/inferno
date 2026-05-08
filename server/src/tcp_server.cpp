@@ -1,10 +1,10 @@
 #include "tcp_server.hpp"
 
-
 // #include <string>
 
 // #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 // #include "protocol/protocol_parser.hpp"
 #include "socket/socket_factory.hpp"
@@ -20,14 +20,23 @@ bool TcpServer::start() {
   }
   serverSocket_ = SocketFactory::createTCP();
   if (!serverSocket_ || !serverSocket_->isValid()) {
-    std::cerr << "[start] Failed to create server socket on port " << port_ << '\n';
+    std::ostringstream what;
+    what << "[start] Failed to create server socket on port " << port_;
+    // std::cerr << "[start] Failed to create server socket on port " << port_
+    // << '\n';
+    logger_.error(what.str());
     return false;
   }
   if (!serverSocket_->bind(port_)) {
-    std::cerr << "[start] Failed to bind server socket on port " << port_ << '\n';
+    std::ostringstream what;
+    what << "[start] Failed to bind server socket on port " << port_;
+    logger_.error(what.str());
+    // std::cerr << "[start] Failed to bind server socket on port " << port_ <<
+    // '\n';
     return false;
   }
-  std::cout << "[start] Server try to listen\n";
+  logger_.info("[start] Server try to listen");
+  // std::cout << "[start] Server try to listen\n";
   return serverSocket_->listen(backlog_);
 }
 

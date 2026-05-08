@@ -34,14 +34,11 @@ void Reactor::onNewConnection() {
       std::ostringstream what;
       what << "Failed to watch agent fd " << fd;
       logger_.error(what.str());
-      // std::cerr << "[Reactor] Failed to watch agent fd " << fd << '\n';
       return;
     }
     std::ostringstream what;
     what << "Agent connected: " << incoming->remoteAddress() << ':'
          << incoming->remotePort();
-    // std::cout << "[server] Agent connected: " << incoming->remoteAddress()
-    //           << ':' << incoming->remotePort() << '\n';
     logger_.info(what.str());
     agents_.emplace(fd, AgentSession(std::move(incoming)));
   }

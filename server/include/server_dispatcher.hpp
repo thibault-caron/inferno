@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "agent_session.hpp"
-#include "dispatcher.hpp"
+#include "dispatcher/dispatcher.hpp"
 #include "protocol/lptf_protocol.hpp"
 
 class ServerDispatcher : public Dispatcher {

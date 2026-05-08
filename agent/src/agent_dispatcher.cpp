@@ -33,9 +33,6 @@ void AgentDispatcher::onError(
     what << "server ERROR code=" << static_cast<int>(errorPayload.code)
          << " message=" << errorPayload.message;
     logger_.error(what.str());
-    // std::cerr << "[agent] server ERROR code=" <<
-    // static_cast<int>(payload.code)
-    //           << " message=" << payload.message << "\n";
   } catch (...) {
     logger_.error("received malformed ERROR payload");
   }
@@ -71,7 +68,6 @@ void AgentDispatcher::onCommand(AgentSession& session,
     std::ostringstream what;
     what << "invalid COMMAND payload: " << ex.what();
     logger_.error(what.str());
-    // std::cerr << "[agent] invalid COMMAND payload: " << ex.what() << "\n";
     return sendError(session, ErrorType::INVALID_FORMAT,
                      "Invalid COMMAND payload");
   }
@@ -91,9 +87,10 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
       registerPayload};
 
   sendFrame(session, frame);
-  std::cout << "at the end of sendRegister\n";
-  // registerWasSent_ = true;
-  registered_ = StatusRegister::OK;
+  std::ostringstream what;
+  what << "at the end of sendRegister";
+  logger_.info(what.str());
+  registered_ = StatusRegister::SENT;
 }
 
 void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
