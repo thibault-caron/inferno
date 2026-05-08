@@ -11,6 +11,8 @@
 #include "protocol/protocol_parser.hpp"
 #include "socket/i_socket.hpp"
 
+enum class RegisterState : std::uint8_t { PENDING, SENT, OK, REJECTED };
+
 class AgentSession {
  public:
   AgentSession() = default;
@@ -41,13 +43,22 @@ class AgentSession {
     isRegistered_ = true;
   }
 
-  bool isRegistered() const { return isRegistered_; }
-  void setRegistered(bool registered) { isRegistered_ = registered; }
+  void resetSession() {
+    isRegistered_ = false;
+    registered_ = RegisterState::PENDING;
+    // socket = SocketFactory::createTCP(); // will we need to create a new socket ?
+  }
+
+  RegisterState getRegistered_() const { return registered_; };
+  void setRegistered_(RegisterState state) { registered_ = state; };
+  bool getIsRegistered() const { return isRegistered_; }
+  // void setRegistered(bool registered) { isRegistered_ = registered; }
   SocketResult receiveIntoBuffer();
 
  private:
   std::optional<LptfHeader> header_;
   void consume(std::size_t n);
+  RegisterState registered_{RegisterState::REJECTED};
   std::vector<std::uint8_t> slice(std::size_t offset, std::size_t len) const;
 
   RegisterPayload agentInfo_;

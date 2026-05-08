@@ -8,7 +8,7 @@ add_library(shared_lib STATIC
     src/agent_session.cpp
     src/env_helper.cpp
     src/logger.cpp
-    src/dispatcher.cpp
+    src/dispatcher/dispatcher.cpp
     src/protocol/protocol_parser.cpp
     src/protocol/protocol_serializer.cpp
     src/socket/linux_socket.cpp

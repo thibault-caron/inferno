@@ -13,14 +13,15 @@
 #include "socket/socket_factory.hpp"
 #include "socket/socket_helper.hpp"
 #include "logger.hpp"
+#include "dispatcher/i_dispatcher.hpp"
 
-class Dispatcher {
+class Dispatcher : public IDispatcher {
  public:
   Dispatcher(const std::string& who) : logger_(who) {}
   virtual ~Dispatcher() = default;
   
   // Must be overriden by children
-  virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
+  // virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
 
   // ── Incoming message handlers ───────────────────────
   void onError(const std::vector<std::uint8_t>& payload);

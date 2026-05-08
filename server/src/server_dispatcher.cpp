@@ -42,7 +42,7 @@ void ServerDispatcher::onRegister(AgentSession& agent,
                                   const std::vector<std::uint8_t>& payload) {
   RegisterPayload agentInfo = ProtocolParser::parseRegisterPayload(payload);
   agent.setAgentInfo(agentInfo);
-  agent.setRegistered(true);
+  // agent.setRegistered(true);
   std::ostringstream what;
   what << "[REGISTER] hostname=" << agentInfo.hostname
        << "  os=" << static_cast<int>(agentInfo.os_type)

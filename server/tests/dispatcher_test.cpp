@@ -17,7 +17,7 @@ TEST(ServerDispatcherTest, should_register_and_send_os_info_command) {
       agentSession,
       makeFrame(MessageType::REGISTER, makeRegisterPayload("worker-42")));
 
-  EXPECT_TRUE(agentSession.isRegistered());
+  EXPECT_TRUE(agentSession.getIsRegistered());
   EXPECT_EQ(agentSession.getAgentInfo().hostname, "worker-42");
 
   ASSERT_GE(sentBytes.size(), static_cast<std::size_t>(LPTF_HEADER_SIZE));
