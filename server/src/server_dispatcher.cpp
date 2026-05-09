@@ -4,11 +4,11 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "logger.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/i_socket.hpp"
-#include "socket/socket_helper.hpp"
-#include "logger.hpp"
+#include "protocol/protocol_helper.hpp"
 // ServerDispatcher::ServerDispatcher() {}
 ServerDispatcher::ServerDispatcher() : Dispatcher("server") {}
 
@@ -108,7 +108,7 @@ void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
   const std::vector<std::uint8_t> payload =
       ProtocolSerializer::serializeCommandPayload(command);
 
-  Frame frame = {SocketHelper::createHeader(MessageType::COMMAND, payload),
+  Frame frame = {ProtocolHelper::createHeader(MessageType::COMMAND, payload),
                  payload};
   sendFrame(agent, frame);
   // sendRaw(agent, MessageType::COMMAND, payload);
@@ -122,7 +122,7 @@ void ServerDispatcher::sendCommand(AgentSession& agent, CommandType type,
 
 void ServerDispatcher::sendDisconnect(AgentSession& agent) {
   const std::vector<uint8_t> payload{};
-  Frame frame = {SocketHelper::createHeader(MessageType::DISCONNECT, payload),
+  Frame frame = {ProtocolHelper::createHeader(MessageType::DISCONNECT, payload),
                  payload};
   // sendRaw(agent, MessageType::DISCONNECT);
   sendFrame(agent, frame);

@@ -13,7 +13,7 @@ add_library(shared_lib STATIC
     src/protocol/protocol_serializer.cpp
     src/socket/linux_socket.cpp
     src/socket/socket_factory.cpp
-    src/socket/socket_helper.cpp
+    src/protocol/protocol_helper.cpp
 )
 
 # PUBLIC = these include dirs are inherited by any target that links shared_lib.

@@ -2,11 +2,11 @@
 
 #include <sstream>
 
+#include "logger.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/i_socket.hpp"
-#include "socket/socket_helper.hpp"
-#include "logger.hpp"
+#include "protocol/protocol_helper.hpp"
 
 AgentDispatcher::AgentDispatcher() : Dispatcher("agent") {}
 
@@ -24,8 +24,7 @@ void AgentDispatcher::handleFrame(AgentSession& session, const Frame& frame) {
                        "Unexpected message type for agent");
   }
 }
-void AgentDispatcher::onError(
-                              const std::vector<std::uint8_t>& payload) {
+void AgentDispatcher::onError(const std::vector<std::uint8_t>& payload) {
   std::ostringstream what;
   try {
     const ErrorPayload errorPayload =
@@ -83,7 +82,7 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
       ProtocolSerializer::serializeRegisterPayload(payload);
 
   Frame frame = {
-      SocketHelper::createHeader(MessageType::REGISTER, registerPayload),
+      ProtocolHelper::createHeader(MessageType::REGISTER, registerPayload),
       registerPayload};
 
   sendFrame(session, frame);
@@ -109,7 +108,7 @@ void AgentDispatcher::sendResponse(AgentSession& session, std::uint16_t id,
       ProtocolSerializer::serializeResponsePayload(payload);
 
   Frame frame = {
-      SocketHelper::createHeader(MessageType::RESPONSE, responsePayload),
+      ProtocolHelper::createHeader(MessageType::RESPONSE, responsePayload),
       responsePayload};
   sendFrame(session, frame);
 }
