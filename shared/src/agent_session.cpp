@@ -1,4 +1,5 @@
 #include "agent_session.hpp"
+
 #include "socket/socket_helper.hpp"
 
 std::optional<Frame> AgentSession::tryExtractFrame() {
@@ -36,10 +37,18 @@ SocketResult AgentSession::receiveIntoBuffer() {
     buffer.insert(buffer.end(), temp.begin(), temp.end());
     // std::cout << "[agent] recv bytes=" << result.bytesTransferred
     //           << " buffer_size=" << session.buffer.size() << "\n";
-  } 
+  }
   // else {
   //   std::cout << "[agent] recv status=" << static_cast<int>(result.error)
   //             << " bytes=" << result.bytesTransferred << "\n";
   // }
   return result;
 };
+
+void AgentSession::resetSession() {
+  isRegistered_ = false;
+  registered_ = RegisterState::PENDING;
+  buffer.clear();
+  header_.reset();
+  socket = SocketFactory::createTCP(); 
+}

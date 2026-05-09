@@ -42,7 +42,7 @@ void AgentDispatcher::onDisconnect(AgentSession& session) {
   // std::cout << "[agent] received DISCONNECT\n";
   if (session.socket) {
     session.socket->close();
-    session.socket.reset();
+    // session.socket.reset();
   }
   // session.setRegistered(false);
 }

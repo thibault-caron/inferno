@@ -80,7 +80,7 @@ void ServerDispatcher::onResponse(AgentSession& agent,
 
   // Only act once all chunks of this response have arrived.
   const bool lastChunk = response.chunk_index + 1 == response.total_chunks;
-  if (lastChunk) sendDisconnect(agent);
+  // if (lastChunk) sendDisconnect(agent);
   // → To send more commands, push them here instead of disconnecting.
 }
 
