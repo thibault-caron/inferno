@@ -15,8 +15,8 @@
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
+#include "protocol/protocol_helper.hpp"
 #include "socket/socket_factory.hpp"
-#include "socket/socket_helper.hpp"
 
 namespace {
 
@@ -64,7 +64,7 @@ void runAgentLoop(const std::string& host, std::uint16_t port) {
       std::optional<Frame> frame;
       while (session.isValid() && (frame = session.tryExtractFrame())) {
         std::cout << "[agent] extracted frame type="
-                  << SocketHelper::messageTypeToString(frame->header.type)
+                  << ProtocolHelper::messageTypeToString(frame->header.type)
                   << " payload_size=" << frame->payload.size() << "\n";
         dispatcher.handleFrame(session, frame.value());
       }

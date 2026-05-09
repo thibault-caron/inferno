@@ -5,21 +5,21 @@
 #include <string>
 
 #include "agent_session.hpp"
+#include "dispatcher/i_dispatcher.hpp"
 #include "exception/lptf_exception.hpp"
 #include "exception/socket_exception.hpp"
+#include "logger.hpp"
 #include "protocol/lptf_protocol.hpp"
+#include "protocol/protocol_helper.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/i_socket.hpp"
 #include "socket/socket_factory.hpp"
-#include "socket/socket_helper.hpp"
-#include "logger.hpp"
-#include "dispatcher/i_dispatcher.hpp"
 
 class Dispatcher : public IDispatcher {
  public:
   Dispatcher(const std::string& who) : logger_(who) {}
   virtual ~Dispatcher() = default;
-  
+
   // Must be overriden by children
   // virtual void handleFrame(AgentSession& agent, const Frame& frame) = 0;
 

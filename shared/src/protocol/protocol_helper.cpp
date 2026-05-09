@@ -1,6 +1,6 @@
-#include "socket/socket_helper.hpp"
+#include "protocol/protocol_helper.hpp"
 
-const char* SocketHelper::messageTypeToString(const MessageType type) {
+const char* ProtocolHelper::messageTypeToString(const MessageType type) {
   switch (type) {
     case MessageType::REGISTER:
       return "REGISTER";
@@ -19,7 +19,7 @@ const char* SocketHelper::messageTypeToString(const MessageType type) {
   }
 }
 
-LptfHeader SocketHelper::createHeader(
+LptfHeader ProtocolHelper::createHeader(
     MessageType type, const std::vector<std::uint8_t>& payload) {
   LptfHeader header{{'L', 'P', 'T', 'F'},
                     LPTF_VERSION,

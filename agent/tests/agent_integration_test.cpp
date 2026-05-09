@@ -11,13 +11,12 @@
 #include "agent_dispatcher.hpp"
 #include "agent_session.hpp"
 #include "helpers_test.hpp"
+#include "protocol/protocol_helper.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/socket_factory.hpp"
-#include "socket/socket_helper.hpp"
 #include "socket/socket_test_helpers.hpp"
 #include "test_constants.hpp"
-
 
 TEST(AgentIntegration, should_register_respond_and_disconnect) {
   const int serverFd = startServer(TestConstants::AGENT_INTEGRATION_PORT);
@@ -28,7 +27,8 @@ TEST(AgentIntegration, should_register_respond_and_disconnect) {
 
   std::thread agent([&] {
     auto socket = SocketFactory::createTCP();
-    if (!socket || !socket->connect("127.0.0.1", TestConstants::AGENT_INTEGRATION_PORT)) {
+    if (!socket ||
+        !socket->connect("127.0.0.1", TestConstants::AGENT_INTEGRATION_PORT)) {
       agentOk = false;
       return;
     }
