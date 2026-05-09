@@ -11,11 +11,11 @@ void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
 
   // LOG
   std::ostringstream what;
-  what << " sending " << SocketHelper::messageTypeToString(frame.header.type)
+  what << " sending " << ProtocolHelper::messageTypeToString(frame.header.type)
        << " header+payload bytes=" << (LPTF_HEADER_SIZE + frame.payload.size());
   logger_.info(what.str());
   // std::cout << "[" << senderName << "] sending "
-  //           << SocketHelper::messageTypeToString(frame.header.type)
+  //           << ProtocolHelper::messageTypeToString(frame.header.type)
   //           << " header+payload bytes="
   //           << (LPTF_HEADER_SIZE + frame.payload.size()) << "\n";
 
@@ -38,28 +38,29 @@ void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
       static_cast<std::size_t>(result.bytesTransferred) != frameBytes.size()) {
     std::ostringstream what;
     what << "send header failed type="
-         << SocketHelper::messageTypeToString(frame.header.type)
+         << ProtocolHelper::messageTypeToString(frame.header.type)
          << " sent=" << result.bytesTransferred
          << " expected=" << frameBytes.size()
          << " status=" << static_cast<int>(result.error);
 
     logger_.error(what.str());
     // std::cerr << "[agent] send header failed type="
-    //           << SocketHelper::messageTypeToString(frame.header.type)
+    //           << ProtocolHelper::messageTypeToString(frame.header.type)
     //           << " sent=" << result.bytesTransferred
     //           << " expected=" << frameBytes.size()
     //           << " status=" << static_cast<int>(result.error) << "\n";
     // return false;
-    throw SendFailure(SocketHelper::messageTypeToString(frame.header.type));
+    throw SendFailure(ProtocolHelper::messageTypeToString(frame.header.type));
   }
   // std::ostringstream what;
   what.str("");
   what.clear();
   what << "end ok type="
-       << SocketHelper::messageTypeToString(frame.header.type);
+       << ProtocolHelper::messageTypeToString(frame.header.type);
   logger_.info(what.str());
   // std::cout << "[" << senderName << "] send ok type="
-  //           << SocketHelper::messageTypeToString(frame.header.type) << "\n";
+  //           << ProtocolHelper::messageTypeToString(frame.header.type) <<
+  //           "\n";
 }
 
 void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {
@@ -79,7 +80,7 @@ void Dispatcher::sendError(AgentSession& agent, ErrorType code,
   error.message = msg;
   const std::vector<std::uint8_t> payload =
       ProtocolSerializer::serializeErrorPayload(error);
-  Frame frame = {SocketHelper::createHeader(MessageType::ERROR, payload),
+  Frame frame = {ProtocolHelper::createHeader(MessageType::ERROR, payload),
                  payload};
   // sendRaw(agent, MessageType::ERROR, payload);
   sendFrame(agent, frame);
