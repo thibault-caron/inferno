@@ -44,3 +44,11 @@ SocketResult AgentSession::receiveIntoBuffer() {
   // }
   return result;
 };
+
+void AgentSession::resetSession() {
+  isRegistered_ = false;
+  registered_ = RegisterState::PENDING;
+  buffer.clear();
+  header_.reset();
+  socket = SocketFactory::createTCP(); 
+}

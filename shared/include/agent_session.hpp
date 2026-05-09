@@ -43,11 +43,7 @@ class AgentSession {
     isRegistered_ = true;
   }
 
-  void resetSession() {
-    isRegistered_ = false;
-    registered_ = RegisterState::PENDING;
-    // socket = SocketFactory::createTCP(); // will we need to create a new socket ?
-  }
+  void resetSession();
 
   RegisterState getRegistered_() const { return registered_; };
   void setRegistered_(RegisterState state) { registered_ = state; };

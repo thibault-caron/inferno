@@ -26,6 +26,7 @@ endif()
 # ── Agent library (all logic, no main) ───────────────────────────────────────
 add_library(agent_lib STATIC
     src/agent_dispatcher.cpp
+    src/agent_loop.cpp
     # src/socket/SocketLinux.cpp    ← add as you create files
 )
 
