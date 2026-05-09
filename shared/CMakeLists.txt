@@ -14,6 +14,7 @@ add_library(shared_lib STATIC
     src/socket/linux_socket.cpp
     src/socket/socket_factory.cpp
     src/protocol/protocol_helper.cpp
+    src/poller/poller.cpp
 )
 
 # PUBLIC = these include dirs are inherited by any target that links shared_lib.
