@@ -1,6 +1,7 @@
 #include "agent_session.hpp"
 
 #include "protocol/protocol_helper.hpp"
+#include "socket/socket_factory.hpp"
 
 std::optional<Frame> AgentSession::tryExtractFrame() {
   if (!header_ && buffer.size() >= LPTF_HEADER_SIZE) {
