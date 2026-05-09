@@ -21,6 +21,11 @@ constexpr std::uint16_t TCP_SERVER_REMOTE_ADDR_PORT =
 // ── server_integration_test.cpp ──────────────────────────────
 constexpr std::uint16_t SERVER_INTEGRATION_PORT = 19882;
 
+// ── reactor_integration_test.cpp ─────────────────────────────
+constexpr std::uint16_t REACTOR_HAPPY_PATH_PORT = 19883;
+constexpr std::uint16_t REACTOR_INVALID_FIRST_MESSAGE_PORT = 19884;
+constexpr std::uint16_t REACTOR_DISCONNECT_PORT = 19885;
+
 // ── agent_integration_test.cpp ───────────────────────────────
 constexpr std::uint16_t AGENT_INTEGRATION_PORT = 19892;
 
