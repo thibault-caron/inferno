@@ -4,7 +4,7 @@
 
 "Since you cannot use threads for networking, you must use a non-blocking multiplexing syscall (like select, poll, or epoll)"
 
-since the server will "send" request and the client will send reponse, or "data" (without request, from the server), wouldn't the efficient syscall be "push" rather than select or poll?
+since the server will "send" request and the agent will send reponse, or "data" (without request, from the server), wouldn't the efficient syscall be "push" rather than select or poll?
 
 ## A
 
@@ -13,32 +13,32 @@ That is a very common confusion between high-level architectural concepts and lo
 Here is why you still absolutely need `select`, `poll`, or `epoll`, and why "push" isn't what you are looking for:
 
 1. There is no `push` syscall
-   
+
     In standard OS networking (POSIX or Winsock), there is no system call named `push`.  
 
-    When you want to "push" data to a client, you use the `send()` or `write()` syscalls. When you want to pull data, you use `recv()` or `read()`.
+    When you want to "push" data to a agent, you use the `send()` or `write()` syscalls. When you want to pull data, you use `recv()` or `read()`.
 
 2. `select` and `poll` are not for sending data; they are for *monitoring*
-   
-    If your server is connected to 10 clients simultaneously, how do you know which client just sent a response?  
 
-    If you simply loop through them and call `recv(client_1)`, your entire program will **freeze (block)** waiting for Client 1 to say something. If Client 2 sends important data while your program is frozen waiting on Client 1, your server misses it.
+    If your server is connected to 10 agents simultaneously, how do you know which agent just sent a response?  
 
-Because you are banned from using threads in Cercle 01, you cannot give each client its own thread to wait on `recv()`.
+    If you simply loop through them and call `recv(agent_1)`, your entire program will **freeze (block)** waiting for Agent 1 to say something. If Agent 2 sends important data while your program is frozen waiting on Agent 1, your server misses it.
+
+Because you are banned from using threads in Cercle 01, you cannot give each agent its own thread to wait on `recv()`.
 
 The role of Multiplexing (select / poll / epoll)
 These syscalls act like a radar. You give select() a list of all your connected sockets, and it pauses your program until at least one of them does something.
 
 It returns and tells you:
 
-- "Client 3 just sent data, you can safely call recv() on it without freezing!"
-- "A new client is trying to connect, you can safely call accept()!"
-- "Client 5 disconnected."
+- "Agent 3 just sent data, you can safely call recv() on it without freezing!"
+- "A new agent is trying to connect, you can safely call accept()!"
+- "Agent 5 disconnected."
 
 ### Summary
 
-You still use `send()` to push your requests to the clients.
-You use select or poll to monitor all clients simultaneously on a single thread so you know exactly when and who to call `recv()` on without freezing your server.
+You still use `send()` to push your requests to the agents.
+You use select or poll to monitor all agents simultaneously on a single thread so you know exactly when and who to call `recv()` on without freezing your server.
 
 ## Q
 
@@ -55,13 +55,13 @@ Here is the breakdown of what multiplexing means in your C++ Reactor (OS level) 
 ### 1. I/O Multiplexing (Your Server / The Reactor Pattern)
 
 **The shared resource:** A single CPU Thread.  
-**The things being managed:** Multiple TCP connections (sockets from different clients).
+**The things being managed:** Multiple TCP connections (sockets from different agents).
 
-In older or simpler architectures, a server creates a new thread for every client that connects. If client A takes 10 minutes to send a message, Thread A just sits there frozen (blocked) on recv().
+In older or simpler architectures, a server creates a new thread for every agent that connects. If agent A takes 10 minutes to send a message, Thread A just sits there frozen (blocked) on recv().
 
 To avoid threads (as forbidden by your instructions), you use I/O **Multiplexing** via system calls like `select`, `poll`, or `epoll` inside a Reactor loop.
 
-- Instead of waiting on one client, you hand the OS an array of all 50 connected sockets.
+- Instead of waiting on one agent, you hand the OS an array of all 50 connected sockets.
 - You say: "Pause my single thread until ANY of these 50 sockets has data ready to read, or is ready to be written to without blocking."
 - The OS wakes up your thread and says: "Sockets #4 and #12 have incoming data."
 - Your single thread quickly calls recv() on #4, then recv() on #12, processes the data, and loops back to ask the OS to wait again.
@@ -90,6 +90,6 @@ Analogy: A single literal pipe (the TCP socket) where you are pouring red, blue,
 | Reactor (select/poll) | 1 CPU Thread    | Many TCP Sockets           | Event polling loop | The Operating System |
 | HTTP/2                | 1 TCP Socket    | Many HTTP Requests         | Frame interleaving | The Application Code |
 
-For **Cercle 01**, you only care about the first one. You are multiplexing your thread using `poll()` to juggle multiple clients safely. 
+For **Cercle 01**, you only care about the first one. You are multiplexing your thread using `poll()` to juggle multiple agents safely.
 
-Later, in **Cercle 02**, when you design your binary protocol structures, you could technically add a "Session ID" to your packet header if you wanted to multiplex multiple simultaneous file transfers over a single client connection—but for a simple RAT, that is usually overkill!
+Later, in **Cercle 02**, when you design your binary protocol structures, you could technically add a "Session ID" to your packet header if you wanted to multiplex multiple simultaneous file transfers over a single agent connection—but for a simple RAT, that is usually overkill!

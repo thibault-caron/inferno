@@ -2,13 +2,13 @@
 
 ## 1. Overview
 
-ATFP is a custom binary protocol designed for a **client-server architecture**:
+ATFP is a custom binary protocol designed for a **agent-server architecture**:
 
-* The **client connects** to the server
-* The client **registers itself**
+* The **agent connects** to the server
+* The agent **registers itself**
 * The server sends **COMMANDS**
-* The client executes them and returns **RESPONSES**
-* The client may also send **unsolicited DATA**
+* The agent executes them and returns **RESPONSES**
+* The agent may also send **unsolicited DATA**
 
 The protocol is designed to be:
 
@@ -85,7 +85,7 @@ Each message is composed of:
 
 ### 5.1 REGISTER
 
-Sent by client after connection.
+Sent by agent after connection.
 
 ```c++
 struct RegisterPayload {
@@ -113,7 +113,8 @@ struct RegisterPayload {
 * Empty hostname not allowed
 * Max hostname length = Max value (65535) - rest of payload
 * Unknown os_type/arch mapped to Unknown
-* 
+*
+
 ---
 
 ### 5.2 COMMAND
@@ -145,7 +146,7 @@ Notes:
 
 ### 5.3 RESPONSE
 
-Sent by client after executing a command.
+Sent by agent after executing a command.
 
 ```c++
 struct ResponsePayload {
@@ -166,7 +167,7 @@ struct ResponsePayload {
 
 ### 5.4 DATA
 
-Unsolicited client messages.
+Unsolicited agent messages.
 
 ```c++
 struct DataPayload {
@@ -212,16 +213,16 @@ struct ErrorPayload {
 
 ### 6.1 Connection
 
-1. Client connects via TCP
-2. Client sends REGISTER
+1. Agent connects via TCP
+2. Agent sends REGISTER
 
 ---
 
 ### 6.2 Command Execution
 
 1. Server sends COMMAND
-2. Client executes command
-3. Client sends RESPONSE (same id)
+2. Agent executes command
+3. Agent sends RESPONSE (same id)
 
 ---
 

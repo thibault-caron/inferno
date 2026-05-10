@@ -25,16 +25,19 @@ endif()
 
 # ── Server library (all logic, no main) ──────────────────────────────────────
 add_library(server_lib STATIC
-    src/placeholder.cpp
-    # src/client_manager.cpp        ← add as you create files
+    src/tcp_server.cpp
+    src/server_dispatcher.cpp
+    src/reactor.cpp
+    src/poller/epoller.cpp
+    # src/agent_manager.cpp        ← add as you create files
     # src/command_dispatcher.cpp
 )
 
-target_include_directories(server_lib PRIVATE
+target_include_directories(server_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(server_lib PRIVATE
+target_link_libraries(server_lib PUBLIC
     shared_lib
 )
 
@@ -58,12 +61,15 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 add_executable(server_tests
-    tests/main_test.cpp
-    # tests/test_command_dispatcher.cpp
+    # tests/agent_session_test.cpp
+    tests/dispatcher_test.cpp
+    tests/server_integration_test.cpp
+    tests/tcp_server_test.cpp
 )
 
 target_include_directories(server_tests PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/tests
+${CMAKE_CURRENT_SOURCE_DIR}/../shared/tests
 )
 
 target_link_libraries(server_tests PRIVATE

@@ -1,10 +1,12 @@
-#ifndef LPTF_PROTOCOL
-#define LPTF_PROTOCOL
+#ifndef LPTF_PROTOCOL_HPP
+#define LPTF_PROTOCOL_HPP
 
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
+// ! send() second arg is size_t
 constexpr std::uint8_t LPTF_VERSION = 1;
 constexpr std::uint8_t LPTF_HEADER_SIZE =
     sizeof(std::uint8_t) * 6 +
@@ -15,8 +17,6 @@ constexpr std::string_view LPTF_IDENTIFIER_STR(LPTF_IDENTIFIER, 4);
 constexpr std::size_t REGISTER_FIXED_BYTES =
     sizeof(std::uint16_t) +
     2 * sizeof(std::uint8_t);  // hostname_len + os_type + arch
-// constexpr std::uint16_t REGISTER_MAX_HOSTNAME_LEN =
-//     static_cast<std::uint16_t>(65535u - REGISTER_FIXED_BYTES);
 
 constexpr std::size_t KMAX_U16_VALUE = 65535u;
 constexpr std::uint16_t MAX_VALUE_INT16 =
@@ -33,6 +33,8 @@ constexpr std::size_t DATA_FIXED_BYTES =
     sizeof(std::uint16_t) + sizeof(std::uint8_t);
 constexpr std::size_t ERROR_FIXED_BYTES =
     sizeof(std::uint16_t) + sizeof(std::uint8_t);
+
+
 
 enum class MessageType : std::uint8_t {
   REGISTER = 0,
@@ -122,6 +124,12 @@ struct DataPayload {
 struct ErrorPayload {
   ErrorType code;
   std::string message;
+};
+
+// Generic struct for recv()
+struct Frame {
+  LptfHeader header;
+  std::vector<std::uint8_t> payload;
 };
 
 #endif

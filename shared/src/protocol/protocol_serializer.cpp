@@ -1,10 +1,13 @@
 #include "protocol/protocol_serializer.hpp"
 
 #include <cstddef>
+#include <string>
+#include "convert_endian.hpp"
+
+#include "exception/lptf_exception.hpp"
+
 
 namespace {
-
-// constexpr std::size_t kMaxU16Value = 65535u;
 
 void ensureFitsU16(std::size_t sourceSize, const std::string& source) {
   if (sourceSize > KMAX_U16_VALUE) {

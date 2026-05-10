@@ -25,19 +25,19 @@ endif()
 
 # ── Agent library (all logic, no main) ───────────────────────────────────────
 add_library(agent_lib STATIC
-    src/placeholder.cpp
+    src/agent_dispatcher.cpp
+    src/agent_loop.cpp
     # src/socket/SocketLinux.cpp    ← add as you create files
 )
 
 # PRIVATE here because nothing links agent_lib downstream.
 # If another target ever needed agent_lib's headers, switch to PUBLIC.
-target_include_directories(agent_lib PRIVATE
+target_include_directories(agent_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# shared_lib is PUBLIC in its own CMakeLists, so linking it here
-# automatically gives agent_lib access to all shared headers too.
-target_link_libraries(agent_lib PRIVATE
+# Link shared_lib as PUBLIC so both agent and tests inherit shared includes.
+target_link_libraries(agent_lib PUBLIC
     shared_lib
 )
 
@@ -61,12 +61,15 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 add_executable(agent_tests
+    tests/agent_dispatcher_test.cpp
+    tests/agent_integration_test.cpp
     tests/main_test.cpp
     # tests/test_socket_linux.cpp   ← add as you create tests
 )
 
 target_include_directories(agent_tests PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/tests
+${CMAKE_CURRENT_SOURCE_DIR}/../shared/tests
 )
 
 target_link_libraries(agent_tests PRIVATE

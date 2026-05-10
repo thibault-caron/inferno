@@ -6,19 +6,19 @@
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "protocol/protocol_test_helpers.hpp"
+#include "exception/lptf_exception.hpp"
 
 TEST(ProtocolSerializerRegister,
      should_produce_corresponding_byteArray_when_registerPayload_is_valid) {
   // Arrange
-  const RegisterPayload input{OSType::LINUX, ArchType::X64, "client-01"};
+  const RegisterPayload input{OSType::LINUX, ArchType::X64, "agent-01"};
   const std::vector<std::uint8_t> expected = {
       static_cast<std::uint8_t>(OSType::LINUX),
       static_cast<std::uint8_t>(ArchType::X64),
       0x00,
-      0x09,
-      'c',
-      'l',
-      'i',
+      0x08,
+      'a',
+      'g',
       'e',
       'n',
       't',

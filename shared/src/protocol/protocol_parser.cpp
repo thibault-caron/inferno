@@ -1,4 +1,8 @@
 #include "protocol/protocol_parser.hpp"
+#include <string>
+
+#include "convert_endian.hpp"
+#include "exception/lptf_exception.hpp"
 
 namespace {
 OSType toOsType(const std::uint8_t value) {

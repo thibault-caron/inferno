@@ -10,7 +10,7 @@
 TEST(ProtocolRoundTrip,
      should_preserve_register_payload_through_serialize_then_parse) {
   // Arrange
-  RegisterPayload input{OSType::LINUX, ArchType::X64, "client-01"};
+  RegisterPayload input{OSType::LINUX, ArchType::X64, "agent-01"};
 
   // Act
   const std::vector<std::uint8_t> bytes =

@@ -3,6 +3,8 @@
 #include "protocol/lptf_protocol.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_test_helpers.hpp"
+#include "convert_endian.hpp"
+#include "exception/lptf_exception.hpp"
 
 namespace {
 
@@ -28,7 +30,7 @@ std::vector<std::uint8_t> bytesFromString(const std::string& string) {
 
 TEST(ProtocolParserRegister,
      should_parse_register_payload_when_input_is_valid) {
-  const std::string hostname = "client-01";
+  const std::string hostname = "agent-01";
   const std::vector<std::uint8_t> input = makeRegisterPayload(
       static_cast<std::uint8_t>(OSType::LINUX),
       static_cast<std::uint8_t>(ArchType::X64),

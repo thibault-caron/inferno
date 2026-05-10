@@ -25,10 +25,12 @@ services:
   # C++ Shared library (Development)
   # ============================================
   shared:
+    profiles: [agent, server]
+    attach: true
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: inferno-shared
+    # container_name: inferno-shared
     volumes:
       - type: bind
         source: ./shared
@@ -36,29 +38,26 @@ services:
       - type: bind
         source: ./inferno.sh
         target: /app/inferno.sh
+      - type: volume
+        source: shared-build
+        target: /app/shared/build
     command: ["bash", "./inferno.sh", "test", "shared"]
     # command: ["bash"]
 
   # ============================================
-  # C++ Server (Development)
+  # C++ Server (Development / Builder)
   # ============================================
-  server:
+  server-builder:
+    profiles: [server]
+    attach: true
     depends_on:
+    #   - inferno-db
       shared:
         condition: service_completed_successfully
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: inferno-server
-    environment:
-      DB_HOST: inferno-db
-      DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      SERVER_PORT: ${SERVER_PORT}
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+    # container_name: inferno-server
     volumes:
       - type: bind
         source: ./server
@@ -69,26 +68,54 @@ services:
       - type: bind
         source: ./inferno.sh
         target: /app/inferno.sh
-    # depends_on:
+      - type: volume
+        source: shared-build
+        target: /app/shared/build
+      - type: volume
+        source: server-build
+        target: /app/server/build
+    command: ["bash", "./inferno.sh", "test", "server"]
+
+  # ============================================
+  # C++ Server (Runtime/Deployment)
+  # ============================================
+  server:
+    profiles: [server]
+    depends_on:
+      server-builder:
+        condition: service_completed_successfully
     #   - inferno-db
-    command: ["bash", "./inferno.sh", "run", "server"]
-    # restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: inferno-db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      - type: volume
+        source: server-build
+        target: /app/server/build
+    command: ["./server/build/bin/server"]
 
 
   # ============================================
-  # C++ Agent (Development)
+  # C++ Agent (Development / Builder)
   # ============================================
-  agent:
+  agent-builder:
+    attach: true
+    profiles: [agent]
     depends_on:
       shared:
         condition: service_completed_successfully
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: inferno-agent
-    environment:
-      # Server configuration
-      SERVER_PORT: ${SERVER_PORT}
     volumes:
       - type: bind
         source: ./agent
@@ -99,8 +126,37 @@ services:
       - type: bind
         source: ./inferno.sh
         target: /app/inferno.sh
-    command: ["bash", "./inferno.sh", "run", "agent"]
-    # restart: unless-stopped
+      - type: volume
+        source: shared-build
+        target: /app/shared/build
+      - type: volume
+        source: agent-build
+        target: /app/agent/build
+    command: ["bash", "./inferno.sh", "test", "agent"]
+
+
+  # ============================================
+  # C++ Agent (Runtime/Deployment)
+  # ============================================
+  agent:
+    profiles: [agent]
+    depends_on:
+      agent-builder:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Server configuration
+      SERVER_PORT: ${SERVER_PORT}
+    volumes:
+      - type: volume
+        source: agent-build
+        target: /app/agent/build
+    command: ["./agent/build/bin/agent"]
 
 volumes:
-  inferno-data:
+  # inferno-data:
+  shared-build:
+  server-build:
+  agent-build:

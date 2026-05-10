@@ -1,0 +1,144 @@
+#include "tcp_server.hpp"
+
+#include <arpa/inet.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include <chrono>
+#include <thread>
+
+#include "socket/i_socket.hpp"
+#include "socket/socket_test_helpers.hpp"
+#include "test_constants.hpp"
+
+// ─────────────────────────────────────────────────────────────
+// Unit tests (no real network)
+// ─────────────────────────────────────────────────────────────
+
+TEST(TcpServerUnit,
+     should_return_false_when_start_called_on_already_used_port) {
+  // Occupy the port before TcpServer tries to bind.
+  int occupier = ::socket(AF_INET, SOCK_STREAM, 0);
+  ASSERT_NE(occupier, -1);
+
+  sockaddr_in address{};
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = INADDR_ANY;
+  address.sin_port = htons(TestConstants::TCP_SERVER_OCCUPIED_PORT);
+  ASSERT_EQ(
+      ::bind(occupier, reinterpret_cast<sockaddr*>(&address), sizeof(address)),
+      0);
+  ASSERT_EQ(::listen(occupier, 1), 0);
+
+  TcpServer server(TestConstants::TCP_SERVER_OCCUPIED_PORT);
+  EXPECT_FALSE(server.start());
+
+  ::close(occupier);
+}
+
+TEST(TcpServerUnit,
+     should_return_nullptr_when_acceptAgent_called_before_start) {
+  TcpServer server(TestConstants::TCP_SERVER_NOT_STARTED_PORT);
+  // start() was never called — serverSocket_ is null
+  EXPECT_EQ(server.acceptAgent(), nullptr);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Integration tests (real loopback TCP)
+// ─────────────────────────────────────────────────────────────
+
+TEST(TcpServerIntegration,
+     should_return_true_when_start_is_called_on_available_port) {
+  TcpServer server(TestConstants::TCP_SERVER_AVAILABLE_PORT);
+  EXPECT_TRUE(server.start());
+}
+
+TEST(TcpServerIntegration,
+     should_return_false_when_start_is_called_a_second_time_on_same_instance) {
+  TcpServer server(TestConstants::TCP_SERVER_DOUBLE_START_PORT);
+  ASSERT_TRUE(server.start());
+// The second start() will attempt to recreate and bind the socket.
+// Since the port is already occupied by the first instance, it should fail.
+  EXPECT_FALSE(server.start());
+}
+
+TEST(TcpServerIntegration,
+     should_return_valid_socket_when_agent_connects_after_start) {
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_AGENT_CONNECT_PORT;
+  TcpServer server(port);
+  ASSERT_TRUE(server.start());
+
+  // Connect from a background thread so accept() doesn't block the test.
+  int agentFd = -1;
+  std::thread connector([&] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    agentFd = connectLoopback(port);
+  });
+
+  auto accepted = server.acceptAgent();
+  connector.join();
+
+  EXPECT_NE(accepted, nullptr);
+  EXPECT_TRUE(accepted->isValid());
+
+  if (agentFd != -1) ::close(agentFd);
+}
+
+TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_ECHO_PORT;
+  TcpServer server(port);
+  ASSERT_TRUE(server.start());
+
+  // ── Agent thread: send 4 bytes, expect them echoed back ──
+  std::vector<std::uint8_t> received;
+  std::thread agent([&] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    int fd = connectLoopback(port);
+    ASSERT_NE(fd, -1);
+    const std::uint8_t message[] = {0x01, 0x02, 0x03, 0x04};
+    ::send(fd, message, sizeof(message), 0);
+    std::uint8_t buffer[4];
+    ssize_t n = ::recv(fd, buffer, sizeof(buffer), 0);
+    if (n > 0) received.assign(buffer, buffer + n);
+    ::close(fd);
+  });
+
+  // ── Server side: accept, receive, echo back ───────────────
+  auto socket = server.acceptAgent();
+  ASSERT_NE(socket, nullptr);
+
+  std::vector<std::uint8_t> temp(4);
+  const SocketResult result = socket->recv(temp.data(), temp.size());
+  EXPECT_TRUE(result.ok());
+  EXPECT_EQ(result.bytesTransferred, 4);
+  socket->send(temp.data(), result.bytesTransferred);  // echo
+
+  agent.join();
+
+  EXPECT_EQ(received, (std::vector<std::uint8_t>{0x01, 0x02, 0x03, 0x04}));
+}
+
+TEST(TcpServerIntegration,
+     should_return_valid_remote_address_for_accepted_agent) {
+  constexpr std::uint16_t port = TestConstants::TCP_SERVER_REMOTE_ADDR_PORT;
+  TcpServer server(port);
+  ASSERT_TRUE(server.start());
+
+  std::thread connector([&] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    int fd = connectLoopback(port);
+    if (fd != -1) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      ::close(fd);
+    }
+  });
+
+  auto socket = server.acceptAgent();
+  connector.join();
+
+  ASSERT_NE(socket, nullptr);
+  EXPECT_EQ(socket->remoteAddress(), "127.0.0.1");  // "localhost" does not work
+  EXPECT_GT(socket->remotePort(), 0);
+}
