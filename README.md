@@ -6,5 +6,13 @@ test your service :
 Ex with agent service
 
 ```
-docker compose up agent --no-log-prefix 2>&1 | cat
+docker compose up server --no-log-prefix 2>&1 | cat
+```
+```
+docker compose up agent --scale agent=3
+```
+get log from all builder containers :
+```
+docker compose --profile agent up
+docker compose --profile agent up --scale agent=3
 ```

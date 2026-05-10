@@ -5,7 +5,6 @@
 void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
   if (frame.payload.size() > MAX_VALUE_INT16) {
     logger_.error("payload too large");
-    // std::cerr << "payload too large\n";
     throw InvalidSize("payload", std::to_string(frame.payload.size()));
   }
 
@@ -14,10 +13,6 @@ void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
   what << " sending " << ProtocolHelper::messageTypeToString(frame.header.type)
        << " header+payload bytes=" << (LPTF_HEADER_SIZE + frame.payload.size());
   logger_.info(what.str());
-  // std::cout << "[" << senderName << "] sending "
-  //           << ProtocolHelper::messageTypeToString(frame.header.type)
-  //           << " header+payload bytes="
-  //           << (LPTF_HEADER_SIZE + frame.payload.size()) << "\n";
 
   const std::vector<std::uint8_t> headerBytes =
       ProtocolSerializer::serializeHeader(frame.header);
@@ -27,12 +22,9 @@ void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
   frameBytes.insert(frameBytes.end(), headerBytes.begin(), headerBytes.end());
   frameBytes.insert(frameBytes.end(), frame.payload.begin(),
                     frame.payload.end());
-  // std::vector<std::uint8_t> frameBytes = headerBytes;
-  // frameBytes.insert(headerBytes.end(), frame.payload.begin(),
-  // frame.payload.end());
-
   // Send frame
-  const SocketResult result = session.socket->send(frameBytes);
+  // const SocketResult result = session.socket->send(frameBytes);
+  const SocketResult result = session.send(frameBytes);
 
   if (!result.ok() ||
       static_cast<std::size_t>(result.bytesTransferred) != frameBytes.size()) {
@@ -44,23 +36,13 @@ void Dispatcher::sendFrame(AgentSession& session, Frame& frame) {
          << " status=" << static_cast<int>(result.error);
 
     logger_.error(what.str());
-    // std::cerr << "[agent] send header failed type="
-    //           << ProtocolHelper::messageTypeToString(frame.header.type)
-    //           << " sent=" << result.bytesTransferred
-    //           << " expected=" << frameBytes.size()
-    //           << " status=" << static_cast<int>(result.error) << "\n";
-    // return false;
     throw SendFailure(ProtocolHelper::messageTypeToString(frame.header.type));
   }
-  // std::ostringstream what;
   what.str("");
   what.clear();
   what << "end ok type="
        << ProtocolHelper::messageTypeToString(frame.header.type);
   logger_.info(what.str());
-  // std::cout << "[" << senderName << "] send ok type="
-  //           << ProtocolHelper::messageTypeToString(frame.header.type) <<
-  //           "\n";
 }
 
 void Dispatcher::onError(const std::vector<std::uint8_t>& payload) {

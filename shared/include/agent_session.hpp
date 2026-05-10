@@ -17,7 +17,7 @@ class AgentSession {
  public:
   AgentSession() = default;
   explicit AgentSession(std::unique_ptr<ISocket> sock)
-      : socket(std::move(sock)) {}
+      : socket_(std::move(sock)) {}
   AgentSession(std::nullptr_t) = delete;
 
   AgentSession(const AgentSession&) = delete;
@@ -25,36 +25,37 @@ class AgentSession {
   AgentSession(AgentSession&&) = default;
 
   std::optional<Frame> tryExtractFrame();
-  bool isValid() const { return socket && socket->isValid(); }
-
-  // TODO : socket and buffer should be private ?
-  std::unique_ptr<ISocket> socket;
-  std::vector<std::uint8_t> buffer;
-
-  const RegisterPayload& getAgentInfo() const {
-    if (!isRegistered_) {
-      throw std::runtime_error("Agent not registered");
-    }
-    return agentInfo_;
-  }
-
-  void setAgentInfo(const RegisterPayload& info) {
-    agentInfo_ = info;
-    isRegistered_ = true;
-  }
-
   void resetSession();
+  // TODO : socket and buffer should be private ?
+  // ===== socket related methods =====
+  bool isValid() const;
+  void close();
+  bool connect(const std::string& host, std::uint16_t port);
+  int getFd() const;
+  SocketResult send(const std::vector<std::uint8_t>& bytes);
 
+  // ===== Register payload related methods =====
+  const RegisterPayload& getAgentInfo() const;
+  void setAgentInfo(const RegisterPayload& info);
+
+  // ===== Register and registration state related method =====
   RegisterState getRegistered_() const { return registered_; };
   void setRegistered_(RegisterState state) { registered_ = state; };
   bool getIsRegistered() const { return isRegistered_; }
-  // void setRegistered(bool registered) { isRegistered_ = registered; }
+
+  // ===== Buffer related methods =====
   SocketResult receiveIntoBuffer();
+  void appendToBuffer(const std::vector<std::uint8_t>& bytes);
+  std::size_t bufferSize() const { return buffer_.size(); }
 
  private:
+  std::unique_ptr<ISocket> socket_;
+  std::vector<std::uint8_t> buffer_;
   std::optional<LptfHeader> header_;
-  void consume(std::size_t n);
   RegisterState registered_{RegisterState::REJECTED};
+
+  // ===== Buffer related private methods =====
+  void consume(std::size_t n);
   std::vector<std::uint8_t> slice(std::size_t offset, std::size_t len) const;
 
   RegisterPayload agentInfo_;

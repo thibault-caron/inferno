@@ -21,25 +21,13 @@ namespace {
 
 constexpr std::size_t kChunkSize = 4096;
 
-SocketResult receiveIntoSession(AgentSession& session) {
-  std::vector<std::uint8_t> temp(kChunkSize);
-  const SocketResult result = session.socket->recv(temp.data(), temp.size());
-
-  if (result.ok() && result.bytesTransferred > 0) {
-    temp.resize(static_cast<std::size_t>(result.bytesTransferred));
-    session.buffer.insert(session.buffer.end(), temp.begin(), temp.end());
-  }
-
-  return result;
-}
-
 std::optional<Frame> receiveOneFrame(AgentSession& session) {
   while (true) {
     if (std::optional<Frame> frame = session.tryExtractFrame()) {
       return frame;
     }
 
-    const SocketResult result = receiveIntoSession(session);
+    const SocketResult result = session.receiveIntoBuffer();
     if (!result.ok() || result.bytesTransferred <= 0) {
       return std::nullopt;
     }

@@ -84,11 +84,11 @@ void AgentLoop::run() {
 void AgentLoop::tryReconnect() {
   session_.resetSession();
 
-  if (session_.socket && session_.socket->connect(host_, port_)) {
+  if (session_.connect(host_, port_)) {
     dispatcher_.sendRegister(session_);
 
     if (session_.getRegistered_() == RegisterState::SENT) {
-      poller_.add(session_.socket->getFd(), WatchFlags::READ);
+      poller_.add(session_.getFd(), WatchFlags::READ);
       connected_ = true;
       std::ostringstream msg;
       msg << "connected to " << host_ << ":" << port_;
@@ -96,7 +96,8 @@ void AgentLoop::tryReconnect() {
     } else {
       // REGISTER serialization/send failed — socket is useless, close it.
       // No poller.remove() needed since we never called poller.add().
-      session_.socket->close();
+      // session_.socket->close();
+      session_.close();
       logger_.warn("REGISTER send failed, will retry");
     }
   } else {
@@ -174,8 +175,8 @@ void AgentLoop::onError() {
 //  3. connected_ = false — next loop iteration uses retryMs_ and calls
 //     tryReconnect() instead of processing events.
 void AgentLoop::onDisconnect() {
-  poller_.remove(session_.socket->getFd());
-  session_.socket->close();
+  poller_.remove(session_.getFd());
+  session_.close();
   connected_ = false;
   logger_.info("disconnected — will retry in retryMs");
 }
