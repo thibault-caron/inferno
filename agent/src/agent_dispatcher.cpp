@@ -39,10 +39,11 @@ void AgentDispatcher::onError(const std::vector<std::uint8_t>& payload) {
 void AgentDispatcher::onDisconnect(AgentSession& session) {
   logger_.info("received DISCONNECT");
   // std::cout << "[agent] received DISCONNECT\n";
-  if (session.socket) {
-    session.socket->close();
+  // if (session.isValid()) {
+    // session.socket->close();
+    session.close(); // check for valid socket already inside close method
     // session.socket.reset();
-  }
+  // }
   // session.setRegistered(false);
 }
 
