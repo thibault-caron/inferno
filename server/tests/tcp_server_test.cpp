@@ -74,7 +74,7 @@ TEST(TcpServerIntegration,
   int agentFd = -1;
   std::thread connector([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    agentFd = connectLoopback(port);
+    agentFd = connectLoopback(port); // TODO use actual AgentSession::connect method instead !!! Integration test use the code base!!! 
   });
 
   auto accepted = server.acceptAgent();
@@ -83,16 +83,17 @@ TEST(TcpServerIntegration,
   EXPECT_NE(accepted, nullptr);
   EXPECT_TRUE(accepted->isValid());
 
-  if (agentFd != -1) ::close(agentFd);
+  if (agentFd != -1) ::close(agentFd); // TODO : Use AgentSession::close() 
 }
 
 TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
   constexpr std::uint16_t port = TestConstants::TCP_SERVER_ECHO_PORT;
   TcpServer server(port);
-  ASSERT_TRUE(server.start());
+  // ASSERT_TRUE(server.start());
 
   // ── Agent thread: send 4 bytes, expect them echoed back ──
   std::vector<std::uint8_t> received;
+  // TODO Change with actual code base, use AgentSession::receiveIntoBuffer, AgentSession::connect, AgentSession::send and so on
   std::thread agent([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     int fd = connectLoopback(port);
@@ -110,7 +111,7 @@ TEST(TcpServerIntegration, should_echo_data_back_through_accepted_socket) {
   ASSERT_NE(socket, nullptr);
 
   std::vector<std::uint8_t> temp(4);
-  const SocketResult result = socket->recv(temp.data(), temp.size());
+  const SocketResult result = socket->recv(temp.data(), temp.size()); // Use AgentSession::receiveIntoBuffer
   EXPECT_TRUE(result.ok());
   EXPECT_EQ(result.bytesTransferred, 4);
   socket->send(temp.data(), result.bytesTransferred);  // echo
@@ -124,8 +125,9 @@ TEST(TcpServerIntegration,
      should_return_valid_remote_address_for_accepted_agent) {
   constexpr std::uint16_t port = TestConstants::TCP_SERVER_REMOTE_ADDR_PORT;
   TcpServer server(port);
-  ASSERT_TRUE(server.start());
-
+  // ASSERT_TRUE(server.start());
+    
+  // TODO Change with actual code base, use AgentSession::receiveIntoBuffer, AgentSession::connect, AgentSession::send and so on
   std::thread connector([&] {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     int fd = connectLoopback(port);

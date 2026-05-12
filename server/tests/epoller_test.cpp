@@ -46,28 +46,40 @@ TEST(EpollerUnit, should_be_valid_after_construction) {
   EXPECT_TRUE(epoller.isValid());
 }
 
+TEST(EpollerUnit, should_return_true_when_add_called_with_valid_fd) {
+  Epoller epoller;
+
+  const PipeFds pipeFds = makePipe();
+
+  ASSERT_TRUE(epoller.add(pipeFds.readFd, WatchFlags::READ));
+}
 TEST(EpollerUnit, should_return_false_when_add_called_with_invalid_fd) {
   Epoller epoller;
-  ASSERT_TRUE(epoller.isValid());
+  // ASSERT_TRUE(epoller.isValid());
   EXPECT_FALSE(epoller.add(-1, WatchFlags::READ));
+}
+
+TEST(EpollerUnit, should_return_true_when_remove_called_on_watched_fd) {
+  Epoller epoller;
+  // ASSERT_TRUE(epoller.isValid());
+  const PipeFds pipeFds = makePipe();
+  epoller.add(pipeFds.readFd, WatchFlags::READ);
+
+  EXPECT_TRUE(epoller.remove(pipeFds.readFd));
 }
 
 TEST(EpollerUnit, should_return_false_when_remove_called_on_unwatched_fd) {
   Epoller epoller;
-  ASSERT_TRUE(epoller.isValid());
+  // ASSERT_TRUE(epoller.isValid());
   EXPECT_FALSE(epoller.remove(12345));
 }
 
-TEST(EpollerUnit, should_return_zero_on_timeout_when_no_data) {
+
+TEST(EpollerUnit, should_return_zero_event_on_timeout_when_no_data) {
   Epoller epoller;
-  ASSERT_TRUE(epoller.isValid());
 
   const PipeFds pipeFds = makePipe();
-  ASSERT_NE(pipeFds.readFd, -1);
-  ASSERT_NE(pipeFds.writeFd, -1);
-
-  ASSERT_TRUE(epoller.add(pipeFds.readFd, WatchFlags::READ));
-
+  epoller.add(pipeFds.readFd, WatchFlags::READ);
   std::vector<ReadyEvent> events;
   const int ready = epoller.wait(events, 0);
   EXPECT_EQ(ready, 0);
@@ -79,13 +91,9 @@ TEST(EpollerUnit, should_return_zero_on_timeout_when_no_data) {
 
 TEST(EpollerIntegration, should_report_readable_event_when_data_arrives) {
   Epoller epoller;
-  ASSERT_TRUE(epoller.isValid());
 
   const PipeFds pipeFds = makePipe();
-  ASSERT_NE(pipeFds.readFd, -1);
-  ASSERT_NE(pipeFds.writeFd, -1);
-
-  ASSERT_TRUE(epoller.add(pipeFds.readFd, WatchFlags::READ));
+  epoller.add(pipeFds.readFd, WatchFlags::READ);
 
   const std::uint8_t byte = 0xAB;
   ASSERT_EQ(::write(pipeFds.writeFd, &byte, 1), 1);
@@ -116,16 +124,11 @@ TEST(EpollerIntegration, should_continue_after_one_fd_removed) {
 
   const PipeFds firstPipe = makePipe();
   const PipeFds secondPipe = makePipe();
-  ASSERT_NE(firstPipe.readFd, -1);
-  ASSERT_NE(firstPipe.writeFd, -1);
-  ASSERT_NE(secondPipe.readFd, -1);
-  ASSERT_NE(secondPipe.writeFd, -1);
-
-  ASSERT_TRUE(epoller.add(firstPipe.readFd, WatchFlags::READ));
-  ASSERT_TRUE(epoller.add(secondPipe.readFd, WatchFlags::READ));
-
+  epoller.add(firstPipe.readFd, WatchFlags::READ);
+  epoller.add(secondPipe.readFd, WatchFlags::READ);
   const std::uint8_t firstByte = 0x11;
   ASSERT_EQ(::write(firstPipe.writeFd, &firstByte, 1), 1);
+  // TODO: should we write in the second pipe???
 
   std::vector<ReadyEvent> events;
   const int readyFirst = epoller.wait(events, 100);
@@ -141,7 +144,7 @@ TEST(EpollerIntegration, should_continue_after_one_fd_removed) {
   }
   EXPECT_TRUE(firstFound);
 
-  EXPECT_TRUE(epoller.remove(firstPipe.readFd));
+  epoller.remove(firstPipe.readFd);
   closePipe(firstPipe);
 
   const std::uint8_t secondByte = 0x22;

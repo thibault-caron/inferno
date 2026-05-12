@@ -21,6 +21,7 @@ inline bool sendAll(int fd, const std::vector<std::uint8_t>& bytes) {
   return true;
 }
 
+
 inline std::vector<std::uint8_t> recvExact(int fd, std::size_t size) {
   std::vector<std::uint8_t> bytes(size);
   std::size_t offset = 0;
