@@ -62,7 +62,7 @@ find_package(GTest REQUIRED)
 
 add_executable(server_tests
     # tests/agent_session_test.cpp
-    tests/dispatcher_test.cpp
+    tests/server_dispatcher_test.cpp
     tests/epoller_test.cpp
     tests/reactor_integration_test.cpp
     tests/server_integration_test.cpp

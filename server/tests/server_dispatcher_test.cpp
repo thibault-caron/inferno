@@ -5,6 +5,89 @@
 #include "protocol/protocol_parser.hpp"
 #include "server_dispatcher.hpp"
 #include "socket/mock_socket_helpers.hpp"
+#include "socket/spy_socket.hpp"
+
+// ── ServerDispatcher tests ────────────────────────────────────
+// Three tests: happy path, protocol enforcement, unknown type.
+// All use SpySocket — no GMock matchers, no reference_wrapper.
+// spy.sent holds the raw bytes of every send() call concatenated,
+// so we parse them back with ProtocolParser to check correctness.
+// ─────────────────────────────────────────────────────────────
+ 
+// ① Happy path — the one flow that must always work end to end.
+// REGISTER arrives → session marked registered → OS_INFO COMMAND sent.
+// Verifies: registration state, message type, command type, first id.
+TEST(ServerDispatcher,
+     should_register_session_and_send_os_info_command_on_register) {
+  SpySocket spy;
+  AgentSession session = makeSession(spy);
+  ServerDispatcher dispatcher;
+ 
+  dispatcher.handleFrame(
+      session, makeFrame(MessageType::REGISTER, makeRegisterPayload("host-01")));
+ 
+  // Session state
+  EXPECT_TRUE(session.getIsRegistered());
+  EXPECT_EQ(session.getAgentInfo().hostname, "host-01");
+ 
+  // Wire output: must have sent at least one full frame
+  ASSERT_GE(spy.sent.size(), static_cast<std::size_t>(LPTF_HEADER_SIZE));
+  EXPECT_EQ(spy.messageType(), MessageType::COMMAND);
+ 
+  // Command payload: type must be OS_INFO, id must start at 0
+  const CommandPayload cmd =
+      ProtocolParser::parseCommandPayload(spy.payload());
+  EXPECT_EQ(cmd.type, CommandType::OS_INFO);
+  EXPECT_EQ(cmd.id, 0);
+}
+ 
+// ② Protocol enforcement — receiving a non-REGISTER frame from an
+// unregistered agent must produce an ERROR, not a crash or silent skip.
+// This is the REGISTER-first rule that the reactor enforces before
+// calling handleFrame, but the dispatcher must also be defensive.
+TEST(ServerDispatcher,
+     should_send_error_when_unknown_message_type_received_from_any_agent) {
+  SpySocket spy;
+  AgentSession session = makeSession(spy);
+  ServerDispatcher dispatcher;
+ 
+  // COMMAND is a server→agent message — receiving it is a violation
+  dispatcher.handleFrame(session, makeFrame(MessageType::COMMAND));
+ 
+  ASSERT_GE(spy.sent.size(), static_cast<std::size_t>(LPTF_HEADER_SIZE));
+  EXPECT_EQ(spy.messageType(), MessageType::ERROR);
+}
+ 
+// ③ Id counter — each successive REGISTER triggers a COMMAND with an
+// incrementing id. Verifies the counter is per-dispatcher, not per-session.
+// Important because id matching is how the agent pairs RESPONSE to COMMAND.
+TEST(ServerDispatcher,
+     should_increment_command_id_across_successive_register_frames) {
+  ServerDispatcher dispatcher;
+ 
+  std::vector<std::uint16_t> ids;
+  for (int i = 0; i < 3; ++i) {
+    SpySocket spy;
+    AgentSession session = makeSession(spy);
+ 
+    dispatcher.handleFrame(
+        session,
+        makeFrame(MessageType::REGISTER, makeRegisterPayload("h")));
+ 
+    ASSERT_GE(spy.sent.size(), static_cast<std::size_t>(LPTF_HEADER_SIZE));
+    const CommandPayload cmd =
+        ProtocolParser::parseCommandPayload(spy.payload());
+    ids.push_back(cmd.id);
+  }
+ 
+  // Ids must be strictly increasing: 0, 1, 2
+  EXPECT_EQ(ids[0], 0);
+  EXPECT_EQ(ids[1], 1);
+  EXPECT_EQ(ids[2], 2);
+}
+
+
+// Old tests
 
 TEST(ServerDispatcherTest, should_register_and_send_os_info_command) {
   auto [agentSession, mockSocket] = makeAgentSessionWithMock();
