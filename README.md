@@ -108,11 +108,9 @@ cp .env.template .env
 ```
 ## Quick start 
 
-This project uses Docker Compose profiles (`agent` and `server`)
-to separate build/runtime pipelines and keep logs readable.
+This project uses Docker Compose profiles (`agent` and `server`) to separate build/runtime pipelines and keep logs readable.
 
 `COMPOSE_PROFILES=agent,server` in `.env` allows `docker compose up` and `docker compose down` to work without specifying profiles manually.
-> To avoid mixing logs from server and agent(s), open two terminals.
 ### Start all services (agent + server)
 ```
 docker compose up
@@ -156,4 +154,6 @@ Multiple runtime instances can be started without rebuilding the binary, since a
 
 
 The following diagram illustrates the pipeline:
-![pipeline](./_docs/Build%20pipeline%20&%20artifact%20flow.png)
+![pipeline](./_docs/project/build_pipeline_&_artifact_flow.png)
+
+  'build_pipeline_&_artifact_flow.png'
