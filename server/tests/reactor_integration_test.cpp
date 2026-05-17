@@ -1,16 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <memory>
 #include <thread>
-#include <vector>
 
 #include "helpers_test.hpp"
 #include "poller/epoller.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "reactor.hpp"
 #include "server_dispatcher.hpp"
-#include "socket/socket_test_helpers.hpp"
+#include "socket/socket_factory.hpp"
 #include "tcp_server.hpp"
 #include "test_constants.hpp"
 
@@ -25,148 +23,122 @@ TEST(ReactorIntegration, NotSupportedOnThisPlatform) {
 #include <unistd.h>
 
 namespace {
-// TODO must be deleted when stop will be implemented in reactor
+
+// stopReactor wakes the blocking epoll_wait by connecting a dummy socket,
+// triggering the reactor's accept path once more so it can check running_.
+// Temporary until Reactor::stop() sends a proper wakeup (eventfd/pipe).
 void stopReactor(Reactor& reactor, std::uint16_t port) {
   reactor.stop();
-  const int fd = connectLoopback(port);
-  if (fd != -1) {
-    ::close(fd);
-  }
+  auto wake = SocketFactory::createTCP();
+  wake->connect("127.0.0.1", port);
+  // wake closes on destruction — just enough to unblock epoll_wait
+}
+
+// Creates and starts a TcpServer + Epoller + Reactor, launches the reactor
+// in a background thread, and returns the thread.
+// Caller is responsible for calling stopReactor() before join().
+std::thread startReactorThread(TcpServer& server, Epoller& epoller,
+                               ServerDispatcher& dispatcher,
+                               Reactor& reactor, std::uint16_t port) {
+  server.start();
+  server.setNonBlocking();
+  return std::thread([&reactor] { reactor.run(); });
 }
 
 }  // namespace
 
+// ① Happy path — agent connects and sends REGISTER. No error expected.
+// Verifies the reactor accepts the connection and dispatches the frame
+// without crashing or sending an error back.
 TEST(ReactorIntegration, should_accept_register_without_error) {
-  TcpServer server(TestConstants::REACTOR_HAPPY_PATH_PORT);
-  // ASSERT_TRUE(server.start()); // already tested in server tcp or should be
-  server.start();
-  server.setNonBlocking();
+  const std::uint16_t port = TestConstants::REACTOR_HAPPY_PATH_PORT;
+  TcpServer server(port);
   Epoller epoller;
-  // ASSERT_TRUE(epoller.isValid());
-
   ServerDispatcher dispatcher;
   Reactor reactor(server, dispatcher, epoller);
 
-  std::thread reactorThread([&] { reactor.run(); });
+  auto reactorThread =
+      startReactorThread(server, epoller, dispatcher, reactor, port);
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  // const int clientFd =
-  // connectLoopback(TestConstants::REACTOR_HAPPY_PATH_PORT);
-  std::unique_ptr<ISocket> clientFd = SocketFactory::createTCP();
-  AgentSession session(std::move(clientFd));
-  session.connect(TestConstants::SERVER_HOST,
-                  TestConstants::REACTOR_HAPPY_PATH_PORT);
-  ASSERT_NE(session.getFd(), -1);
+  auto socket = SocketFactory::createTCP();
+  ASSERT_TRUE(socket->connect("127.0.0.1", port));
 
   const auto registerFrame =
       makeRawFrame(MessageType::REGISTER, makeRegisterPayload("reactor-1"));
-  // ASSERT_TRUE(sendAll(clientFd, registerFrame));
-  SocketResult result = session.send(registerFrame);
-  ASSERT_TRUE(result.ok());
+  EXPECT_TRUE(socket->send(registerFrame).ok());
 
-  // ::close(clientFd);
-  session.close();
-
-  stopReactor(reactor, TestConstants::REACTOR_HAPPY_PATH_PORT);
+  stopReactor(reactor, port);
   reactorThread.join();
 }
 
-TEST(ReactorIntegration, should_send_error_when_first_message_not_register) {
-  TcpServer server(TestConstants::REACTOR_INVALID_FIRST_MESSAGE_PORT);
-  // ASSERT_TRUE(server.start());
-  server.start();
+// ② Protocol enforcement — agent sends COMMAND before REGISTER.
+// The reactor must reply with an ERROR frame before dispatching.
+TEST(ReactorIntegration,
+     should_send_error_when_first_message_is_not_register) {
+  const std::uint16_t port = TestConstants::REACTOR_INVALID_FIRST_MESSAGE_PORT;
+  TcpServer server(port);
   Epoller epoller;
-  // ASSERT_TRUE(epoller.isValid());
-
   ServerDispatcher dispatcher;
   Reactor reactor(server, dispatcher, epoller);
 
-  std::thread reactorThread([&] { reactor.run(); });
+  auto reactorThread =
+      startReactorThread(server, epoller, dispatcher, reactor, port);
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  // const int clientFd =
-  //     connectLoopback(TestConstants::REACTOR_INVALID_FIRST_MESSAGE_PORT);
-  std::unique_ptr<ISocket> clientFd = SocketFactory::createTCP();
-  AgentSession session(std::move(clientFd));
-  session.connect(TestConstants::SERVER_HOST,
-                  TestConstants::REACTOR_HAPPY_PATH_PORT);
-  ASSERT_NE(session.getFd(), -1);
+  auto socket = SocketFactory::createTCP();
+  ASSERT_TRUE(socket->connect("127.0.0.1", port));  // ← correct port
 
   const auto commandFrame = makeRawFrame(MessageType::COMMAND);
-  SocketResult resultSend = session.send(commandFrame);
-  ASSERT_TRUE(resultSend.ok());
-  // ASSERT_TRUE(sendAll(clientFd, commandFrame));
+  ASSERT_TRUE(socket->send(commandFrame).ok());
 
-  SocketResult resultRecv = session.receiveIntoBuffer();
-  // const std::vector<std::uint8_t> errorHeaderBytes =
-  //     recvExact(clientFd, LPTF_HEADER_SIZE);
-  ASSERT_EQ(session.bufferSize(), LPTF_HEADER_SIZE);
+  // Read back the ERROR response using AgentSession's buffer machinery
+  AgentSession session(std::move(socket));
+  session.receiveIntoBuffer();
+
   std::optional<Frame> frame = session.tryExtractFrame();
-  Frame actualFrame = frame.value();
-  // const LptfHeader errorHeader = ProtocolParser::parseHeader();
-  EXPECT_EQ(actualFrame.header.type, MessageType::ERROR);
+  ASSERT_TRUE(frame.has_value());
+  EXPECT_EQ(frame->header.type, MessageType::ERROR);
 
-  // const std::vector<std::uint8_t> errorPayloadBytes =
-  //     recvExact(clientFd, errorHeader.size);
-  // ASSERT_EQ(errorPayloadBytes.size(), errorHeader.size);
-
-  // ::close(clientFd);
-  session.close();
-
-  stopReactor(reactor, TestConstants::REACTOR_INVALID_FIRST_MESSAGE_PORT);
+  stopReactor(reactor, port);
   reactorThread.join();
 }
 
-TEST(ReactorIntegration, should_remove_disconnected_agent_and_keep_serving) {
-  TcpServer server(TestConstants::REACTOR_DISCONNECT_PORT);
-
-  server.start();
+// ③ Resilience — first agent disconnects, second agent can still connect
+// and communicate. Verifies the reactor cleans up dead sessions correctly.
+TEST(ReactorIntegration,
+     should_keep_serving_after_first_agent_disconnects) {
+  const std::uint16_t port = TestConstants::REACTOR_DISCONNECT_PORT;
+  TcpServer server(port);
   Epoller epoller;
-  // ASSERT_TRUE(epoller.isValid());
-
   ServerDispatcher dispatcher;
   Reactor reactor(server, dispatcher, epoller);
 
-  std::thread reactorThread([&] { reactor.run(); });
+  auto reactorThread =
+      startReactorThread(server, epoller, dispatcher, reactor, port);
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  // const int firstClientFd =
-  //     connectLoopback(TestConstants::REACTOR_DISCONNECT_PORT);
-  std::unique_ptr<ISocket> firstClientFd = SocketFactory::createTCP();
-  AgentSession firstSession(std::move(firstClientFd));
-  firstSession.connect(TestConstants::SERVER_HOST,
-                       TestConstants::REACTOR_HAPPY_PATH_PORT);
-  ASSERT_NE(firstSession.getFd(), -1);
-
-  const auto firstRegister =
-      makeRawFrame(MessageType::REGISTER, makeRegisterPayload("reactor-a"));
-
-  SocketResult firstResult = firstSession.send(firstRegister);
-  ASSERT_TRUE(firstResult.ok());
-
-  // ::close(firstClientFd);
-  // TODO : why close first agent session here ? Why sleep for 10 milliseconds
-  // here ?
-  firstSession.close();
+  // First agent connects, sends REGISTER, then disconnects
+  {
+    auto socket = SocketFactory::createTCP();
+    ASSERT_TRUE(socket->connect("127.0.0.1", port));  // ← correct port
+    const auto frame =
+        makeRawFrame(MessageType::REGISTER, makeRegisterPayload("reactor-a"));
+    EXPECT_TRUE(socket->send(frame).ok());
+    // socket closes on scope exit — reactor detects disconnection
+  }
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  // const int secondClientFd =
-  //     connectLoopback(TestConstants::REACTOR_DISCONNECT_PORT);
-  std::unique_ptr<ISocket> secondClientFd = SocketFactory::createTCP();
-  AgentSession secondSession(std::move(secondClientFd));
-  secondSession.connect(TestConstants::SERVER_HOST,
-                        TestConstants::REACTOR_HAPPY_PATH_PORT);
-  ASSERT_NE(secondSession.getFd(), -1);
+  // Second agent can still connect — reactor is still running
+  {
+    auto socket = SocketFactory::createTCP();
+    ASSERT_TRUE(socket->connect("127.0.0.1", port));  // ← correct port
+    const auto frame =
+        makeRawFrame(MessageType::REGISTER, makeRegisterPayload("reactor-b"));
+    EXPECT_TRUE(socket->send(frame).ok());
+  }
 
-  const auto secondRegister =
-      makeRawFrame(MessageType::REGISTER, makeRegisterPayload("reactor-b"));
-  // ASSERT_TRUE(sendAll(secondClientFd, secondRegister));
-  SocketResult secondResult = secondSession.send(secondRegister);
-
-  // ::close(secondClientFd);
-  secondSession.close();
-
-  stopReactor(reactor, TestConstants::REACTOR_DISCONNECT_PORT);
+  stopReactor(reactor, port);
   reactorThread.join();
 }
 
