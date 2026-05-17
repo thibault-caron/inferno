@@ -67,19 +67,19 @@ class SpySocket : public ISocket {
   // Thin wrapper that delegates to the SpySocket without taking ownership.
   struct SpySocketRef : public ISocket {
     explicit SpySocketRef(SpySocket& spy) : spy_(spy) {}
-    SocketResult send(const std::uint8_t* d, std::size_t n) override {
-      return spy_.send(d, n);
+    SocketResult send(const std::uint8_t* data, std::size_t length) override {
+      return spy_.send(data, length);
     }
-    SocketResult recv(std::uint8_t* d, std::size_t n) override {
-      return spy_.recv(d, n);
+    SocketResult recv(std::uint8_t* data, std::size_t length) override {
+      return spy_.recv(data, length);
     }
     bool isValid() const override { return spy_.isValid(); }
     void close() override { spy_.close(); }
-    bool connect(const std::string& h, std::uint16_t p) override {
-      return spy_.connect(h, p);
+    bool connect(const std::string& host, std::uint16_t port) override {
+      return spy_.connect(host, port);
     }
-    bool bind(std::uint16_t p) override { return spy_.bind(p); }
-    bool listen(int b) override { return spy_.listen(b); }
+    bool bind(std::uint16_t port) override { return spy_.bind(port); }
+    bool listen(int backlog) override { return spy_.listen(backlog); }
     std::unique_ptr<ISocket> accept() override { return spy_.accept(); }
     bool setNonBlocking(bool on) override { return spy_.setNonBlocking(on); }
     int getFd() override { return spy_.getFd(); }

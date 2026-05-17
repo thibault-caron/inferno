@@ -34,13 +34,13 @@ TEST(AgentDispatcher,
   ASSERT_GE(spy.sent.size(), static_cast<std::size_t>(LPTF_HEADER_SIZE));
   EXPECT_EQ(spy.messageType(), MessageType::RESPONSE);
  
-  const ResponsePayload rsp =
+  const ResponsePayload response =
       ProtocolParser::parseResponsePayload(spy.payload());
-  EXPECT_EQ(rsp.id, 42);                    // must echo the command id
-  EXPECT_EQ(rsp.status, ResponseStatus::OK);
-  EXPECT_EQ(rsp.total_chunks, 1);
-  EXPECT_EQ(rsp.chunk_index, 0);
-  EXPECT_FALSE(rsp.data.empty());           // agent sent something
+  EXPECT_EQ(response.id, 42);                    // must echo the command id
+  EXPECT_EQ(response.status, ResponseStatus::OK);
+  EXPECT_EQ(response.total_chunks, 1);
+  EXPECT_EQ(response.chunk_index, 0);
+  EXPECT_FALSE(response.data.empty());           // agent sent something
 }
  
 // ② DISCONNECT — server sends it, agent must close the session.

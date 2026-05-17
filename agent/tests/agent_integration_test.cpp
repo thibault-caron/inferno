@@ -81,11 +81,11 @@ TEST(AgentIntegration, should_register_respond_and_disconnect) {
   ASSERT_TRUE(responseFrame.has_value());
   EXPECT_EQ(responseFrame->header.type, MessageType::RESPONSE);
  
-  const ResponsePayload rsp =
+  const ResponsePayload response =
       ProtocolParser::parseResponsePayload(responseFrame->payload);
-  EXPECT_EQ(rsp.id, 0);
-  EXPECT_EQ(rsp.status, ResponseStatus::OK);
-  EXPECT_EQ(rsp.data, "hello world from agent");
+  EXPECT_EQ(response.id, 0);
+  EXPECT_EQ(response.status, ResponseStatus::OK);
+  EXPECT_EQ(response.data, "hello world from agent");
  
   // ── Send DISCONNECT — agent must close cleanly ────────────
   ASSERT_TRUE(serverSession.send(makeRawFrame(MessageType::DISCONNECT)).ok());
