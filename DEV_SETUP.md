@@ -130,6 +130,15 @@ rm -rf agent/build server/build shared/build
 docker compose up
 ```
 
+**starting fresh with profiles**
+
+```bash
+docker compose down
+rm -rf agent/build server/build shared/build
+docker compose --profile server up
+docker compose --profile agent up
+```
+
 This wipes all build caches and starts from scratch. Images are kept — you don't need to re-run `docker compose build`.
 
 ---

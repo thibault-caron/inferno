@@ -1,114 +1,95 @@
-#include <arpa/inet.h>
 #include <gtest/gtest.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
+ 
 #include <atomic>
-#include <chrono>
+#include <optional>
 #include <thread>
-#include <vector>
-
+ 
 #include "agent_dispatcher.hpp"
 #include "agent_session.hpp"
 #include "helpers_test.hpp"
-#include "protocol/protocol_helper.hpp"
 #include "protocol/protocol_parser.hpp"
 #include "protocol/protocol_serializer.hpp"
 #include "socket/socket_factory.hpp"
-#include "socket/socket_test_helpers.hpp"
+#include "test_tcp_server.hpp"
 #include "test_constants.hpp"
-
+ 
+// Full cycle: REGISTER → COMMAND(OS_INFO) → RESPONSE → DISCONNECT.
+//
+// Both sides use shared/ classes only:
+//   server role  — TestTcpServer + AgentSession (same framing path as Reactor)
+//   agent role   — real agent code, unchanged
+//
+// Thread layout:
+//   main thread  — server role: accept, read frames, send commands
+//   agent thread — agent role:  connect, register, dispatch
 TEST(AgentIntegration, should_register_respond_and_disconnect) {
-  const int serverFd = startServer(TestConstants::AGENT_INTEGRATION_PORT);
-  ASSERT_NE(serverFd, -1);
-
+  const std::uint16_t port = TestConstants::AGENT_INTEGRATION_PORT;
+ 
+  TestTcpServer server(port);
+  ASSERT_TRUE(server.start());
+ 
   std::atomic<bool> agentExited{false};
-  std::atomic<bool> agentOk{true};
-
-  std::thread agent([&] {
+ 
+  // ── Agent thread — real agent code, untouched ─────────────
+  std::thread agentThread([&] {
     auto socket = SocketFactory::createTCP();
-    if (!socket ||
-        !socket->connect("127.0.0.1", TestConstants::AGENT_INTEGRATION_PORT)) {
-      agentOk = false;
-      return;
-    }
-
+    ASSERT_TRUE(socket && socket->connect("127.0.0.1", port));
+ 
     AgentSession session(std::move(socket));
     AgentDispatcher dispatcher;
     dispatcher.sendRegister(session);
-
+ 
     while (session.isValid()) {
       const SocketResult result = session.receiveIntoBuffer();
-      if (!result.ok() || result.bytesTransferred <= 0) {
-        agentOk = false;
-        return;
-      }
-
-      while (std::optional<Frame> frame = session.tryExtractFrame()) {
+      if (!result.ok() || result.bytesTransferred <= 0) break;
+ 
+      std::optional<Frame> frame;
+      while (session.isValid() && (frame = session.tryExtractFrame())) {
         dispatcher.handleFrame(session, frame.value());
-        if (!session.isValid()) {
-          agentExited = true;
-          return;
-        }
       }
     }
+    agentExited = true;
   });
-
-  sockaddr_in clientAddress{};
-  socklen_t clientLen = sizeof(clientAddress);
-  const int clientFd = ::accept(
-      serverFd, reinterpret_cast<sockaddr*>(&clientAddress), &clientLen);
-  ASSERT_NE(clientFd, -1);
-
-  const std::vector<std::uint8_t> registerHeaderBytes =
-      recvExact(clientFd, LPTF_HEADER_SIZE);
-  ASSERT_EQ(registerHeaderBytes.size(), LPTF_HEADER_SIZE);
-  const LptfHeader registerHeader =
-      ProtocolParser::parseHeader(registerHeaderBytes);
-  EXPECT_EQ(registerHeader.type, MessageType::REGISTER);
-
-  const std::vector<std::uint8_t> registerPayloadBytes =
-      recvExact(clientFd, registerHeader.size);
-  ASSERT_EQ(registerPayloadBytes.size(), registerHeader.size);
-  const RegisterPayload registerPayload =
-      ProtocolParser::parseRegisterPayload(registerPayloadBytes);
-  EXPECT_EQ(registerPayload.hostname, "inferno-agent");
-
-  CommandPayload command;
-  command.id = 0;
-  command.type = CommandType::OS_INFO;
-  command.data = "";
-  const std::vector<std::uint8_t> commandPayload =
-      ProtocolSerializer::serializeCommandPayload(command);
-  const std::vector<std::uint8_t> commandFrame =
-      makeRawFrame(MessageType::COMMAND, commandPayload);
-  ASSERT_TRUE(sendAll(clientFd, commandFrame));
-
-  const std::vector<std::uint8_t> responseHeaderBytes =
-      recvExact(clientFd, LPTF_HEADER_SIZE);
-  ASSERT_EQ(responseHeaderBytes.size(), LPTF_HEADER_SIZE);
-  const LptfHeader responseHeader =
-      ProtocolParser::parseHeader(responseHeaderBytes);
-  EXPECT_EQ(responseHeader.type, MessageType::RESPONSE);
-
-  const std::vector<std::uint8_t> responsePayloadBytes =
-      recvExact(clientFd, responseHeader.size);
-  ASSERT_EQ(responsePayloadBytes.size(), responseHeader.size);
+ 
+  // ── Server role — accept into AgentSession, same path as Reactor ──
+  std::unique_ptr<ISocket> serverSocket = server.acceptAgent();
+  ASSERT_NE(serverSocket, nullptr);
+  AgentSession serverSession(std::move(serverSocket));
+ 
+  // ── Read REGISTER ─────────────────────────────────────────
+  serverSession.receiveIntoBuffer();
+  std::optional<Frame> registerFrame = serverSession.tryExtractFrame();
+  ASSERT_TRUE(registerFrame.has_value());
+  EXPECT_EQ(registerFrame->header.type, MessageType::REGISTER);
+ 
+  const RegisterPayload reg =
+      ProtocolParser::parseRegisterPayload(registerFrame->payload);
+  EXPECT_EQ(reg.hostname, "inferno-agent");
+ 
+  // ── Send COMMAND(OS_INFO) ─────────────────────────────────
+  CommandPayload cmd;
+  cmd.id   = 0;
+  cmd.type = CommandType::OS_INFO;
+  cmd.data = "";
+  const auto cmdPayload = ProtocolSerializer::serializeCommandPayload(cmd);
+  ASSERT_TRUE(serverSession.send(makeRawFrame(MessageType::COMMAND,
+                                              cmdPayload)).ok());
+ 
+  // ── Read RESPONSE ─────────────────────────────────────────
+  serverSession.receiveIntoBuffer();
+  std::optional<Frame> responseFrame = serverSession.tryExtractFrame();
+  ASSERT_TRUE(responseFrame.has_value());
+  EXPECT_EQ(responseFrame->header.type, MessageType::RESPONSE);
+ 
   const ResponsePayload response =
-      ProtocolParser::parseResponsePayload(responsePayloadBytes);
+      ProtocolParser::parseResponsePayload(responseFrame->payload);
   EXPECT_EQ(response.id, 0);
   EXPECT_EQ(response.status, ResponseStatus::OK);
   EXPECT_EQ(response.data, "hello world from agent");
-
-  const std::vector<std::uint8_t> disconnectFrame =
-      makeRawFrame(MessageType::DISCONNECT);
-  ASSERT_TRUE(sendAll(clientFd, disconnectFrame));
-
-  ::close(clientFd);
-  ::close(serverFd);
-
-  agent.join();
-
-  EXPECT_TRUE(agentOk);
+ 
+  // ── Send DISCONNECT — agent must close cleanly ────────────
+  ASSERT_TRUE(serverSession.send(makeRawFrame(MessageType::DISCONNECT)).ok());
+ 
+  agentThread.join();
   EXPECT_TRUE(agentExited);
 }

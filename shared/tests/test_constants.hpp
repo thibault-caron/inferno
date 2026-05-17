@@ -2,6 +2,7 @@
 #define TEST_CONSTANTS_HPP
 
 #include <cstdint>
+#include <string>
 
 namespace TestConstants {
 
@@ -21,12 +22,18 @@ constexpr std::uint16_t TCP_SERVER_REMOTE_ADDR_PORT =
 // ── server_integration_test.cpp ──────────────────────────────
 constexpr std::uint16_t SERVER_INTEGRATION_PORT = 19882;
 
+// ── reactor_integration_test.cpp ─────────────────────────────
+constexpr std::uint16_t REACTOR_HAPPY_PATH_PORT = 19883;
+constexpr std::uint16_t REACTOR_INVALID_FIRST_MESSAGE_PORT = 19884;
+constexpr std::uint16_t REACTOR_DISCONNECT_PORT = 19885;
+
 // ── agent_integration_test.cpp ───────────────────────────────
 constexpr std::uint16_t AGENT_INTEGRATION_PORT = 19892;
 
 // ── socket_integration_test.cpp ──────────────────────────────
 constexpr std::uint16_t SOCKET_ECHO_PORT = 9876;     // basic socket echo test
 constexpr std::uint16_t SOCKET_UNUSED_PORT = 19999;  // nothing listens here
+const std::string SERVER_HOST = "127.0.0.1";  // or localhost?
 
 }  // namespace TestConstants
 
