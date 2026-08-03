@@ -16,6 +16,7 @@
 - [How to build dashboard](how-to-build-dashboard)
   - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
+  - [Dashboard architecture](./_docs/dashboard/)
 
 ---
 
@@ -71,19 +72,30 @@ A central service responsible for:
 
 A Qt-based interface providing:
 
-- preparing data for visualization and analysis.
-- real-time monitoring dashboard,
-- agent management interface,
-- visualization of system metrics and diagnostics.
+### Desktop dashboard
+
+A Qt Widgets interface providing:
+
+- real-time monitoring of one agent at a time (CPU, memory, disk, network),
+- live charts built from a sliding window of the last 20 samples,
+- agent list with connection state, and remote disconnection,
+- remote command execution with output display,
+- running process table and OS information on demand.
+
+![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
+
+[Read more about dashboard architecture](./_docs/dashboard/)
 
 ## Features
 
 - Custom binary communication protocol
 - Shared C++ networking library : `transport_lib`
+- TLS or plain TCP transport, selected from the environment
 
 #### Dasbhoard
 
 - Qt desktop monitoring interface
+- Continuous metrics streaming reception and display
 
 #### Server
 
@@ -93,7 +105,7 @@ A Qt-based interface providing:
 #### Agent
 
 - Agent reconnection resilience
-- Continuous metrics streaming
+- Continuous metrics streaming emission 
 - Cross-platform monitoring agent
 
 #### Setup and automatisation
@@ -102,8 +114,7 @@ A Qt-based interface providing:
 - Automated test execution during builds
 - Multi-agent scaling support via Docker Compose
 
-#### Future
-
+### Future
 - Remote diagnostics execution
 - Health analysis and anomaly detection
 - Background daemon/service deployment

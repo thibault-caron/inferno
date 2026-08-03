@@ -32,6 +32,11 @@ MainWindow::MainWindow(QWidget* parent)
 
     buildStatusBar();
 
+    m_sampleAgeTimer = new QTimer(this);
+    connect(m_sampleAgeTimer, &QTimer::timeout, this,
+            &MainWindow::updateLastSampleLabel);
+    m_sampleAgeTimer->start(1000);
+
     updateStatusBadge();
 
 
@@ -70,16 +75,6 @@ MainWindow::MainWindow(QWidget* parent)
                     m_streamingTarget.clear();
                 }
 
-                // if (clicked != m_target) {
-                //     m_cpuHistory.clear();
-                //     m_memoryHistory.clear();
-                //     m_networkHistory.clear();
-                //     m_diskHistory.clear();
-
-                //     m_processTable->setProcesses({});
-                //     m_metricCards->clear();
-                //     ui->outputView->clear();
-                // }
 
                 if (clicked != m_target) clearAgentView();
 
@@ -141,6 +136,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(ui->disconnectButton, &QPushButton::clicked, this, [this]() {
         if (m_target.isEmpty()) return;
+
+        QListWidgetItem* item = ui->agentList->currentItem();
+        if (!item || !item->data(Qt::UserRole + 4).toBool()) {
+            qDebug() << "agent already offline, disconnect ignored";
+            return;
+        }
 
         m_client->sendDisconnect(m_target);
 
@@ -243,9 +244,10 @@ void MainWindow::buildStatusBar() {
     m_onlineLabel = makeLabel("● 0 agents online", "statusItem");
     ui->statusbar->addWidget(m_onlineLabel);
 
-    ui->statusbar->addWidget(makeLabel("last sample: 0.3 s ago", "statusItem"));
+    m_lastSampleLabel = makeLabel("last sample: —", "statusItem");
+    ui ->statusbar->addWidget(m_lastSampleLabel);
     // side
-    ui->statusbar->addWidget(makeLabel("db: PostgreSQL connected", "statusItem"));
+    // ui->statusbar->addWidget(makeLabel("db: PostgreSQL connected", "statusItem"));
     // App version — static, not server-driven.
     ui->statusbar->addPermanentWidget(makeLabel("v1.0.0", "statusItem"));
 }
@@ -293,6 +295,9 @@ void MainWindow::showOutput(const QString& text) {
 void MainWindow::onMetricsReceived(const QString& target,
                                    const MetricsSample& sample) {
     if (target != m_target) return;
+
+    m_lastSampleTime = QDateTime::fromString(
+        QString::fromStdString(sample.timestamp), Qt::ISODate);
 
     m_metricCards->updateFromSample(sample);
 
@@ -375,9 +380,15 @@ void MainWindow::clearAgentView() {
     m_networkHistory.clear();
     m_diskHistory.clear();
 
+    m_cpuChart->setSeries(m_cpuHistory.series());
+    m_memoryChart->setSeries(m_memoryHistory.series());
+    m_networkChart->setSeries(m_networkHistory.series());
+    m_diskChart->setSeries(m_diskHistory.series());
+
     m_processTable->setProcesses({});
     m_metricCards->clear();
     ui->outputView->clear();
+    m_lastSampleTime = QDateTime();
 }
 
 void MainWindow::updateAgentCounters() {
@@ -409,4 +420,16 @@ void MainWindow::onAgentDisconnected(const QString& target) {
     }
 
     updateAgentCounters();
+}
+
+void MainWindow::updateLastSampleLabel() {
+    if (!m_lastSampleLabel) return;
+
+    if (!m_lastSampleTime.isValid()) {
+        m_lastSampleLabel->setText("last sample: —");
+        return;
+    }
+
+    const qint64 seconds = m_lastSampleTime.secsTo(QDateTime::currentDateTimeUtc());
+    m_lastSampleLabel->setText(QString("last sample: %1 s ago").arg(seconds));
 }
