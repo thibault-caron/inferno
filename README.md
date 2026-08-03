@@ -11,6 +11,7 @@
 - [How to build dashboard](how-to-build-dashboard)
   - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
+  - [Dashboard architecture](./_docs/dashboard/)
 
 ---
 
@@ -50,7 +51,6 @@ A lightweight system daemon responsible for:
 
 [Read more about agent achitecture](./_docs/agent/)
 
-
 ### Server (central coordinator)
 
 A central service responsible for:
@@ -68,9 +68,19 @@ A central service responsible for:
 
 A Qt-based interface providing:
 
-- real-time monitoring dashboard,
-- agent management interface,
-- visualization of system metrics and diagnostics.
+### Desktop dashboard
+
+A Qt Widgets interface providing:
+
+- real-time monitoring of one agent at a time (CPU, memory, disk, network),
+- live charts built from a sliding window of the last 20 samples,
+- agent list with connection state, and remote disconnection,
+- remote command execution with output display,
+- running process table and OS information on demand.
+
+![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
+
+[Read more about dashboard architecture](./_docs/dashboard/)
 
 ## Features
 
@@ -82,16 +92,17 @@ A Qt-based interface providing:
 - Docker-based development pipeline
 - Automated test execution during builds
 - Multi-agent scaling support via Docker Compose
+- Continuous metrics streaming
+- Remote diagnostics execution
+- Qt desktop monitoring interface
+- PostgreSQL data persistence
+- Agent reconnection resilience
+- TLS or plain TCP transport, selected from the environment
 
 ### Planned
 
-- Continuous metrics streaming
-- Remote diagnostics execution
 - Cross-platform monitoring agent
-- Qt desktop monitoring interface
-- PostgreSQL data persistence
 - Health analysis and anomaly detection
-- Agent reconnection resilience
 - Background daemon/service deployment
 
 ## Tech Stack
