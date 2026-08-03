@@ -245,7 +245,7 @@ void MainWindow::buildStatusBar() {
 
     ui->statusbar->addWidget(makeLabel("last sample: 0.3 s ago", "statusItem"));
     // side
-    ui->statusbar->addWidget(makeLabel("db: PostgreSQL connected", "statusItem"));
+    // ui->statusbar->addWidget(makeLabel("db: PostgreSQL connected", "statusItem"));
     // App version — static, not server-driven.
     ui->statusbar->addPermanentWidget(makeLabel("v1.0.0", "statusItem"));
 }
