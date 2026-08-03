@@ -61,6 +61,7 @@ add_library(server_lib STATIC
     src/session_manager.cpp
     ${REPOSITORY_SOURCES}
     ${SERVICE_SOURCES}
+    src/time/time_converter.cpp
     # src/agent_manager.cpp        ← add as you create files
     # src/command_dispatcher.cpp
 )

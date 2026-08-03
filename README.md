@@ -82,6 +82,9 @@ A Qt Widgets interface providing:
 - remote command execution with output display,
 - running process table and OS information on demand.
 
+**Dasbhoard architecture**
+![Dashboard's architecture diagram](./_docs/dashboard/dashboard_architecture.png)
+
 ![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
 
 [Read more about dashboard architecture](./_docs/dashboard/)
@@ -105,7 +108,7 @@ A Qt Widgets interface providing:
 #### Agent
 
 - Agent reconnection resilience
-- Continuous metrics streaming emission 
+- Continuous metrics streaming emission
 - Cross-platform monitoring agent
 
 #### Setup and automatisation
@@ -120,7 +123,6 @@ A Qt Widgets interface providing:
 - Background daemon/service deployment
 
 ---
-
 
 ## Tech Stack
 
