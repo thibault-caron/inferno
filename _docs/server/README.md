@@ -20,19 +20,27 @@ Its main responsibilities are:
 - persisting commands, responses, registrations, and collected metrics,
 - maintaining the runtime state of connected clients.
 
-## Communication flow
+## Command Routing & Response Mapping
 
-The server sits between the dashboard and all monitored agents.
+The dashboard never communicates directly with agents. Instead:
 
-1. The dashboard sends a command targeting an agent.
-2. The server stores the command in the database.
-3. The database generates a unique command identifier, which the server uses when forwarding the command to the target agent.
-4. The server translates the dashboard message into the protocol understood by agents and forwards it.
-5. The agent executes the request and sends its response.
-6. The server stores the response, determines which dashboard request it belongs to, wraps it as a dashboard message, and forwards it.
-7. Metrics received from agents are also persisted before being forwarded to the dashboard.
+1. **Dashboard sends a command** targeting a specific agent
+2. **Server persists the command** to the database
+3. **Database generates a unique command ID**
+4. **Server records the mapping**: `command.id → target agent`
+5. **Server forwards the command** to the target agent
+6. **Agent executes and sends response** (with the same command ID)
+7. **Server uses the response ID** to look up the original target
+8. **Server wraps the response** as `DashboardResponse` and forwards to dashboard
+9. **After the final response chunk**, the mapping is deleted from memory
 
-For additional details about how commands are forwarded between the dashboard and agents, see [Command routing](#command-routing).
+The in-memory mapping (step 4) is transient, it exists only while the command is active. This allows agents to be stateless about the dashboard while
+ensuring asynchronous responses are routed back reliably.
+
+This mechanism allows agents to remain unaware of the dashboard while enabling reliable routing of asynchronous responses.
+
+For protocol details (REGISTER, DASHBOARD_REGISTER, COMMAND, RESPONSE, DATA),
+see [Communication Protocol](../../_docs/project/lptf_binary_protocol.md).
 
 ## Runtime architecture
 
@@ -44,23 +52,6 @@ The server follows a layered architecture.
 - **Services** implement the business logic for agent registration, command routing, response handling, and metrics persistence.
 - **Repositories** encapsulate persistence using PostgreSQL/TimescaleDB.
 - **AgentConnection** represents a connected endpoint and stores the runtime state associated with that connection (see [Agent connection](#agent-connection)).
-
-## Command routing
-
-The dashboard never communicates directly with agents.
-
-When a dashboard command is received:
-
-1. the command is persisted,
-2. the database generates the command identifier,
-3. the server records the mapping between the command identifier and the target agent,
-4. the command is forwarded to the selected agent.
-
-When a response is later received, the server uses the response identifier—which matches the command identifier—to recover the original target, wraps the response as a `DashboardResponse`, and forwards it to the dashboard.
-
-The mapping is kept only in memory while the command is active and is removed once the final response chunk has been processed.
-
-This mechanism allows agents to remain unaware of the dashboard while enabling reliable routing of asynchronous responses.
 
 ## Session management
 
