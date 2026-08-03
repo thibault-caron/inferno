@@ -6,7 +6,6 @@
 #include "builders/frame_builder.hpp"
 #include "codec/protocol_parser.hpp"
 #include "fixtures/common.hpp"
-#include "repository_manager.hpp"
 #include "service/agent_service.hpp"
 #include "service/command_service.hpp"
 #include "service/metrics_service.hpp"

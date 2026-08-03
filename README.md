@@ -9,7 +9,7 @@
 - [Quick start](#quick-start)
 - [How are agent and server built](#how-are-agent-and-server-built)
 - [How to build dashboard](how-to-build-dashboard)
-  - [Windows](#dashboard-on-windows)
+  - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
 
 ---
@@ -24,7 +24,7 @@ The project is composed of:
 
 - a central server responsible for orchestration and analysis,
 - remote agents deployed on monitored machines,
-- and a future Qt desktop dashboard for visualization and control.
+- and a Qt desktop dashboard for visualization and control.
 
 The system focuses on:
 
@@ -46,6 +46,11 @@ A lightweight system daemon responsible for:
 - streaming telemetry to the server,
 - maintaining persistent connection with automatic reconnection.
 
+![Agent's architecture diagram](./_docs/agent/agent_architecture.png)
+
+[Read more about agent achitecture](./_docs/agent/README.md)
+
+
 ### Server (central coordinator)
 
 A central service responsible for:
@@ -55,7 +60,11 @@ A central service responsible for:
 - coordinating requests and responses,
 - preparing data for visualization and analysis.
 
-### Desktop dashboard (future)
+![server's architecture diagram](./_docs/server/server_architecture.png)
+
+[Read more about server achitecture](./_docs/server/)
+
+### Desktop dashboard
 
 A Qt-based interface providing:
 
@@ -90,33 +99,56 @@ A Qt-based interface providing:
 | Layer            | Technology                                           |
 | ---------------- | ---------------------------------------------------- |
 | Containerization | Docker & Docker Compose (Agent & Server build)       |
-| Server runtime   | debian:bookworm-20260406-slim                        |
-| Server & agent   | C++17 , CMake 3.20 minimum                           |
+| Server runtime   | fedora:43                                            |
+| Server & agent   | C++20 , CMake 3.20 minimum                           |
 | Dashboard        | Qt 6.4.2 minimum, 6.10.2 recommended (Widgets + ?? ) |
-| Database         | PostgreSQL 17 / TimescaleDB 2.28.3                   |
+| Database         | PostgreSQL 17.10 / TimescaleDB 2.28.3                |
 | Tests            | Google Test                                          |
 
 ---
 
 ## Dependencies
 
-All **server-side and agent-side dependencies** are handled automatically inside the Docker container (using `debian:bookworm-20260406-slim` image) — nothing to install on your machine for the server.
+All **server-side and agent-side dependencies** are handled automatically inside the Docker container (using `fedora:43` image) — nothing to install on your machine for the server.
 
 All **dashboard-side dependencies** need to be installed on your host machine (see [How to build dashboard](#how-to-build-dashboard) below).
 
-| Library            | Version            | Where                  | Purpose                         |
-| ------------------ | ------------------ | ---------------------- | ------------------------------- |
-| Google Test / Mock | 1.15.2-4           | Agent, Server (Docker) | Unit testing framework          |
-| CMake              | 3.31.11 (3.20 min) | Dashboard (host)       | Build system for the Qt client  |
-| openssl-devel      | 3.5.7-2            | All (Docker & host)    | Secure communication on network |
-| libpq              | 18.0-3             | Server (Docker)        |                                 |
-| libpqxx            | 7.10.5-1           | Server (Docker)        |                                 |
-| postgresql         | 18.3-2             | Server (Docker)        |                                 |
+| Library            | Version            | Where                  | Purpose                                                                              |
+| ------------------ | ------------------ | ---------------------- | ------------------------------------------------------------------------------------ |
+| Google Test / Mock | 1.15.2-4           | Agent, Server (Docker) | Unit testing framework                                                               |
+| CMake              | 3.31.11 (3.20 min) | Dashboard (host)       | Build system for the Qt client                                                       |
+| openssl-devel      | 3.5.7-2            | All (Docker & host)    | Secure communication on network                                                      |
+| OpenSSL            | 3.2.4              | Dashboard (host)       | OpenSSL headers + libraries compatible with mingw64 toolchain for TLS/SSL            |
+| libpq              | 18.0-3             | Server (Docker)        | Low-level C library to connect and send queries to PostgreSQL                        |
+| libpqxx            | 7.10.5-1           | Server (Docker)        | Official C++ wrapper over libpq — this is what the server code uses directly         |
+| postgresql         | 18.3-2             | Server (Docker)        | PostgreSQL client tools (psql, pg_isready) — used for debugging inside the container |
+
+**Note:** The server code links against PostgreSQL 18.3-2 client libraries (libpq/libpqxx), which are backwards-compatible with the PostgreSQL 17.10 database server running in the TimescaleDB container.
 
 ## Prerequisites
 
-- Docker / Docker Desktop or [Podman](https://github.com/containers/podman) installed and running
+## Prerequisites
+
+### All Platforms (Docker)
+
+Docker / Docker Desktop or [Podman](https://github.com/containers/podman) installed and running
+For server and agent: Docker/Podman handles all dependencies automatically.
+
+### Windows (Qt)
+
 - Qt installed (see more on [How to build dashboard](#how-to-build-dashboard))
+- OpenSSL from Mingw64 environment (see more on [Install OpenSSL compatible with Qt MinGW](#install-openSSL-compatible-with-qt-mingw))
+
+#### ⚠️ CRITICAL: Consistent Toolchain Required
+
+**All compiled code must use the same MinGW version.** Mixing toolchains (e.g., ucrt64 + mingw64 + Qt's MinGW) causes segmentation faults.
+
+**You MUST use:**
+
+- **GCC:** Qt's bundled MinGW (not MSYS2, not Git Bash mingw64)
+- **OpenSSL:** Compiled for the same MinGW version
+
+---
 
 ## Setup
 
@@ -148,34 +180,10 @@ docker compose --profile agent up
 
 ```
 docker compose --profile agent up --scale agent=N
-
 ```
 
 > replace N with the actual number you need
-    time TIMESTAMPTZ NOT NULL,
-    agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
-    
-    -- CPU
-    cpu_total_percent FLOAT8,
-    cpu_core_count SMALLINT,
-    cpu_per_core FLOAT8[],  -- array of per-core percentages
-    
-    -- Memory
-    mem_phys_total BIGINT,
-    mem_phys_used BIGINT,
-    mem_phys_available BIGINT,
-    mem_swap_total BIGINT,
-    mem_swap_used BIGINT,
-    
-    -- Disk I/O
-    disk_read_bytes_per_sec FLOAT8,
-    disk_write_bytes_per_sec FLOAT8,
-    disk_device TEXT,
-    
-    -- Network I/O
-    net_rx_bytes_per_sec FLOAT8,
-    net_tx_bytes_per_sec FLOAT8,
-    net_iface TEXT
+
 #### Start only (if already built)
 
 ```
@@ -242,10 +250,12 @@ The following diagram illustrates the pipeline:
 First, check if you already have the required tools:
 
 ```bash
-qmake6 --version && cmake --version
+qmake6 --version && cmake --version && openssl --version
 ```
 
 If anything is missing, you have two options:
+
+#### Install Qt 6.4.2+ with MinGW
 
 **Option A — via WSL (Windows Subsystem for Linux):**
 
@@ -261,11 +271,45 @@ Download Qt from [https://www.qt.io/download-open-source](https://www.qt.io/down
 Install `Qt` with `gcc`, `g++` and `cmake` to avoid path issues.
 Qt **6.4.2 minimum**, **6.10.2** was used for development.
 
+**During installation, select:**
+
+- Qt 6.10.2 (or 6.4.2+)
+- **MinGW 13.1 64-bit** compiler
+
 Then add these to your `PATH`:
 
 ```
 C:\Qt\Tools\QtCreator\bin
 C:\Qt\6.x.x\mingw_64\bin
+C:\Qt\Tools\CMake_64\bin
+```
+
+Verify installation:
+
+```powershell
+where gcc
+# Should show: C:\Qt\Tools\mingw1310_64\bin\gcc.exe
+
+where cmake
+# Should show: C:\Qt\Tools\CMake_64\bin\cmake.exe
+
+```
+
+#### Install OpenSSL compatible with Qt MinGW
+
+Install **MSYS2** (a separate tool, independent from Qt) from: https://www.msys2.org/
+Open **MSYS2 MinGW 64-bit terminal** (NOT UCRT64, NOT CLANG64):
+
+```bash
+pacman -S mingw-w64-x86_64-openssl
+```
+
+Verify OpenSSL libraries exist:
+
+```bash
+ls -la /mingw64/lib/libssl.dll.a
+ls -la /mingw64/lib/libcrypto.dll.a
+ls -la /mingw64/include/openssl/ssl.h
 ```
 
 **Build the dashboard:**
@@ -279,6 +323,7 @@ From **PowerShell**:
 From **Git Bash**:
 
 #### Release
+
 ```bash
 powershell.exe -NoProfile -Command "& '$(cygpath -w ./dashboard/windows-build.bat)'"
 ```
@@ -307,6 +352,7 @@ Install if needed:
 sudo apt install qt6-base-dev qt6-base-dev-tools
 sudo apt install cmake
 sudo apt install qt6-websockets-dev
+sudo apt install libssl-dev
 ```
 
 Make the scripts executable (only needed once):

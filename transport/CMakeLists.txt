@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 project(InfernoTransport LANGUAGES CXX)
 
 # ── OpenSSL for TLS communication ────────────────────────────────────────────
+# OpenSSL MUST be compiled for Qt's MinGW (C:\Qt\Tools\mingw1310_64)
+# Install via MSYS2: pacman -S mingw-w64-x86_64-openssl
+# Build script auto-discovers from C:\msys64\mingw64 via -DOPENSSL_ROOT_DIR
 find_package(OpenSSL REQUIRED)
 
 # ── Library ───────────────────────────────────────────────────────────────────

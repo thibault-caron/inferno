@@ -9,7 +9,6 @@
 #include "repository/command_repository.hpp"
 #include "repository/database_connection.hpp"
 #include "repository/metrics_repository.hpp"
-#include "repository_manager.hpp"
 #include "service/agent_service.hpp"
 #include "service/command_service.hpp"
 #include "service/metrics_service.hpp"

@@ -466,6 +466,8 @@ struct DashboardDisconnect {
 
 ### 5.4 Rules
 
+- Agent and Dashboard **MUST** send a `REGISTER` or `DASHBOARD_REGISTER` containing a `RegisterPayload` as first message for identification at runtime.
+- Server **MUST** reject any communication from unidentified source
 - Dashboard **MUST** send COMMAND with `command.id = 0`; server replaces it with a database-generated id before forwarding to the agent.
 - Server **MUST** track `commandId → agent target (MAC)` to route responses back correctly.
 - Server **MUST** forward each RESPONSE chunk individually; dashboard **MUST** reassemble using `id`, `chunk_index`, `total_chunks`.
@@ -474,8 +476,8 @@ struct DashboardDisconnect {
 - When dashboard registers, server **SHOULD** send a `DATA / AGENTS` frame containing all currently connected agents as a list of `RegisterPayload` through a `DashboardData`.
 - On any `DATA` type message, server **MUST** use `DashboardData` wrapper
 - DISCONNECT from dashboard **MUST** carry a `DashboardDisconnect` payload; DISCONNECT from agent or server **SHOULD NOT** carry a payload.
-- On a regular agent disconnection, server **MUST\*** send a `DashboardDisconnect` with the agent id so dashboard can update GUI.
-- On any error, server **MUST** inform sender
+- On a regular agent disconnection, server **MUST** send a DISCONNECT message using `DashboardDisconnect` with the agent id so dashboard can update GUI.
+- On any error, server **MUST** inform sender and **MAY** inform dashboard
 
 ---
 

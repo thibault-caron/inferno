@@ -36,7 +36,6 @@ if(NOT TARGET transport_lib)
 endif()
 
 set(REPOSITORY_SOURCES
-    src/repository_manager.cpp
     src/repository/database_connection.cpp
     src/repository/agent_repository.cpp
     src/repository/command_repository.cpp
