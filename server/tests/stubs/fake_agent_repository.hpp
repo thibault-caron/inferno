@@ -41,6 +41,23 @@ class FakeAgentRepository : public IAgentRepository {
     return std::nullopt;
   }
 
+  std::optional<std::string> getLastSeen(const std::string& id) override {
+    auto it = agents_.find(id);
+    if (it != agents_.end()) {
+      return it->second.last_seen;
+    }
+    return std::nullopt;
+  }
+ 
+  std::optional<std::string> getRegisteredAt(const std::string& id) override {
+    auto it = agents_.find(id);
+    if (it != agents_.end()) {
+      return it->second.registered_at;
+    }
+    return std::nullopt;
+  }
+
+
   // Test-only helper: check what was stored
   const std::map<std::string, RegisterPayload>& getStoredAgents() const {
     return agents_;

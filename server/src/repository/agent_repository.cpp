@@ -1,8 +1,10 @@
 #include "repository/agent_repository.hpp"
 
+#include "time/time_converter.hpp"
 #include "logger.hpp"
 
-// EXCLUDED. --> new value we try to insert in case of conflict, i.e. the new values we want to update. (agents.value --> old value)
+// EXCLUDED. --> new value we try to insert in case of conflict, i.e. the new
+// values we want to update. (agents.value --> old value)
 void AgentRepository::save(const RegisterPayload& agent) {
   pqxx::params params;
   params.append(agent.id);
@@ -38,7 +40,7 @@ void AgentRepository::setLastSeen(const std::string& id) {
 
   db_.executeParams(
       "UPDATE agents "
-      "SET last_seen = $NOW() "
+      "SET last_seen = NOW() "
       "WHERE id = $1",
       params);
 }
@@ -59,7 +61,6 @@ std::vector<RegisterPayload> AgentRepository::findAll() {
 
 std::optional<RegisterPayload> AgentRepository::findById(
     const std::string& id) {
-
   Logger::info("agent repository", "in find by id");
 
   pqxx::params params;
@@ -77,11 +78,42 @@ std::optional<RegisterPayload> AgentRepository::findById(
   return rowToRegisterPayload(rows[0]);
 }
 
+std::optional<std::string> AgentRepository::getLastSeen(const std::string& id) {
+  pqxx::params params;
+  params.append(id);
+
+  pqxx::result rows =
+      db_.executeParams("SELECT last_seen FROM agents WHERE id = $1", params);
+
+  if (rows.empty()) {
+    return std::nullopt;
+  }
+  return TimeConverter::timestamptzToIso(
+      rows[0]["last_seen"].as<std::string>());
+}
+
+std::optional<std::string> AgentRepository::getRegisteredAt(
+    const std::string& id) {
+  pqxx::params params;
+  params.append(id);
+
+  pqxx::result rows = db_.executeParams(
+      "SELECT registered_at FROM agents WHERE id = $1", params);
+
+  if (rows.empty()) {
+    return std::nullopt;
+  }
+  return TimeConverter::timestamptzToIso(
+      rows[0]["registered_at"].as<std::string>());
+}
+
 RegisterPayload AgentRepository::rowToRegisterPayload(const pqxx::row& row) {
   RegisterPayload agent;
   agent.id = row["id"].as<std::string>();
-  agent.registered_at = row["registered_at"].as<std::string>();
-  agent.last_seen = row["last_seen"].as<std::string>();
+  agent.registered_at =
+      TimeConverter::timestamptzToIso(row["registered_at"].as<std::string>());
+  agent.last_seen =
+      TimeConverter::timestamptzToIso(row["last_seen"].as<std::string>());
   agent.system.os_type = static_cast<OSType>(row["os_type"].as<int>());
   agent.system.arch = static_cast<ArchType>(row["architecture"].as<int>());
   agent.system.hostname = row["hostname"].as<std::string>();

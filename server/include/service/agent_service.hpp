@@ -22,6 +22,8 @@ class IAgentService {
                                  const OsInfoPayload& dashboardInfo) = 0;
   virtual std::vector<RegisterPayload> getAllAgents(
       AgentConnection& dashboard) = 0;
+  virtual std::optional<std::string> getLastSeen(const std::string& id) = 0;
+  virtual void setLastSeen(const std::string& id) = 0;
 };
 
 // agent_repository.hpp
@@ -45,6 +47,8 @@ class AgentService : public IAgentService {
                          const OsInfoPayload& dashboardInfo);
   std::vector<RegisterPayload> getAllAgents(
       AgentConnection& dashboard) override;
+  std::optional<std::string> getLastSeen(const std::string& id) override;
+  void setLastSeen(const std::string& id) override;
 };
 
 #endif

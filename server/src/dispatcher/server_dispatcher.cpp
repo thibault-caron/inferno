@@ -17,6 +17,13 @@ void ServerDispatcher::handleFrame(FrameTransport& agent, const Frame& frame) {
   AgentConnection& connection = static_cast<AgentConnection&>(agent);
   std::cout << "type = " << static_cast<int>(frame.header.type) << std::endl;
 
+  // will automatically update last_seen if new connection types are added in the future too
+  if (connection.getIsRegistered() &&
+      !sessionManager_.isDashboardConnection(connection.getFd())) {
+    agentService_.setLastSeen(connection.getId());
+  }
+
+
   switch (frame.header.type) {
     case MessageType::REGISTER:
       Logger::info("server dispatcher", "register received");

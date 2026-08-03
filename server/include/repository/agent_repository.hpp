@@ -17,6 +17,9 @@ class IAgentRepository {
   virtual void setLastSeen(const std::string& id) = 0;
   virtual std::vector<RegisterPayload> findAll() = 0;
   virtual std::optional<RegisterPayload> findById(const std::string& id) = 0;
+  virtual std::optional<std::string> getLastSeen(const std::string& id) = 0;
+  virtual std::optional<std::string> getRegisteredAt(const std::string& id) = 0;
+
 };
 
 // agent_repository.hpp
@@ -32,6 +35,8 @@ class AgentRepository : public IAgentRepository {
   void setLastSeen(const std::string& id) override;
   std::vector<RegisterPayload> findAll() override;
   std::optional<RegisterPayload> findById(const std::string& id) override;
+  std::optional<std::string> getLastSeen(const std::string& id) override;
+  std::optional<std::string> getRegisteredAt(const std::string& id) override;
   // etc.
 };
 
