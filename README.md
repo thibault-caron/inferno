@@ -114,7 +114,7 @@ A Qt Widgets interface providing:
 - Automated test execution during builds
 - Multi-agent scaling support via Docker Compose
 
-### Future
+#### Future
 - Remote diagnostics execution
 - Health analysis and anomaly detection
 - Background daemon/service deployment
@@ -158,22 +158,23 @@ All **dashboard-side dependencies** need to be installed on your host machine (s
 ## Project structure
 
 ```
-├── 📁 _docs
-├── 📁 agent
-├── 📁 certs
-├── 📁 dashboard
-├── 📁 server
-├── 📁 test_support
-├── 📁 transport
-├── ⚙️ .env.template
-├── 📄 CMakeLists.txt
-├── 📄 Dockerfile.backend
-├── 📄 Dockerfile.server
-├── 📄 LICENSE
-├── 📝 README.md
-├── ⚙️ docker-compose.yml
-├── 📄 inferno.sh
-└── 📄 init.sql
+Inferno
+  ├── 📁 _docs
+  ├── 📁 agent
+  ├── 📁 certs
+  ├── 📁 dashboard
+  ├── 📁 server
+  ├── 📁 test_support
+  ├── 📁 transport
+  ├── ⚙️ .env.template
+  ├── 📄 CMakeLists.txt
+  ├── 📄 Dockerfile.backend
+  ├── 📄 Dockerfile.server
+  ├── 📄 LICENSE
+  ├── 📝 README.md
+  ├── ⚙️ docker-compose.yml
+  ├── 📄 inferno.sh
+  └── 📄 init.sql
 ```
 
 ### Key folder

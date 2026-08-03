@@ -82,48 +82,48 @@ identity (hostname, architecture) never changes—only the socket does.
 
 ## Project structure
 ```
-├── 📁 agent
-│   ├── 📁 include
-│   │   ├── 📁 dispatcher
-│   │   │   ├── ⚡ agent_dispatcher.hpp
-│   │   │   └── ⚡ i_agent_dispatcher.hpp
-│   │   ├── 📁 metrics
-│   │   │   ├── ⚡ i_metrics_scrapper.hpp
-│   │   │   ├── ⚡ linux_metrics_scrapper.hpp
-│   │   │   ├── ⚡ metrics_controller.hpp
-│   │   │   └── ⚡ metrics_scrapper_factory.hpp
-│   │   ├── 📁 system_monitor
-│   │   │   ├── ⚡ i_system_monitor.hpp
-│   │   │   ├── ⚡ linux_system_monitor.hpp
-│   │   │   └── ⚡ system_monitor_factory.hpp
-│   │   ├── ⚡ agent_loop.hpp
-│   │   └── ⚡ agent_session.hpp
-│   ├── 📁 src
-│   │   ├── 📁 dispatcher
-│   │   │   └── ⚡ agent_dispatcher.cpp
-│   │   ├── 📁 metrics
-│   │   │   ├── ⚡ linux_metrics_scrapper.cpp
-│   │   │   ├── ⚡ metrics_controller.cpp
-│   │   │   └── ⚡ metrics_scrapper_factory.cpp
-│   │   ├── 📁 system_monitor
-│   │   │   ├── ⚡ linux_system_monitor.cpp
-│   │   │   └── ⚡ system_monitor_factory.cpp
-│   │   ├── ⚡ agent_loop.cpp
-│   │   ├── ⚡ agent_session.cpp
-│   │   └── ⚡ main.cpp
-│   ├── 📁 tests
-│   │   ├── 📁 builders
-│   │   │   └── ⚡ metrics_controller_test_factory.hpp
-│   │   ├── 📁 metrics
-│   │   │   ├── ⚡ linux_metrics_scrapper_test.cpp
-│   │   │   └── ⚡ metrics_controller_test.cpp
-│   │   ├── 📁 stubs
-│   │   │   ├── ⚡ fake_metrics_scrapper.hpp
-│   │   │   └── ⚡ fake_system_monitor.hpp
-│   │   ├── 📁 system_monitor
-│   │   │   └── ⚡ linux_system_monitor_test.cpp
-│   │   └── ⚡ agent_dispatcher_test.cpp
-│   └── 📄 CMakeLists.txt
+Agent
+  ├── 📁 include
+  │   ├── 📁 dispatcher
+  │   │   ├── ⚡ agent_dispatcher.hpp
+  │   │   └── ⚡ i_agent_dispatcher.hpp
+  │   ├── 📁 metrics
+  │   │   ├── ⚡ i_metrics_scrapper.hpp
+  │   │   ├── ⚡ linux_metrics_scrapper.hpp
+  │   │   ├── ⚡ metrics_controller.hpp
+  │   │   └── ⚡ metrics_scrapper_factory.hpp
+  │   ├── 📁 system_monitor
+  │   │   ├── ⚡ i_system_monitor.hpp
+  │   │   ├── ⚡ linux_system_monitor.hpp
+  │   │   └── ⚡ system_monitor_factory.hpp
+  │   ├── ⚡ agent_loop.hpp
+  │   └── ⚡ agent_session.hpp
+  ├── 📁 src
+  │   ├── 📁 dispatcher
+  │   │   └── ⚡ agent_dispatcher.cpp
+  │   ├── 📁 metrics
+  │   │   ├── ⚡ linux_metrics_scrapper.cpp
+  │   │   ├── ⚡ metrics_controller.cpp
+  │   │   └── ⚡ metrics_scrapper_factory.cpp
+  │   ├── 📁 system_monitor
+  │   │   ├── ⚡ linux_system_monitor.cpp
+  │   │   └── ⚡ system_monitor_factory.cpp
+  │   ├── ⚡ agent_loop.cpp
+  │   ├── ⚡ agent_session.cpp
+  │   └── ⚡ main.cpp
+  ├── 📁 tests
+  │   ├── 📁 builders
+  │   │   └── ⚡ metrics_controller_test_factory.hpp
+  │   ├── 📁 metrics
+  │   │   ├── ⚡ linux_metrics_scrapper_test.cpp
+  │   │   └── ⚡ metrics_controller_test.cpp
+  │   ├── 📁 stubs
+  │   │   ├── ⚡ fake_metrics_scrapper.hpp
+  │   │   └── ⚡ fake_system_monitor.hpp
+  │   ├── 📁 system_monitor
+  │   │   └── ⚡ linux_system_monitor_test.cpp
+  │   └── ⚡ agent_dispatcher_test.cpp
+  └── 📄 CMakeLists.txt
 ``` 
 ### Key Files
 
