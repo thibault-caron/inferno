@@ -3,14 +3,20 @@
 ## 📋 Table of Contents
 
 - [Communication protocol](./_docs/project/lptf_binary_protocol.md)
+- [Architecture](#architecture)
+  - [Agent's architecture](#agent-remote-node)
+  - [Server's architecture](#server-central-coordinator)
+  - [Dashboard's architecture](#desktop-dashboard)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Dependencies](#dependencies)
+- [Project structure](#project-structure)
 - [Quick start](#quick-start)
 - [How are agent and server built](#how-are-agent-and-server-built)
 - [How to build dashboard](how-to-build-dashboard)
   - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
+  - [Dashboard architecture](./_docs/dashboard/)
 
 ---
 
@@ -33,7 +39,7 @@ The system focuses on:
 - cross-platform system monitoring,
 - and distributed telemetry processing.
 
-## Planned architecture
+## Architecture
 
 Inferno is designed as a distributed monitoring system composed of three main components:
 
@@ -48,8 +54,7 @@ A lightweight system daemon responsible for:
 
 ![Agent's architecture diagram](./_docs/agent/agent_architecture.png)
 
-[Read more about agent achitecture](./_docs/agent/)
-
+[Read more about agent achitecture](./_docs/agent/README.md)
 
 ### Server (central coordinator)
 
@@ -58,41 +63,64 @@ A central service responsible for:
 - managing multiple connected agents,
 - receiving and parsing telemetry streams,
 - coordinating requests and responses,
-- preparing data for visualization and analysis.
 
 ![server's architecture diagram](./_docs/server/server_architecture.png)
 
-[Read more about server achitecture](./_docs/server/)
+[Read more about server achitecture](./_docs/server/README.md)
 
 ### Desktop dashboard
 
 A Qt-based interface providing:
 
-- real-time monitoring dashboard,
-- agent management interface,
-- visualization of system metrics and diagnostics.
+### Desktop dashboard
+
+A Qt Widgets interface providing:
+
+- real-time monitoring of one agent at a time (CPU, memory, disk, network),
+- live charts built from a sliding window of the last 20 samples,
+- agent list with connection state, and remote disconnection,
+- remote command execution with output display,
+- running process table and OS information on demand.
+
+![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
+
+[Read more about dashboard architecture](./_docs/dashboard/)
 
 ## Features
 
-### Current
-
 - Custom binary communication protocol
+- Shared C++ networking library : `transport_lib`
+- TLS or plain TCP transport, selected from the environment
+
+#### Dasbhoard
+
+- Qt desktop monitoring interface
+- Continuous metrics streaming reception and display
+
+#### Server
+
 - Multi-agent server architecture
-- Shared C++ networking library
+- TimescaleDB data persistence
+
+#### Agent
+
+- Agent reconnection resilience
+- Continuous metrics streaming emission 
+- Cross-platform monitoring agent
+
+#### Setup and automatisation
+
 - Docker-based development pipeline
 - Automated test execution during builds
 - Multi-agent scaling support via Docker Compose
 
-### Planned
-
-- Continuous metrics streaming
+### Future
 - Remote diagnostics execution
-- Cross-platform monitoring agent
-- Qt desktop monitoring interface
-- PostgreSQL data persistence
 - Health analysis and anomaly detection
-- Agent reconnection resilience
 - Background daemon/service deployment
+
+---
+
 
 ## Tech Stack
 
@@ -125,7 +153,43 @@ All **dashboard-side dependencies** need to be installed on your host machine (s
 
 **Note:** The server code links against PostgreSQL 18.3-2 client libraries (libpq/libpqxx), which are backwards-compatible with the PostgreSQL 17.10 database server running in the TimescaleDB container.
 
-## Prerequisites
+---
+
+## Project structure
+
+```
+├── 📁 _docs
+├── 📁 agent
+├── 📁 certs
+├── 📁 dashboard
+├── 📁 server
+├── 📁 test_support
+├── 📁 transport
+├── ⚙️ .env.template
+├── 📄 CMakeLists.txt
+├── 📄 Dockerfile.backend
+├── 📄 Dockerfile.server
+├── 📄 LICENSE
+├── 📝 README.md
+├── ⚙️ docker-compose.yml
+├── 📄 inferno.sh
+└── 📄 init.sql
+```
+
+### Key folder
+
+- `_docs` is the folder where focused documentation is stored
+- `transport` is a custom library producing a `transport_lib.a` that `agent`, `server` and `dashboard` link against. It defines ISocket for crossplatform socket handling and the binary protocol (structures, codec) (see [Transport](./_docs/project/))
+- `test_support` is a header only custom library that generates fake data for test fixtures and shared stubs
+- `agent`, `server` and `dashboard` produces executable
+
+### Key Files
+
+- `.env.template` needed to create your own .env (see [Setup](#setup))
+- `inferno.sh` is the script used by docker-compose to launch test automatically (see [How are agent and server built](#how-are-agent-and-server-built))
+- `init.sql` is the database schema used at first run for initialize database through docker-compose
+
+---
 
 ## Prerequisites
 
