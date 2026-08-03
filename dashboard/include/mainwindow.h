@@ -7,6 +7,9 @@
 #include <QStringList>
 #include <QVector>
 
+#include <QDateTime>
+#include <QTimer>
+
 #include "protocol/lptf_protocol.hpp"
 #include "serieshistory.h"
 
@@ -38,6 +41,9 @@ private slots:
 
     /// Marks an agent as offline when the server reports its disconnection.
     void onAgentDisconnected(const QString &target);
+
+    /// Rewrites the status bar label with the age of the last sample.
+    void updateLastSampleLabel();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -120,6 +126,11 @@ private:
     LineChartWidget* m_networkChart = nullptr;
 
     QLabel* m_onlineLabel = nullptr;
+
+    QLabel* m_lastSampleLabel = nullptr;
+    QDateTime m_lastSampleTime;
+
+    QTimer* m_sampleAgeTimer = nullptr;
 
     SeriesHistory m_memoryHistory{1, 20}; //20 historics points
 
