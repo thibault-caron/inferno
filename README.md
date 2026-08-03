@@ -62,16 +62,16 @@ A central service responsible for:
 - managing multiple connected agents,
 - receiving and parsing telemetry streams,
 - coordinating requests and responses,
-- preparing data for visualization and analysis.
 
 ![server's architecture diagram](./_docs/server/server_architecture.png)
 
-[Read more about server achitecture](./_docs/server/)
+[Read more about server achitecture](./_docs/server/README.md)
 
 ### Desktop dashboard
 
 A Qt-based interface providing:
 
+- preparing data for visualization and analysis.
 - real-time monitoring dashboard,
 - agent management interface,
 - visualization of system metrics and diagnostics.
