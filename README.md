@@ -1,5 +1,7 @@
 # Inferno
 
+![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
+
 ## 📋 Table of Contents
 
 - [Communication protocol](./_docs/project/lptf_binary_protocol.md)
@@ -7,6 +9,8 @@
   - [Agent's architecture](#agent-remote-node)
   - [Server's architecture](#server-central-coordinator)
   - [Dashboard's architecture](#desktop-dashboard)
+- [Protocol message sequence diagrams](./_docs/protocol/README.md)
+- [Binary protocol specification](./_docs/project/lptf_binary_protocol.md)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Dependencies](#dependencies)
@@ -82,10 +86,8 @@ A Qt Widgets interface providing:
 - remote command execution with output display,
 - running process table and OS information on demand.
 
-**Dasbhoard architecture**
+**Dashboard architecture**
 ![Dashboard's architecture diagram](./_docs/dashboard/dashboard_architecture.png)
-
-![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
 
 [Read more about dashboard architecture](./_docs/dashboard/)
 
@@ -95,7 +97,7 @@ A Qt Widgets interface providing:
 - Shared C++ networking library : `transport_lib`
 - TLS or plain TCP transport, selected from the environment
 
-#### Dasbhoard
+#### Dashboard
 
 - Qt desktop monitoring interface
 - Continuous metrics streaming reception and display
