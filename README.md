@@ -82,6 +82,7 @@ A Qt Widgets interface providing:
 - remote command execution with output display,
 - running process table and OS information on demand.
 
+**Dasbhoard architecture**
 ![Dashboard's architecture diagram](./_docs/dashboard/dashboard_architecture.png)
 
 ![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
