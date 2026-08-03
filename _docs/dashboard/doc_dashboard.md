@@ -104,15 +104,18 @@ received something, and `MainWindow` decides what to do with it.
 
 **Slots:**
 
-| Slot                                | What it does                                     |
-| ----------------------------------- | ------------------------------------------------ |
-| `onMetricsReceived(target, sample)` | Fills the cards and adds a point to the 4 charts |
-| `onOsInfoReceived(target, info)`    | Puts the OS version in the badge                 |
-| `onAgentDisconnected(target)`       | Turns the dot red and recomputes the counters    |
+| Slot                                | What it does                                                  |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `onMetricsReceived(target, sample)` | Fills the cards and adds a point to the 4 charts              |
+| `onOsInfoReceived(target, info)`    | Puts the OS version in the badge                              |
+| `onAgentDisconnected(target)`       | Turns the dot red and recomputes the counters                 |
+| `updateLastSampleLabel()`           | Rewrites the status bar label with the age of the last sample |
 
 **Members:** `m_client`, `m_processTable`, `m_metricCards`, the 4
-`LineChartWidget*`, the 4 `SeriesHistory`, `m_onlineLabel`, `m_target` (the
-agent shown), `m_streamingTarget` (the agent that streams), `m_osBadgeDetailed`.
+`LineChartWidget*`, the 4 `SeriesHistory`, `m_onlineLabel`, `m_lastSampleLabel`,
+`m_lastSampleTime` (date of the last sample received), `m_sampleAgeTimer`
+(refreshes the label every second), `m_target` (the agent shown),
+`m_streamingTarget` (the agent that streams), `m_osBadgeDetailed`.
 
 ### SeriesHistory
 
@@ -239,6 +242,11 @@ the header on click and recompute the counters without asking the widgets.
 MAC. If it exists, it fixes the state and the dot, then it returns; if not, it
 creates the row. Without this, an agent that reconnects would appear twice.
 
+**Disconnect does nothing on an offline agent.** The button reads the online
+state on the item (`Qt::UserRole + 4`) and returns if the agent is already
+offline. Sending the frame anyway made the server crash on the second
+`DISCONNECT` for the same agent.
+
 **The TLS certificate is looked for in several places.** The path depended on
 the build tree: two levels above the executable land on the root with the Linux
 script, but not with Qt Creator, which adds one folder per kit.
@@ -294,10 +302,3 @@ last one is not triggered when you click again on the row that is already
 selected.
 
 ---
-
-## What is still fixed in the `.ui`
-
-- `last sample: 0.3 s ago` — to connect to the `timestamp` of the last
-  `MetricsSample` received
-- `db: PostgreSQL connected` — no data of the protocol carries this
-  information, the label will be removed

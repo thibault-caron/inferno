@@ -366,7 +366,9 @@ void MainWindow::onOsInfoReceived(const QString& target,
 }
 
 void MainWindow::updateStatusBadge() {
-    const bool streaming = !m_target.isEmpty() && m_target == m_streamingTarget;
+    const bool streaming =
+        m_lastSampleTime.isValid() &&
+        m_lastSampleTime.secsTo(QDateTime::currentDateTimeUtc()) <= 3;
 
     ui->statusBadge->setText(streaming ? "● streaming" : "● stopped");
     ui->statusBadge->setProperty("streaming", streaming);
@@ -432,4 +434,6 @@ void MainWindow::updateLastSampleLabel() {
 
     const qint64 seconds = m_lastSampleTime.secsTo(QDateTime::currentDateTimeUtc());
     m_lastSampleLabel->setText(QString("last sample: %1 s ago").arg(seconds));
+
+    updateStatusBadge();
 }
