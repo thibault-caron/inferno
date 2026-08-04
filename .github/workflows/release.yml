@@ -24,29 +24,45 @@ jobs:
           COMPOSE_PROFILES=agent
           EOF
 
-      - name: Build agent in Docker
+      - name: Build agent transport library
         run: |
-          docker compose --profile agent build agent-builder
-          docker compose --profile agent run agent-builder
+          docker compose --profile agent run transport
+          if [ $? -ne 0 ]; then
+            echo "Transport build failed!"
+            exit 1
+          fi
 
-      - name: Extract agent binary from volume
+      - name: Build agent binary
+        run: |
+          docker compose --profile agent run agent-builder
+          if [ $? -ne 0 ]; then
+            echo "Agent build failed!"
+            docker compose logs agent-builder
+            exit 1
+          fi
+
+      - name: Check volume contents
+        run: |
+          docker run --rm -v inferno-agent-build:/app alpine:latest ls -lhR /app
+
+      - name: Extract agent binary
         run: |
           docker run --rm \
             -v inferno-agent-build:/app \
             -v ${{ github.workspace }}:/out \
             alpine:latest \
-            sh -c "cp /app/agent/build/bin/agent /out/agent"
+            cp /app/agent/build/bin/agent /out/agent
 
-      - name: Verify binary exists
+      - name: Verify binary
         run: |
           ls -lh agent
           file agent
+          ldd agent || true
 
       - name: Install linuxdeploy
         run: |
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
-          ls -lh linuxdeploy-x86_64.AppImage
 
       - name: Create AppImage
         run: |
@@ -57,11 +73,9 @@ jobs:
             --appdir=appdir \
             --output=appimage
 
-      - name: Rename AppImage with version
+      - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          ls -lh *.AppImage
           mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
           ls -lh inferno-agent-linux-*.AppImage
 
