@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QString>
 #include <vector>
+#include <cstdint>
 
 #include "protocol/lptf_protocol.hpp"
 
@@ -18,6 +19,7 @@ public:
 
     /// Replaces the table content with the given processes.
     void setProcesses(const std::vector<ProcessInfo> &processes);
+    void setPhysTotal(std::uint64_t physTotal);
 
 private:
     struct ProcessRow {
@@ -37,6 +39,7 @@ private:
     QWidget *createBar(int value);
 
     QGridLayout *m_grid = nullptr;
+    std::uint64_t m_physTotal = 0;
 };
 
 #endif // PROCESSTABLEWIDGET_H
