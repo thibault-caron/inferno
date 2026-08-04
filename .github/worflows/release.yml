@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  # ============================================
+  # Build Linux Agent as AppImage
+  # ============================================
+  build-agent-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build agent in Docker
+        run: |
+          docker compose --profile agent build agent-builder
+          docker compose --profile agent run agent-builder
+
+      - name: Extract agent binary
+        run: |
+          # Copy binary from docker volume to workspace
+          docker run --rm \
+            -v inferno-agent-build:/app/agent/build \
+            -v ${{ github.workspace }}:/out \
+            ubuntu:latest \
+            cp /app/agent/build/bin/agent /out/agent
+
+      - name: Install linuxdeploy
+        run: |
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+
+      - name: Create AppImage
+        run: |
+          mkdir -p appdir/usr/bin
+          cp agent appdir/usr/bin/
+          
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir=appdir \
+            --output=appimage \
+            -e appdir/usr/bin/agent
+
+      - name: Rename AppImage with version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-linux-appimage
+          path: inferno-agent-linux-*.AppImage
