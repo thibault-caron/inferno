@@ -94,6 +94,11 @@ QWidget *ProcessTableWidget::createBar(int value)
     return bar;
 }
 
+void ProcessTableWidget::setPhysTotal(std::uint64_t physTotal)
+{
+    m_physTotal = physTotal;
+}
+
 void ProcessTableWidget::setProcesses(const std::vector<ProcessInfo> &processes)
 {
     // Remove every widget currently in the grid.a
@@ -123,7 +128,9 @@ void ProcessTableWidget::setProcesses(const std::vector<ProcessInfo> &processes)
         r.cpuPercent = QString::number(p.cpu_percent, 'f', 1) + "%";
         r.cpuValue = static_cast<int>(p.cpu_percent);
         r.memPercent = QString::number(p.mem_bytes / 1024.0, 'f', 1) + " MB";
-        r.memValue = 0;              // TODO: needs total RAM to compute a ratio
+        r.memValue = m_physTotal == 0
+                         ? 0
+                         : static_cast<int>(p.mem_bytes * 1024.0 * 100.0 / m_physTotal);
         r.status = "running";        // TODO: not provided by the protocol
 
         m_grid->addWidget(makeLabel(r.pid, "processPid"), row, 0);
