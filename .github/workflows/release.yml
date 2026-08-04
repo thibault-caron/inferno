@@ -71,7 +71,20 @@ jobs:
         run: |
           mkdir -p appdir/usr/bin
           cp release-artifacts/agent-binary appdir/usr/bin/agent
-
+          
+          # Create minimal .desktop file for daemon
+          mkdir -p appdir/usr/share/applications
+          cat > appdir/usr/share/applications/inferno-agent.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Inferno Agent
+          Exec=inferno-agent
+          Icon=application-x-executable
+          Categories=System;Utility;
+          Terminal=false
+          NoDisplay=true
+          EOF
+          
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
             --output=appimage

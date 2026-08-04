@@ -156,7 +156,7 @@ RegisterPayload parseRegisterPayload(const std::vector<std::uint8_t>& input,
 
 
   if (offset + idLen + registeredAtLen + lastSeenLen > input.size()) {
-    throw InvalidSize("va bien te faire voir id", std::to_string(idLen));
+    throw InvalidSize("agent id", std::to_string(idLen));
   }
 
   payload.id = ConvertEndian::getString(input, offset, idLen);
