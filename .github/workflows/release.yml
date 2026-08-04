@@ -128,3 +128,57 @@ jobs:
         with:
           name: agent-linux-appimage
           path: inferno-agent-linux-*.AppImage
+
+  build-agent-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install MinGW and CMake
+        run: |
+          choco install -y mingw cmake
+        shell: powershell
+
+      - name: Install OpenSSL via vcpkg
+        run: |
+          vcpkg install openssl:x64-mingw-static
+          vcpkg integrate install
+        shell: powershell
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. `
+            -G "MinGW Makefiles" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DOPENSSL_ROOT_DIR="C:/vcpkg/installed/x64-mingw-static"
+        shell: powershell
+
+      - name: Build agent
+        run: |
+          cd build
+          cmake --build . --config Release --target agent -j 4
+        shell: powershell
+
+      - name: Bundle DLLs
+        run: |
+          mkdir -p release-artifacts/inferno-agent
+          copy build\bin\agent.exe release-artifacts\inferno-agent\
+          copy certs\ca.crt release-artifacts\inferno-agent\
+          copy "C:\vcpkg\installed\x64-mingw-static\bin\libssl-3-x64.dll" release-artifacts\inferno-agent\
+          copy "C:\vcpkg\installed\x64-mingw-static\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent\
+        shell: powershell
+
+      - name: Create ZIP
+        run: |
+          $version = "${{ github.ref }}".Replace("refs/tags/", "")
+          Compress-Archive -Path release-artifacts\inferno-agent -DestinationPath inferno-agent-windows-${version}.zip
+        shell: powershell
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-windows-exe
+          path: inferno-agent-windows-*.zip
