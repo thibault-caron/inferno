@@ -7,6 +7,7 @@
 
 #include <QLabel>
 #include <QLayoutItem>
+#include <algorithm>
 
 
 ProcessTableWidget::ProcessTableWidget(QWidget *parent)
@@ -14,7 +15,7 @@ ProcessTableWidget::ProcessTableWidget(QWidget *parent)
 {
     QVBoxLayout *outer = new QVBoxLayout(this);
 
-    outer->addWidget(makeLabel("RUNNING PROCESSES (TOP BY CPU)", "sectionTitle"));
+    outer->addWidget(makeLabel("RUNNING PROCESSES (TOP 10 BY MEMORY)", "sectionTitle"));
 
 
     QWidget *grid = new QWidget;
@@ -36,8 +37,11 @@ ProcessTableWidget::ProcessTableWidget(QWidget *parent)
         { "512", "systemd", "0.4%", "0.8%", "running", 1, 1 }
     };
 
+
     // Fill loop: one grid row per process. Column order matches the header above.
     int row = 1;
+
+
     for (const ProcessRow &p : processes) {
         m_grid->addWidget(makeLabel(p.pid, "processPid"), row, 0);
         m_grid->addWidget(makeLabel(p.name, "processCell"), row, 1);
@@ -103,8 +107,16 @@ void ProcessTableWidget::setProcesses(const std::vector<ProcessInfo> &processes)
         m_grid->addWidget(makeLabel(headers[col], "processHeaderCell"), 0, col);
 
 
+    std::vector<ProcessInfo> sorted = processes;
+    std::sort(sorted.begin(), sorted.end(),
+              [](const ProcessInfo &a, const ProcessInfo &b) {
+                  return a.mem_bytes > b.mem_bytes;
+              });
+
     int row = 1;
-    for (const ProcessInfo &p : processes) {
+    const int count = qMin(10, static_cast<int>(sorted.size()));
+    for (int i = 0; i < count; ++i) {
+        const ProcessInfo &p = sorted[i];
         ProcessRow r;
         r.pid = QString::number(p.pid);
         r.name = QString::fromStdString(p.name);
