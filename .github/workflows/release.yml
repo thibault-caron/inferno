@@ -153,7 +153,6 @@ jobs:
           cmake .. \
             -G "MinGW Makefiles" \
             -DCMAKE_BUILD_TYPE=Release
-        shell: msys2 {0}
 
       - name: Build agent
         shell: msys2 {0}
@@ -175,7 +174,7 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          Compress-Archive -Path release-artifacts/inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
+          Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
