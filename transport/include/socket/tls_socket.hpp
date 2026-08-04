@@ -43,5 +43,5 @@ class TLSSocket : public ISocket {
   std::unique_ptr<ISocket> raw_;
   std::unique_ptr<SSL, SSLDeleter> ssl_;
   std::unique_ptr<SSL_CTX, SSLContextDeleter> context_;
-
+  static void setupSSLSocket(SSL* ssl, int fd);
 };

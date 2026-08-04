@@ -16,6 +16,7 @@ class TLSSocketIntegrationTest : public ::testing::Test {
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);  // Unix only: ignore broken pipe
 #endif
+    std::cout << "Test starting..." << std::endl;
 
     // signal(SIGPIPE, SIG_IGN);
   }
