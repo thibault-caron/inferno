@@ -74,9 +74,28 @@ bool WindowsSocket::connect(const std::string& host, uint16_t port) {
   return true;
 }
 
-bool WindowsSocket::bind(uint16_t) { return false; }
-bool WindowsSocket::listen(int) { return false; }
-std::unique_ptr<ISocket> WindowsSocket::accept() { return nullptr; }
+bool WindowsSocket::bind(uint16_t port) {
+  sockaddr_in addr{};
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = INADDR_ANY;
+  addr.sin_port = htons(port);
+
+  return ::bind(socket_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) !=
+         SOCKET_ERROR;
+}
+
+bool WindowsSocket::listen(int backlog) {
+  return ::listen(socket_, backlog) != SOCKET_ERROR;
+}
+
+std::unique_ptr<ISocket> WindowsSocket::accept() {
+  SOCKET clientSocket =
+      ::accept(socket_, nullptr, nullptr);
+  if (clientSocket == INVALID_SOCKET) {
+    return nullptr;
+  }
+  return std::make_unique<WindowsSocket>(clientSocket);
+}
 
 SocketResult WindowsSocket::send(const uint8_t* data, size_t len) {
   const int sent = ::send(socket_, reinterpret_cast<const char*>(data),
