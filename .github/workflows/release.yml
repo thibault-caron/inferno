@@ -115,11 +115,15 @@ jobs:
           ls -lh *.AppImage
           mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
           ls -lh inferno-agent-linux-*.AppImage
-          
+
       - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
+          echo "VERSION: $VERSION"
+          ls -lh *.AppImage
+          
+          # Rename to match release naming convention
+          mv Inferno_Agent-x86_64.AppImage inferno-agent-linux-${VERSION}.AppImage
           ls -lh inferno-agent-linux-*.AppImage
 
       - name: Upload artifact
