@@ -135,63 +135,47 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install MinGW and CMake
-        run: |
-          choco install -y mingw cmake
-        shell: powershell
-
-      - name: Download and extract OpenSSL for MinGW
-        run: |
-          # Use a pre-built OpenSSL binary compatible with MinGW
-          $openssl_url = "https://slproweb.com/download/Win64OpenSSL_Light-3_0_0.exe"
-          
-          # Download installer
-          Invoke-WebRequest -Uri $openssl_url -OutFile openssl-installer.exe
-          
-          # Install silently to default location
-          Start-Process -FilePath "openssl-installer.exe" -ArgumentList "/silent /verysilent /sp- /suppressmsgboxes" -Wait
-          
-          # Verify installation
-          if (Test-Path "C:\Program Files\OpenSSL-Win64") {
-            echo "OpenSSL installed successfully"
-            ls "C:\Program Files\OpenSSL-Win64\bin" | head -10
-          } else {
-            echo "ERROR: OpenSSL installation failed"
-            exit 1
-          }
-        shell: powershell
+      - name: Setup MSYS2 and install dependencies
+        uses: msys2/setup-msys2@v3
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-openssl
 
       - name: Configure CMake
+        shell: msys2 {0}
         run: |
           mkdir build
           cd build
-          cmake .. `
-            -G "MinGW Makefiles" `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DOPENSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64"
-        shell: powershell
+          cmake .. \
+            -G "MinGW Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release
+        shell: msys2 {0}
 
       - name: Build agent
+        shell: msys2 {0}
         run: |
           cd build
           cmake --build . --config Release --target agent -j 4
-        shell: powershell
 
       - name: Bundle DLLs and ca.crt
+        shell: msys2 {0}
         run: |
           mkdir -p release-artifacts/inferno-agent-windows
-          copy build\bin\agent.exe release-artifacts\inferno-agent-windows\
-          copy certs\ca.crt release-artifacts\inferno-agent-windows\
-          copy "C:\Program Files\OpenSSL-Win64\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\
-          copy "C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\
-          echo "Run: set SERVER_HOST=localhost ^& agent.exe" > release-artifacts\inferno-agent-windows\README.txt
-        shell: powershell
+          cp build/bin/agent.exe release-artifacts/inferno-agent-windows/
+          cp certs/ca.crt release-artifacts/inferno-agent-windows/
+          cp /mingw64/bin/libssl-3-x64.dll release-artifacts/inferno-agent-windows/
+          cp /mingw64/bin/libcrypto-3-x64.dll release-artifacts/inferno-agent-windows/
+          echo "Run: set SERVER_HOST=localhost & agent.exe" > release-artifacts/inferno-agent-windows/README.txt
 
       - name: Create ZIP
+        shell: pwsh
         run: |
           $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
-        shell: powershell
+          Compress-Archive -Path release-artifacts/inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
