@@ -17,7 +17,7 @@ void AgentSession::resetSession() {
   buffer_.clear();
   header_.reset();
   if (encryption_) {
-    socket_ = TLSSocketFactory::createClient("certs/ca.crt");
+    socket_ = TLSSocketFactory::createClient(TLSSocketFactory::findCACertificate());
   } else {
     socket_ = SocketFactory::createTCP();
   }

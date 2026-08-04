@@ -71,6 +71,10 @@ jobs:
         run: |
           mkdir -p appdir/usr/bin
           cp release-artifacts/agent-binary appdir/usr/bin/inferno-agent
+
+          # Bundle CA certificate
+          mkdir -p appdir/usr/share/inferno
+          cp certs/ca.crt appdir/usr/share/inferno/ca.crt
           
           # Create minimal SVG icon
           mkdir -p appdir/usr/share/icons/hicolor/scalable/apps
