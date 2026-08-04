@@ -12,7 +12,13 @@
 
 class TLSSocketIntegrationTest : public ::testing::Test {
  protected:
-  void SetUp() override { signal(SIGPIPE, SIG_IGN); }
+  void SetUp() override {
+#ifndef _WIN32
+    signal(SIGPIPE, SIG_IGN);  // Unix only: ignore broken pipe
+#endif
+
+    // signal(SIGPIPE, SIG_IGN);
+  }
 };
 
 TEST_F(TLSSocketIntegrationTest,
