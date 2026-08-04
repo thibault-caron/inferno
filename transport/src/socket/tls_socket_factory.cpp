@@ -51,12 +51,15 @@ std::unique_ptr<ISocket> TLSSocketFactory::createClient(
 
 std::string TLSSocketFactory::findCACertificate() {
   // 1. AppImage path
-  std::ifstream appimage_cert(PROD_PATH_TLS_CERT);
-  if (appimage_cert.is_open()) {
-    appimage_cert.close();
-    return PROD_PATH_TLS_CERT;
+  const char* appdir = std::getenv("APPDIR");
+  if (appdir) {
+    std::string appimage_path = std::string(appdir) + PROD_PATH_TLS_CERT;
+    std::ifstream cert(appimage_path);
+    if (cert.is_open()) {
+      cert.close();
+      return appimage_path;
+    }
   }
-
   // 2. Dev fallback
   std::ifstream dev_cert(DEV_PATH_TLS_CERT);
   if (dev_cert.is_open()) {
