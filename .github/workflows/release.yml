@@ -68,15 +68,26 @@ jobs:
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
 
+      - name: Verify binary exists and is a file
+        run: |
+          ls -lh agent
+          file agent
+
       - name: Create AppImage
         run: |
           mkdir -p appdir/usr/bin
-          cp agent appdir/usr/bin/
+          # If agent is a file, copy it directly
+          if [ -f agent ]; then
+            cp agent appdir/usr/bin/
+          else
+            echo "ERROR: agent is not a file!"
+            ls -lh agent
+            exit 1
+          fi
           
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
             --output=appimage
-
       - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
