@@ -41,14 +41,18 @@ jobs:
             exit 1
           fi
 
+      - name: List all Docker volumes
+        run: |
+          docker volume ls
+
       - name: Check volume contents
         run: |
-          docker run --rm -v inferno-agent-build:/app alpine:latest ls -lhR /app
+          docker run --rm -v inferno_agent-build:/app alpine:latest ls -lhR /app
 
       - name: Extract agent binary
         run: |
           docker run --rm \
-            -v inferno-agent-build:/app \
+            -v inferno_agent-build:/app \
             -v ${{ github.workspace }}:/out \
             alpine:latest \
             cp /app/agent/build/bin/agent /out/agent
