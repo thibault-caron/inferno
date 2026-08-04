@@ -135,18 +135,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install MinGW and CMake
+      - name: Install MinGW, CMake, and OpenSSL
         run: |
           choco install -y mingw cmake
-        shell: powershell
-
-      - name: Download OpenSSL MinGW binaries
-        run: |
-          # Download pre-built OpenSSL for MinGW (much faster than vcpkg)
-          mkdir C:\openssl-mingw
-          cd C:\openssl-mingw
-          curl -L -o openssl.zip https://github.com/openssl/openssl/releases/download/openssl-3.0.0/openssl-3.0.0-x64-mingw.zip
-          Expand-Archive openssl.zip -DestinationPath .
+          choco install -y openssl
         shell: powershell
 
       - name: Configure CMake
@@ -155,8 +147,7 @@ jobs:
           cd build
           cmake .. `
             -G "MinGW Makefiles" `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DOPENSSL_ROOT_DIR="C:/openssl-mingw"
+            -DCMAKE_BUILD_TYPE=Release
         shell: powershell
 
       - name: Build agent
@@ -170,8 +161,8 @@ jobs:
           mkdir -p release-artifacts/inferno-agent-windows
           copy build\bin\agent.exe release-artifacts\inferno-agent-windows\
           copy certs\ca.crt release-artifacts\inferno-agent-windows\
-          copy "C:\openssl-mingw\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\
-          copy "C:\openssl-mingw\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\
+          copy "C:\Program Files\OpenSSL-Win64\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\ -ErrorAction SilentlyContinue
+          copy "C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\ -ErrorAction SilentlyContinue
           echo "Run: set SERVER_HOST=localhost ^& agent.exe" > release-artifacts\inferno-agent-windows\README.txt
         shell: powershell
 
