@@ -144,6 +144,7 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-openssl
+            mingw-w64-x86_64-gtest
 
       - name: Build and test agent
         shell: msys2 {0}
