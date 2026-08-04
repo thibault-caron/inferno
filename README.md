@@ -20,7 +20,6 @@
 - [How to build dashboard](how-to-build-dashboard)
   - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
-  - [Dashboard architecture](./_docs/dashboard/)
 
 ---
 
@@ -58,7 +57,7 @@ A lightweight system daemon responsible for:
 
 ![Agent's architecture diagram](./_docs/agent/agent_architecture.png)
 
-[Read more about agent achitecture](./_docs/agent/README.md)
+[Read more about agent achitecture](./_docs/agent/)
 
 ### Server (central coordinator)
 
@@ -70,7 +69,7 @@ A central service responsible for:
 
 ![server's architecture diagram](./_docs/server/server_architecture.png)
 
-[Read more about server achitecture](./_docs/server/README.md)
+[Read more about server achitecture](./_docs/server/)
 
 ### Desktop dashboard
 
