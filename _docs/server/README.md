@@ -44,7 +44,7 @@ see [Communication Protocol](../../_docs/project/lptf_binary_protocol.md).
 
 ## Runtime architecture
 
-The server follows a layered architecture.
+The server follows a **domain-driven layered architecture**:
 
 - **Reactor** receives network events from `epoll`, accepts new connections, extracts complete protocol frames, and dispatches them for processing.
 - **SessionManager** maintains every active connection, distinguishes the dashboard from monitoring agents, and provides runtime lookup tables (see [Session management](#session-management)).
@@ -104,58 +104,58 @@ see database schema [init.sql](../../init.sql)
 ## Project structure
 
 ```
-├── 📁 server
-│   ├── 📁 include
-│   │   ├── 📁 dispatcher
-│   │   │   ├── ⚡ i_server_dispatcher.hpp
-│   │   │   └── ⚡ server_dispatcher.hpp
-│   │   ├── 📁 poller
-│   │   │   └── ⚡ epoller.hpp
-│   │   ├── 📁 repository
-│   │   │   ├── ⚡ agent_repository.hpp
-│   │   │   ├── ⚡ command_repository.hpp
-│   │   │   ├── ⚡ database_connection.hpp
-│   │   │   ├── ⚡ metrics_repository.hpp
-│   │   │   └── ⚡ response_repository.hpp
-│   │   ├── 📁 service
-│   │   │   ├── ⚡ agent_service.hpp
-│   │   │   ├── ⚡ command_service.hpp
-│   │   │   ├── ⚡ metrics_service.hpp
-│   │   │   └── ⚡ response_service.hpp
-│   │   ├── ⚡ agent_connection.hpp
-│   │   ├── ⚡ reactor.hpp
-│   │   ├── ⚡ session_manager.hpp
-│   │   └── ⚡ tcp_server.hpp
-│   ├── 📁 src
-│   │   ├── 📁 dispatcher
-│   │   │   └── ⚡ server_dispatcher.cpp
-│   │   ├── 📁 poller
-│   │   │   └── ⚡ epoller.cpp
-│   │   ├── 📁 repository
-│   │   │   ├── ⚡ agent_repository.cpp
-│   │   │   ├── ⚡ command_repository.cpp
-│   │   │   ├── ⚡ database_connection.cpp
-│   │   │   ├── ⚡ metrics_repository.cpp
-│   │   │   └── ⚡ response_repository.cpp
-│   │   ├── 📁 service
-│   │   │   ├── ⚡ agent_service.cpp
-│   │   │   ├── ⚡ command_service.cpp
-│   │   │   ├── ⚡ metrics_service.cpp
-│   │   │   └── ⚡ response_service.cpp
-│   │   ├── ⚡ agent_connection.cpp
-│   │   ├── ⚡ main.cpp
-│   │   ├── ⚡ reactor.cpp
-│   │   ├── ⚡ session_manager.cpp
-│   │   └── ⚡ tcp_server.cpp
-│   ├── 📁 tests
-│   │   ├── 📁 stubs
-│   │   │   ├── ⚡ fake_agent_repository.hpp
-│   │   │   ├── ⚡ fake_command_repository.hpp
-│   │   │   ├── ⚡ fake_metrics_repository.hpp
-│   │   │   └── ⚡ fake_response_repository.hpp
-│   │   ├── ⚡ epoller_test.cpp
-│   │   ├── ⚡ reactor_integration_test.cpp
-│   │   ├── ⚡ server_dispatcher_test.cpp
-│   │   └── ⚡ tcp_server_test.cpp
-│   └── 📄 CMakeLists.txt
+Server
+  ├── 📁 include
+  │   ├── 📁 dispatcher
+  │   │   ├── ⚡ i_server_dispatcher.hpp
+  │   │   └── ⚡ server_dispatcher.hpp
+  │   ├── 📁 poller
+  │   │   └── ⚡ epoller.hpp
+  │   ├── 📁 repository
+  │   │   ├── ⚡ agent_repository.hpp
+  │   │   ├── ⚡ command_repository.hpp
+  │   │   ├── ⚡ database_connection.hpp
+  │   │   ├── ⚡ metrics_repository.hpp
+  │   │   └── ⚡ response_repository.hpp
+  │   ├── 📁 service
+  │   │   ├── ⚡ agent_service.hpp
+  │   │   ├── ⚡ command_service.hpp
+  │   │   ├── ⚡ metrics_service.hpp
+  │   │   └── ⚡ response_service.hpp
+  │   ├── ⚡ agent_connection.hpp
+  │   ├── ⚡ reactor.hpp
+  │   ├── ⚡ session_manager.hpp
+  │   └── ⚡ tcp_server.hpp
+  ├── 📁 src
+  │   ├── 📁 dispatcher
+  │   │   └── ⚡ server_dispatcher.cpp
+  │   ├── 📁 poller
+  │   │   └── ⚡ epoller.cpp
+  │   ├── 📁 repository
+  │   │   ├── ⚡ agent_repository.cpp
+  │   │   ├── ⚡ command_repository.cpp
+  │   │   ├── ⚡ database_connection.cpp
+  │   │   ├── ⚡ metrics_repository.cpp
+  │   │   └── ⚡ response_repository.cpp
+  │   ├── 📁 service
+  │   │   ├── ⚡ agent_service.cpp
+  │   │   ├── ⚡ command_service.cpp
+  │   │   ├── ⚡ metrics_service.cpp
+  │   │   └── ⚡ response_service.cpp
+  │   ├── ⚡ agent_connection.cpp
+  │   ├── ⚡ main.cpp
+  │   ├── ⚡ reactor.cpp
+  │   ├── ⚡ session_manager.cpp
+  │   └── ⚡ tcp_server.cpp
+  ├── 📁 tests
+  │   ├── 📁 stubs
+  │   │   ├── ⚡ fake_agent_repository.hpp
+  │   │   ├── ⚡ fake_command_repository.hpp
+  │   │   ├── ⚡ fake_metrics_repository.hpp
+  │   │   └── ⚡ fake_response_repository.hpp
+  │   ├── ⚡ epoller_test.cpp
+  │   ├── ⚡ reactor_integration_test.cpp
+  │   ├── ⚡ server_dispatcher_test.cpp
+  │   └── ⚡ tcp_server_test.cpp
+  └── 📄 CMakeLists.txt
 ```

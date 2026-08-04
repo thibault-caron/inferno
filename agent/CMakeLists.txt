@@ -136,12 +136,12 @@ if(NOT WIN32)
         )
     endif()
 
-    add_executable(agent_tests
-        tests/agent_dispatcher_test.cpp
-        tests/system_monitor/linux_system_monitor_test.cpp
-        tests/metrics/linux_metrics_scrapper_test.cpp
-        # tests/test_socket_linux.cpp   ← add as you create tests
-    )
+add_executable(agent_tests
+    tests/agent_dispatcher_test.cpp
+    tests/system_monitor/system_monitor_test.cpp
+    tests/metrics/linux_metrics_scrapper_test.cpp
+    # tests/test_socket_linux.cpp   ← add as you create tests
+)
 
     target_include_directories(agent_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests

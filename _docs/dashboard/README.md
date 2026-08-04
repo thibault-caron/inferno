@@ -1,6 +1,8 @@
-# Inferno Dashboard — documentation
+# Dashboard Architecture
 
-## Role
+![Dashboard's architecture](./dashboard_architecture.png)
+
+## Overview
 
 Graphical interface of the project. It connects to the server, shows the
 connected agents and lets me send them commands.

@@ -1,5 +1,7 @@
 # Inferno
 
+![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
+
 ## 📋 Table of Contents
 
 - [Communication protocol](./_docs/project/lptf_binary_protocol.md)
@@ -7,6 +9,8 @@
   - [Agent's architecture](#agent-remote-node)
   - [Server's architecture](#server-central-coordinator)
   - [Dashboard's architecture](#desktop-dashboard)
+- [Protocol message sequence diagrams](./_docs/protocol/README.md)
+- [Binary protocol specification](./_docs/project/lptf_binary_protocol.md)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Dependencies](#dependencies)
@@ -16,7 +20,6 @@
 - [How to build dashboard](how-to-build-dashboard)
   - [Windows](#dashboard-on-windows) + [troubleshooting](./_docs/project/windows-troubleshooting.md)
   - [Linux](#dashboard-on-linux)
-  - [Dashboard architecture](./_docs/dashboard/)
 
 ---
 
@@ -54,7 +57,7 @@ A lightweight system daemon responsible for:
 
 ![Agent's architecture diagram](./_docs/agent/agent_architecture.png)
 
-[Read more about agent achitecture](./_docs/agent/README.md)
+[Read more about agent achitecture](./_docs/agent/)
 
 ### Server (central coordinator)
 
@@ -66,7 +69,7 @@ A central service responsible for:
 
 ![server's architecture diagram](./_docs/server/server_architecture.png)
 
-[Read more about server achitecture](./_docs/server/README.md)
+[Read more about server achitecture](./_docs/server/)
 
 ### Desktop dashboard
 
@@ -82,10 +85,8 @@ A Qt Widgets interface providing:
 - remote command execution with output display,
 - running process table and OS information on demand.
 
-**Dasbhoard architecture**
+**Dashboard architecture**
 ![Dashboard's architecture diagram](./_docs/dashboard/dashboard_architecture.png)
-
-![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
 
 [Read more about dashboard architecture](./_docs/dashboard/)
 
@@ -95,7 +96,7 @@ A Qt Widgets interface providing:
 - Shared C++ networking library : `transport_lib`
 - TLS or plain TCP transport, selected from the environment
 
-#### Dasbhoard
+#### Dashboard
 
 - Qt desktop monitoring interface
 - Continuous metrics streaming reception and display
@@ -117,8 +118,7 @@ A Qt Widgets interface providing:
 - Automated test execution during builds
 - Multi-agent scaling support via Docker Compose
 
-### Future
-
+#### Future
 - Remote diagnostics execution
 - Health analysis and anomaly detection
 - Background daemon/service deployment
@@ -161,22 +161,23 @@ All **dashboard-side dependencies** need to be installed on your host machine (s
 ## Project structure
 
 ```
-├── 📁 _docs
-├── 📁 agent
-├── 📁 certs
-├── 📁 dashboard
-├── 📁 server
-├── 📁 test_support
-├── 📁 transport
-├── ⚙️ .env.template
-├── 📄 CMakeLists.txt
-├── 📄 Dockerfile.backend
-├── 📄 Dockerfile.server
-├── 📄 LICENSE
-├── 📝 README.md
-├── ⚙️ docker-compose.yml
-├── 📄 inferno.sh
-└── 📄 init.sql
+Inferno
+  ├── 📁 _docs
+  ├── 📁 agent
+  ├── 📁 certs
+  ├── 📁 dashboard
+  ├── 📁 server
+  ├── 📁 test_support
+  ├── 📁 transport
+  ├── ⚙️ .env.template
+  ├── 📄 CMakeLists.txt
+  ├── 📄 Dockerfile.backend
+  ├── 📄 Dockerfile.server
+  ├── 📄 LICENSE
+  ├── 📝 README.md
+  ├── ⚙️ docker-compose.yml
+  ├── 📄 inferno.sh
+  └── 📄 init.sql
 ```
 
 ### Key folder
