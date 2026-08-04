@@ -129,3 +129,4 @@ void FrameTransport::sendError(ErrorType code, const std::string& msg) {
   // sendRaw(agent, MessageType::INFERNO_ERROR, payload);
   sendFrame(frame);
 }
+

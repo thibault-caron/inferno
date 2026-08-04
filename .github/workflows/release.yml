@@ -3,54 +3,125 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
-  # ============================================
-  # Build Linux Agent as AppImage
-  # ============================================
   build-agent-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build agent in Docker
+      - name: Create .env file
         run: |
-          docker compose --profile agent build agent-builder
+          cat > .env << EOF
+          POSTGRES_PASSWORD=test_password
+          POSTGRES_USER=test_user
+          POSTGRES_DB=test_db
+          DB_PORT=5432
+          SERVER_PORT=8888
+          TLS=false
+          COMPOSE_PROFILES=agent
+          EOF
+
+      - name: Build agent transport library
+        run: |
+          docker compose --profile agent run transport
+          if [ $? -ne 0 ]; then
+            echo "Transport build failed!"
+            exit 1
+          fi
+
+      - name: Build agent binary
+        run: |
           docker compose --profile agent run agent-builder
+          if [ $? -ne 0 ]; then
+            echo "Agent build failed!"
+            docker compose logs agent-builder
+            exit 1
+          fi
 
-      - name: Extract agent binary
+      - name: List all Docker volumes
         run: |
-          # Copy binary from docker volume to workspace
-          docker run --rm \
-            -v inferno-agent-build:/app/agent/build \
-            -v ${{ github.workspace }}:/out \
-            ubuntu:latest \
-            cp /app/agent/build/bin/agent /out/agent
+          docker volume ls
+
+      - name: Check volume contents
+        run: |
+          docker run --rm -v inferno_agent-build:/app alpine:latest ls -lhR /app
 
       - name: Install linuxdeploy
         run: |
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
 
+      - name: Extract agent binary
+        run: |
+          docker run --rm \
+            -v inferno_agent-build:/app \
+            -v ${{ github.workspace }}/release-artifacts:/out \
+            alpine:latest \
+            cp /app/bin/agent /out/agent-binary
+
+      - name: Verify binary
+        run: |
+          ls -lh release-artifacts/
+          file release-artifacts/agent-binary
+
       - name: Create AppImage
         run: |
           mkdir -p appdir/usr/bin
-          cp agent appdir/usr/bin/
+          cp release-artifacts/agent-binary appdir/usr/bin/inferno-agent
+
+          # Bundle CA certificate
+          mkdir -p appdir/usr/share/inferno
+          cp certs/ca.crt appdir/usr/share/inferno/ca.crt
+          
+          # Create minimal SVG icon
+          mkdir -p appdir/usr/share/icons/hicolor/scalable/apps
+          cat > appdir/usr/share/icons/hicolor/scalable/apps/inferno-agent.svg << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" fill="#0066cc"/>
+          </svg>
+          EOF
+          
+          # Create .desktop file with Icon reference
+          mkdir -p appdir/usr/share/applications
+          cat > appdir/usr/share/applications/inferno-agent.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Inferno Agent
+          Exec=inferno-agent
+          Icon=inferno-agent
+          Categories=System;Utility;
+          Terminal=false
+          NoDisplay=true
+          EOF
+          
+          echo "AppDir contents before linuxdeploy:"
+          ls -lhR appdir/
           
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
-            --output=appimage \
-            -e appdir/usr/bin/agent
+            --output=appimage
+          
+          RESULT=$?
+          echo "linuxdeploy exit code: $RESULT"
+          
+          echo "Contents after linuxdeploy:"
+          ls -lh *.AppImage 2>/dev/null || echo "No AppImage found"
+          
+          exit $RESULT
 
-      - name: Rename AppImage with version
+      - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
+          echo "VERSION: $VERSION"
+          ls -lh *.AppImage
+          
+          # Rename to match release naming convention
+          mv Inferno_Agent-x86_64.AppImage inferno-agent-linux-${VERSION}.AppImage
+          ls -lh inferno-agent-linux-*.AppImage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

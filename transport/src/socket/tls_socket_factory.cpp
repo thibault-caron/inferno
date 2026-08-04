@@ -1,7 +1,12 @@
 #include "socket/tls_socket_factory.hpp"
 
+#include <fstream>
+
 #include "socket/socket_factory.hpp"
 #include "socket/tls_socket.hpp"
+
+constexpr char* PROD_PATH_TLS_CERT = "/usr/share/inferno/ca.crt";
+constexpr char* DEV_PATH_TLS_CERT = "./certs/ca.crt";
 
 std::unique_ptr<ISocket> TLSSocketFactory::createServer(
     const std::string& cert, const std::string& key) {
@@ -42,4 +47,26 @@ std::unique_ptr<ISocket> TLSSocketFactory::createClient(
 
   // Step 4 — wrap both into TLSSocket
   return std::make_unique<TLSSocket>(std::move(raw), std::move(context));
+}
+
+std::string TLSSocketFactory::findCACertificate() {
+  // 1. AppImage path
+  const char* appdir = std::getenv("APPDIR");
+  if (appdir) {
+    std::string appimage_path = std::string(appdir) + PROD_PATH_TLS_CERT;
+    std::ifstream cert(appimage_path);
+    if (cert.is_open()) {
+      cert.close();
+      return appimage_path;
+    }
+  }
+  // 2. Dev fallback
+  std::ifstream dev_cert(DEV_PATH_TLS_CERT);
+  if (dev_cert.is_open()) {
+    dev_cert.close();
+    return DEV_PATH_TLS_CERT;
+  }
+
+  // Fallback - will fail at TLS init if not found
+  return DEV_PATH_TLS_CERT;
 }
