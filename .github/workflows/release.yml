@@ -70,7 +70,8 @@ jobs:
       - name: Create AppImage
         run: |
           mkdir -p appdir/usr/bin
-          cp release-artifacts/agent-binary appdir/usr/bin/agent
+          # Rename to match Exec= in .desktop file
+          cp release-artifacts/agent-binary appdir/usr/bin/inferno-agent
           
           # Create minimal SVG icon
           mkdir -p appdir/usr/share/icons/hicolor/scalable/apps
