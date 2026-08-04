@@ -112,13 +112,6 @@ jobs:
       - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          ls -lh *.AppImage
-          mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
-          ls -lh inferno-agent-linux-*.AppImage
-
-      - name: Rename and upload
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION: $VERSION"
           ls -lh *.AppImage
           
