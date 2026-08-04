@@ -79,7 +79,7 @@ jobs:
           Type=Application
           Name=Inferno Agent
           Exec=inferno-agent
-          Icon=application-x-executable
+          Icon=utilities-system-monitor
           Categories=System;Utility;
           Terminal=false
           NoDisplay=true
