@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build-agent-linux:
@@ -49,45 +49,33 @@ jobs:
         run: |
           docker run --rm -v inferno_agent-build:/app alpine:latest ls -lhR /app
 
-      - name: Extract agent binary
-        run: |
-          docker run --rm \
-            -v inferno_agent-build:/app \
-            -v ${{ github.workspace }}:/out \
-            alpine:latest \
-            cp /app/bin/agent /out/agent
-
-      - name: Verify binary
-        run: |
-          ls -lh agent
-          file agent
-          ldd agent || true
-
       - name: Install linuxdeploy
         run: |
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
 
-      - name: Verify binary exists and is a file
+      - name: Extract agent binary
         run: |
-          ls -lh agent
-          file agent
+          docker run --rm \
+            -v inferno_agent-build:/app \
+            -v ${{ github.workspace }}/release-artifacts:/out \
+            alpine:latest \
+            cp /app/bin/agent /out/agent-binary
+
+      - name: Verify binary
+        run: |
+          ls -lh release-artifacts/
+          file release-artifacts/agent-binary
 
       - name: Create AppImage
         run: |
           mkdir -p appdir/usr/bin
-          # If agent is a file, copy it directly
-          if [ -f agent ]; then
-            cp agent appdir/usr/bin/
-          else
-            echo "ERROR: agent is not a file!"
-            ls -lh agent
-            exit 1
-          fi
-          
+          cp release-artifacts/agent-binary appdir/usr/bin/agent
+
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
             --output=appimage
+
       - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
