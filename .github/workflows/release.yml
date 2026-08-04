@@ -70,7 +70,6 @@ jobs:
       - name: Create AppImage
         run: |
           mkdir -p appdir/usr/bin
-          # Rename to match Exec= in .desktop file
           cp release-artifacts/agent-binary appdir/usr/bin/inferno-agent
           
           # Create minimal SVG icon
@@ -95,10 +94,28 @@ jobs:
           NoDisplay=true
           EOF
           
+          echo "AppDir contents before linuxdeploy:"
+          ls -lhR appdir/
+          
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
             --output=appimage
+          
+          RESULT=$?
+          echo "linuxdeploy exit code: $RESULT"
+          
+          echo "Contents after linuxdeploy:"
+          ls -lh *.AppImage 2>/dev/null || echo "No AppImage found"
+          
+          exit $RESULT
 
+      - name: Rename and upload
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          ls -lh *.AppImage
+          mv Inferno-*.AppImage inferno-agent-linux-${VERSION}.AppImage
+          ls -lh inferno-agent-linux-*.AppImage
+          
       - name: Rename and upload
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
