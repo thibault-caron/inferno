@@ -135,24 +135,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install MinGW, CMake, and OpenSSL
+      - name: Install MinGW and CMake
         run: |
           choco install -y mingw cmake
-          choco install -y openssl
         shell: powershell
 
-      - name: Find OpenSSL installation
+      - name: Download and extract OpenSSL for MinGW
         run: |
-          # Check where OpenSSL was installed
+          # Use a pre-built OpenSSL binary compatible with MinGW
+          $openssl_url = "https://slproweb.com/download/Win64OpenSSL_Light-3_0_0.exe"
+          
+          # Download installer
+          Invoke-WebRequest -Uri $openssl_url -OutFile openssl-installer.exe
+          
+          # Install silently to default location
+          Start-Process -FilePath "openssl-installer.exe" -ArgumentList "/silent /verysilent /sp- /suppressmsgboxes" -Wait
+          
+          # Verify installation
           if (Test-Path "C:\Program Files\OpenSSL-Win64") {
-            echo "Found OpenSSL at C:\Program Files\OpenSSL-Win64"
-            ls "C:\Program Files\OpenSSL-Win64"
-          } elseif (Test-Path "C:\Program Files (x86)\OpenSSL-Win32") {
-            echo "Found OpenSSL at C:\Program Files (x86)\OpenSSL-Win32"
-            ls "C:\Program Files (x86)\OpenSSL-Win32"
+            echo "OpenSSL installed successfully"
+            ls "C:\Program Files\OpenSSL-Win64\bin" | head -10
           } else {
-            echo "OpenSSL not found in standard locations"
-            Get-ChildItem "C:\" -Filter "*OpenSSL*" -Recurse 2>$null | head -20
+            echo "ERROR: OpenSSL installation failed"
+            exit 1
           }
         shell: powershell
 
@@ -160,14 +165,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          $openssl_path = "C:\Program Files\OpenSSL-Win64"
-          if (-not (Test-Path $openssl_path)) {
-            $openssl_path = "C:\Program Files (x86)\OpenSSL-Win32"
-          }
           cmake .. `
             -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DOPENSSL_ROOT_DIR="$openssl_path"
+            -DOPENSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64"
         shell: powershell
 
       - name: Build agent
@@ -181,8 +182,8 @@ jobs:
           mkdir -p release-artifacts/inferno-agent-windows
           copy build\bin\agent.exe release-artifacts\inferno-agent-windows\
           copy certs\ca.crt release-artifacts\inferno-agent-windows\
-          copy "C:\Program Files\OpenSSL-Win64\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\ -ErrorAction SilentlyContinue
-          copy "C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\ -ErrorAction SilentlyContinue
+          copy "C:\Program Files\OpenSSL-Win64\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\
+          copy "C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\
           echo "Run: set SERVER_HOST=localhost ^& agent.exe" > release-artifacts\inferno-agent-windows\README.txt
         shell: powershell
 
