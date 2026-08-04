@@ -55,7 +55,7 @@ jobs:
             -v inferno_agent-build:/app \
             -v ${{ github.workspace }}:/out \
             alpine:latest \
-            cp /app/agent/build/bin/agent /out/agent
+            cp /app/bin/agent /out/agent
 
       - name: Verify binary
         run: |
