@@ -141,14 +141,33 @@ jobs:
           choco install -y openssl
         shell: powershell
 
+      - name: Find OpenSSL installation
+        run: |
+          # Check where OpenSSL was installed
+          if (Test-Path "C:\Program Files\OpenSSL-Win64") {
+            echo "Found OpenSSL at C:\Program Files\OpenSSL-Win64"
+            ls "C:\Program Files\OpenSSL-Win64"
+          } elseif (Test-Path "C:\Program Files (x86)\OpenSSL-Win32") {
+            echo "Found OpenSSL at C:\Program Files (x86)\OpenSSL-Win32"
+            ls "C:\Program Files (x86)\OpenSSL-Win32"
+          } else {
+            echo "OpenSSL not found in standard locations"
+            Get-ChildItem "C:\" -Filter "*OpenSSL*" -Recurse 2>$null | head -20
+          }
+        shell: powershell
+
       - name: Configure CMake
         run: |
           mkdir build
           cd build
+          $openssl_path = "C:\Program Files\OpenSSL-Win64"
+          if (-not (Test-Path $openssl_path)) {
+            $openssl_path = "C:\Program Files (x86)\OpenSSL-Win32"
+          }
           cmake .. `
             -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DOPENSSL_ROOT_DIR="C:/Program Files/OpenSSL-Win64"
+            -DOPENSSL_ROOT_DIR="$openssl_path"
         shell: powershell
 
       - name: Build agent
