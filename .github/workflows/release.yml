@@ -145,26 +145,21 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-openssl
 
-      - name: Configure CMake
+      - name: Build and test agent
         shell: msys2 {0}
         run: |
-          mkdir build
+          cd agent
+          mkdir -p build
           cd build
-          cmake .. \
-            -G "MinGW Makefiles" \
-            -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build agent
-        shell: msys2 {0}
-        run: |
-          cd build
-          cmake --build . --config Release --target agent -j 4
+          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -j 4
+          ctest --output-on-failure
 
       - name: Bundle DLLs and ca.crt
         shell: msys2 {0}
         run: |
           mkdir -p release-artifacts/inferno-agent-windows
-          cp build/bin/agent.exe release-artifacts/inferno-agent-windows/
+          cp agent/build/bin/agent.exe release-artifacts/inferno-agent-windows/
           cp certs/ca.crt release-artifacts/inferno-agent-windows/
           cp /mingw64/bin/libssl-3-x64.dll release-artifacts/inferno-agent-windows/
           cp /mingw64/bin/libcrypto-3-x64.dll release-artifacts/inferno-agent-windows/
