@@ -140,10 +140,13 @@ jobs:
           choco install -y mingw cmake
         shell: powershell
 
-      - name: Install OpenSSL via vcpkg
+      - name: Download OpenSSL MinGW binaries
         run: |
-          vcpkg install openssl:x64-mingw-static
-          vcpkg integrate install
+          # Download pre-built OpenSSL for MinGW (much faster than vcpkg)
+          mkdir C:\openssl-mingw
+          cd C:\openssl-mingw
+          curl -L -o openssl.zip https://github.com/openssl/openssl/releases/download/openssl-3.0.0/openssl-3.0.0-x64-mingw.zip
+          Expand-Archive openssl.zip -DestinationPath .
         shell: powershell
 
       - name: Configure CMake
@@ -153,7 +156,7 @@ jobs:
           cmake .. `
             -G "MinGW Makefiles" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DOPENSSL_ROOT_DIR="C:/vcpkg/installed/x64-mingw-static"
+            -DOPENSSL_ROOT_DIR="C:/openssl-mingw"
         shell: powershell
 
       - name: Build agent
@@ -162,19 +165,20 @@ jobs:
           cmake --build . --config Release --target agent -j 4
         shell: powershell
 
-      - name: Bundle DLLs
+      - name: Bundle DLLs and ca.crt
         run: |
-          mkdir -p release-artifacts/inferno-agent
-          copy build\bin\agent.exe release-artifacts\inferno-agent\
-          copy certs\ca.crt release-artifacts\inferno-agent\
-          copy "C:\vcpkg\installed\x64-mingw-static\bin\libssl-3-x64.dll" release-artifacts\inferno-agent\
-          copy "C:\vcpkg\installed\x64-mingw-static\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent\
+          mkdir -p release-artifacts/inferno-agent-windows
+          copy build\bin\agent.exe release-artifacts\inferno-agent-windows\
+          copy certs\ca.crt release-artifacts\inferno-agent-windows\
+          copy "C:\openssl-mingw\bin\libssl-3-x64.dll" release-artifacts\inferno-agent-windows\
+          copy "C:\openssl-mingw\bin\libcrypto-3-x64.dll" release-artifacts\inferno-agent-windows\
+          echo "Run: set SERVER_HOST=localhost ^& agent.exe" > release-artifacts\inferno-agent-windows\README.txt
         shell: powershell
 
       - name: Create ZIP
         run: |
           $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          Compress-Archive -Path release-artifacts\inferno-agent -DestinationPath inferno-agent-windows-${version}.zip
+          Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
         shell: powershell
 
       - name: Upload artifact
