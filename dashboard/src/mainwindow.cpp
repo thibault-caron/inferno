@@ -392,6 +392,7 @@ void MainWindow::clearAgentView() {
     m_metricCards->clear();
     ui->outputView->clear();
     m_lastSampleTime = QDateTime();
+    m_osBadgeDetailed = false;
 }
 
 void MainWindow::updateAgentCounters() {
