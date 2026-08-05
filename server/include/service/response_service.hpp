@@ -7,7 +7,6 @@
 
 #include "protocol/lptf_protocol.hpp"
 #include "repository/response_repository.hpp"
-#include "service/command_service.hpp"
 
 class IResponseService {
  public:
@@ -24,12 +23,10 @@ class IResponseService {
 class ResponseService : public IResponseService {
  private:
   IResponseRepository& repository_;
-  ICommandService& commandService_;
 
  public:
-  explicit ResponseService(IResponseRepository& repository,
-                           ICommandService& commandService)
-      : repository_(repository), commandService_(commandService) {}
+  explicit ResponseService(IResponseRepository& repository)
+      : repository_(repository) {}
 
   DashboardResponse save(const ResponsePayload& response) override;
 

@@ -3,25 +3,33 @@
 
 #include "repository/response_repository.hpp"
 
-// records saved responses and
-// returns a fixed timestamp instead of relying on a real DB's NOW().
 class FakeResponseRepository : public IResponseRepository {
  private:
   std::vector<DashboardResponse> saved_;
   std::string fixedReceivedAt_ = "2026-01-01 00:00:00+00";
+  
+  // Mock the command_history data for the JOIN
+  std::map<std::uint32_t, std::pair<std::string, CommandType>> commands_;
 
  public:
   explicit FakeResponseRepository() {}
 
-  std::string save(const ResponsePayload& response) override {
+  DashboardResponse save(const ResponsePayload& response) override {
     DashboardResponse dr;
     dr.response = response;
     dr.received_at = fixedReceivedAt_;
-    // target/agent_id isn't known at the repository layer in the real
-    // implementation either (no JOIN happens on write) - leave it empty,
-    // matching what a fresh INSERT would look like before any SELECT.
+    
+    // Simulate the JOIN: look up command to get target + type
+    auto it = commands_.find(response.id);
+    if (it != commands_.end()) {
+      dr.target = it->second.first;  // agent_id
+      if (it->second.second != CommandType::UNKNOWN) {
+        dr.response.type = it->second.second;
+      }
+    }
+    
     saved_.push_back(dr);
-    return fixedReceivedAt_;
+    return dr;
   }
 
   std::vector<DashboardResponse> findByCommandId(std::uint32_t commandId,
@@ -36,9 +44,6 @@ class FakeResponseRepository : public IResponseRepository {
 
   std::vector<DashboardResponse> findByAgentId(
       [[maybe_unused]] const std::string& agentId, int limit) override {
-    // No agent_id tracked in this fake (that link only exists via the
-    // command_history JOIN in the real repository); return everything
-    // saved, capped at limit, for tests that don't care about filtering.
     std::vector<DashboardResponse> result(
         saved_.begin(),
         saved_.begin() +
@@ -46,11 +51,15 @@ class FakeResponseRepository : public IResponseRepository {
     return result;
   }
 
-  // Test helper
+  // Test helpers
   const std::vector<DashboardResponse>& saved() const { return saved_; }
-
-  // Test-only: clear state between tests
   void clear() { saved_.clear(); }
+  
+  // Mock the command_history data so the JOIN works in tests
+  void mockCommand(std::uint32_t commandId, const std::string& agentId,
+                   CommandType type = CommandType::UNKNOWN) {
+    commands_[commandId] = {agentId, type};
+  }
 };
 
 #endif

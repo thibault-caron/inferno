@@ -5,29 +5,30 @@ DashboardResponse ResponseService::save(const ResponsePayload& response) {
   // command id) is a routing problem the caller needs to decide how to
   // handle (e.g. log it and send an ERROR back), not something this
   // service should silently swallow.
-  std::string target = commandService_.getTarget(response.id);
-  ResponsePayload payload = response;
-  
 
-  CommandType actualType = commandService_.getCommandType(response.id);
+  // std::string target = commandService_.getTarget(response.id);
+  // ResponsePayload payload = response;
+  return repository_.save(response);
 
-  if (actualType != CommandType::UNKNOWN) {
-    payload.type = actualType;
-  }
+  // CommandType actualType = commandService_.getCommandType(response.id);
 
-  std::string receivedAt = repository_.save(payload);
+  // if (actualType != CommandType::UNKNOWN) {
+  //   payload.type = actualType;
+  // }
 
-  DashboardResponse dashboardResponse;
-  dashboardResponse.target = target;
-  dashboardResponse.received_at = receivedAt;
-  dashboardResponse.response = payload;
+  // std::string receivedAt = repository_.save(payload);
 
-  // Last chunk: the command -> target mapping has served its purpose.
-  if (payload.chunk_index + 1 >= payload.total_chunks) {
-    commandService_.deleteTarget(payload.id);
-  }
+  // DashboardResponse dashboardResponse;
+  // dashboardResponse.target = target;
+  // dashboardResponse.received_at = receivedAt;
+  // dashboardResponse.response = payload;
 
-  return dashboardResponse;
+  // // Last chunk: the command -> target mapping has served its purpose.
+  // if (payload.chunk_index + 1 >= payload.total_chunks) {
+  //   commandService_.deleteTarget(payload.id);
+  // }
+
+  // return dashboardResponse;
 }
 
 std::vector<DashboardResponse> ResponseService::findByCommandId(

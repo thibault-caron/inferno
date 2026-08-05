@@ -5,26 +5,26 @@
 // Save in db + save in in memory command.id, target map
 void CommandService::save(DashboardCommand& commandDashboard) {
   commandDashboard.command.id = repository_.save(commandDashboard);
-  commandTargets_[commandDashboard.command.id] = commandDashboard.target;
+  // commandTargets_[commandDashboard.command.id] = commandDashboard.target;
 }
 
 // get target name from in memory map
-std::string CommandService::getTarget(std::uint32_t commandId) {
-  // return std::string();
-  auto it =
-      commandTargets_.find(commandId);  // used auto since it is an iterator
-  if (it == commandTargets_.end()) {
-    Logger::error("command service", "Unknown command id in response");
-    // return;
-    throw NotFound("target for command id :", std::to_string(commandId));
-  }
-  return it->second;
-}
+// std::string CommandService::getTarget(std::uint32_t commandId) {
+//   // return std::string();
+//   auto it =
+//       commandTargets_.find(commandId);  // used auto since it is an iterator
+//   if (it == commandTargets_.end()) {
+//     Logger::error("command service", "Unknown command id in response");
+//     // return;
+//     throw NotFound("target for command id :", std::to_string(commandId));
+//   }
+//   return it->second;
+// }
 
-// Erase command.id and target string from map, in memory deletion only
-void CommandService::deleteTarget(std::uint32_t commandId) {
-  commandTargets_.erase(commandId);
-}
+// // Erase command.id and target string from map, in memory deletion only
+// void CommandService::deleteTarget(std::uint32_t commandId) {
+//   commandTargets_.erase(commandId);
+// }
 
 // Todo : no op for now
 std::vector<DashboardCommand> CommandService::findByAgentId(

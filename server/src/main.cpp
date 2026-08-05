@@ -47,7 +47,7 @@ int main() {
   CommandService commandService(commandRepository, sessionManager);
 
   ResponseRepository responseRepository(db);
-  ResponseService responseService(responseRepository, commandService);
+  ResponseService responseService(responseRepository);
 
   MetricsRepository metricsRepository(db);
   MetricsService metricsService(metricsRepository, sessionManager);
