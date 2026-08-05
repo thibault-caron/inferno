@@ -24,7 +24,7 @@ void Logger::log(const Level level, std::string_view who,
     case Level::WARN:
       std::cout << Color::YELLOW << "[WARN] " << Color::RESET << base.str();
       break;
-    case Level::ERROR:
+    case Level::ERR:
       std::cerr << Color::RED << "[ERROR] " << Color::RESET << base.str();
       break;
   }
@@ -39,5 +39,5 @@ void Logger::warn(std::string_view who, std::string_view what) {
 }
 
 void Logger::error(std::string_view who, std::string_view what) {
-  log(Level::ERROR, who, what);
+  log(Level::ERR, who, what);
 }

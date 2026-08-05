@@ -45,6 +45,10 @@ add_library(transport_lib STATIC
 )
 target_link_libraries(transport_lib PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
+if(WIN32)
+  target_link_libraries(transport_lib PUBLIC ws2_32 iphlpapi)
+endif()
+
 # PUBLIC = these include dirs are inherited by any target that links transport_lib.
 # This is what lets agent and server write #include "ISocket.hpp" without paths.
 target_include_directories(transport_lib PUBLIC

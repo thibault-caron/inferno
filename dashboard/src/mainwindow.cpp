@@ -300,6 +300,7 @@ void MainWindow::onMetricsReceived(const QString& target,
         QString::fromStdString(sample.timestamp), Qt::ISODate);
 
     m_metricCards->updateFromSample(sample);
+    m_processTable->setPhysTotal(sample.mem.phys_total);
 
 
     // Memory

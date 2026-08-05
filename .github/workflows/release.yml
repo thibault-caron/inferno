@@ -75,7 +75,7 @@ jobs:
           # Bundle CA certificate
           mkdir -p appdir/usr/share/inferno
           cp certs/ca.crt appdir/usr/share/inferno/ca.crt
-          
+
           # Create minimal SVG icon
           mkdir -p appdir/usr/share/icons/hicolor/scalable/apps
           cat > appdir/usr/share/icons/hicolor/scalable/apps/inferno-agent.svg << 'EOF'
@@ -84,7 +84,7 @@ jobs:
             <circle cx="32" cy="32" r="30" fill="#0066cc"/>
           </svg>
           EOF
-          
+
           # Create .desktop file with Icon reference
           mkdir -p appdir/usr/share/applications
           cat > appdir/usr/share/applications/inferno-agent.desktop << 'EOF'
@@ -97,20 +97,20 @@ jobs:
           Terminal=false
           NoDisplay=true
           EOF
-          
+
           echo "AppDir contents before linuxdeploy:"
           ls -lhR appdir/
-          
+
           ./linuxdeploy-x86_64.AppImage \
             --appdir=appdir \
             --output=appimage
-          
+
           RESULT=$?
           echo "linuxdeploy exit code: $RESULT"
-          
+
           echo "Contents after linuxdeploy:"
           ls -lh *.AppImage 2>/dev/null || echo "No AppImage found"
-          
+
           exit $RESULT
 
       - name: Rename and upload
@@ -118,7 +118,7 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION: $VERSION"
           ls -lh *.AppImage
-          
+
           # Rename to match release naming convention
           mv Inferno_Agent-x86_64.AppImage inferno-agent-linux-${VERSION}.AppImage
           ls -lh inferno-agent-linux-*.AppImage
@@ -128,3 +128,48 @@ jobs:
         with:
           name: agent-linux-appimage
           path: inferno-agent-linux-*.AppImage
+
+  build-agent-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 and install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-openssl
+            mingw-w64-x86_64-gtest
+
+      - name: Build and test agent
+        shell: msys2 {0}
+        run: |
+          chmod +x ./inferno.sh
+          ./inferno.sh test agent
+
+      - name: Bundle DLLs and ca.crt
+        shell: msys2 {0}
+        run: |
+          mkdir -p release-artifacts/inferno-agent-windows
+          cp agent/build/bin/agent.exe release-artifacts/inferno-agent-windows/
+          cp certs/ca.crt release-artifacts/inferno-agent-windows/
+          cp /mingw64/bin/libssl-3-x64.dll release-artifacts/inferno-agent-windows/
+          cp /mingw64/bin/libcrypto-3-x64.dll release-artifacts/inferno-agent-windows/
+          echo "Run: set SERVER_HOST=localhost & agent.exe" > release-artifacts/inferno-agent-windows/README.txt
+
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref }}".Replace("refs/tags/", "")
+          Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-windows-exe
+          path: inferno-agent-windows-*.zip

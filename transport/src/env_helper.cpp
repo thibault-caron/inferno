@@ -73,11 +73,12 @@ bool resolveTlsEnabled() {
   }
 
   if (value.empty()) {
-    return false;  // default
+    return true;  // default
   }
 
   std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-  return value == "true" || value == "1" || value == "yes" || value == "on";
+  // return value == "true" || value == "1" || value == "yes" || value == "on";
+  return value != "false" && value != "0" && value != "no" && value != "off";
 }
 
 void loadEnvFile(const std::string& filePath) {
