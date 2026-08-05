@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="D7NME248i0kha52PXx-Z" name="Page-1">
-        <mxGraphModel dx="996" dy="1778" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="812" dy="1674" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -72,21 +72,6 @@
                         <mxPoint x="41" y="-1" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="16" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1.06;exitY=0.65;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="20" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="325" y="-487.4999999999998" as="targetPoint"/>
-                        <mxPoint x="326.13" y="-570" as="sourcePoint"/>
-                        <Array as="points">
-                            <mxPoint x="364" y="-560"/>
-                            <mxPoint x="364" y="-488"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="17" value="Get target through&lt;div&gt;response.id&lt;div&gt;(same as command.id)&lt;/div&gt;&lt;/div&gt;&lt;div&gt;Prepare DashboardResponse&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="16" vertex="1" connectable="0">
-                    <mxGeometry x="-0.0257" y="3" relative="1" as="geometry">
-                        <mxPoint x="45" y="-2" as="offset"/>
-                    </mxGeometry>
-                </mxCell>
                 <mxCell id="18" style="edgeStyle=none;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="20" target="33" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="510" y="-559.7241379310344" as="targetPoint"/>
@@ -97,15 +82,15 @@
                         <mxPoint y="1" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="39" style="edgeStyle=none;html=1;exitX=0.883;exitY=0.919;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="20" edge="1">
+                <mxCell id="39" style="edgeStyle=none;html=1;exitX=0.883;exitY=0.919;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;endArrow=none;endFill=0;startArrow=classic;startFill=1;" parent="1" source="20" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="324.97" y="-400" as="sourcePoint"/>
                         <mxPoint x="715" y="-398.75" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="40" value="Save response" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="39" vertex="1" connectable="0">
-                    <mxGeometry x="-0.5188" y="-1" relative="1" as="geometry">
-                        <mxPoint x="26" y="-1" as="offset"/>
+                <mxCell id="72" value="DashboardResponse" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="39">
+                    <mxGeometry x="0.1488" y="3" relative="1" as="geometry">
+                        <mxPoint x="-23" as="offset"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="20" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -188,7 +173,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="36" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="715" y="-450" width="10" height="60" as="geometry"/>
+                    <mxGeometry x="715" y="-520" width="10" height="130" as="geometry"/>
                 </mxCell>
                 <mxCell id="41" value="" style="endArrow=none;html=1;dashed=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="33" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -236,15 +221,15 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="63" style="edgeStyle=none;html=1;exitX=1.1;exitY=0.833;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" parent="1" source="20" target="36" edge="1">
+                <mxCell id="63" style="edgeStyle=none;html=1;exitX=1.081;exitY=0.715;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;startArrow=none;startFill=0;endArrow=classic;endFill=1;" parent="1" source="20" target="36" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="325" y="-450" as="sourcePoint"/>
                         <mxPoint x="715.03" y="-448.75" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="64" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;get CommandType for&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 9px;&quot;&gt;ResponsePayload&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 9px;&quot;&gt;from command_history table with response.id&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="63" vertex="1" connectable="0">
-                    <mxGeometry x="-0.5188" y="-1" relative="1" as="geometry">
-                        <mxPoint x="101" y="-1" as="offset"/>
+                <mxCell id="69" value="Save ResponsePayload as a Dashboard Response" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="63">
+                    <mxGeometry x="-0.2284" y="3" relative="1" as="geometry">
+                        <mxPoint x="39" y="3" as="offset"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="65" value="" style="endArrow=none;html=1;dashed=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="33" edge="1">
@@ -255,6 +240,20 @@
                 </mxCell>
                 <mxCell id="33" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="515" y="-350" width="10" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitX=0.981;exitY=0.117;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="36" target="36">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="730" y="-480" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="760" y="-505"/>
+                            <mxPoint x="760" y="-422"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="71" value="get agent_id from&lt;div&gt;&amp;nbsp;command_history&lt;div&gt;save response&lt;/div&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="70">
+                    <mxGeometry x="0.2734" y="7" relative="1" as="geometry">
+                        <mxPoint x="13" y="-17" as="offset"/>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>
