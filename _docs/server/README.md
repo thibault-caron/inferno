@@ -57,7 +57,7 @@ The server follows a **domain-driven layered architecture**:
 
 Every incoming TCP connection is initially represented as an `AgentConnection`. During registration, the server determines whether the connection belongs to a monitoring agent or the dashboard.
 
-The `SessionManager` maintains three lookup tables:
+The `SessionManager` maintains three in-memory lookup tables (maps):
 
 - `fd -> AgentConnection`
 - `agent id (MAC) -> file descriptor`

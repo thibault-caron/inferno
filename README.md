@@ -73,10 +73,6 @@ A central service responsible for:
 
 ### Desktop dashboard
 
-A Qt-based interface providing:
-
-### Desktop dashboard
-
 A Qt Widgets interface providing:
 
 - real-time monitoring of one agent at a time (CPU, memory, disk, network),
@@ -243,9 +239,9 @@ cp .env.template .env
 
 ## Quick start
 
-This project uses Docker Compose profiles (`agent` and `server`) to separate build/runtime pipelines and keep logs readable.
+This project uses Docker Compose profiles (`agent`, `server` and `db`) to separate build/runtime pipelines and keep logs readable.
 
-`COMPOSE_PROFILES=agent,server` in `.env` allows `docker compose up` and `docker compose down` to work without specifying profiles manually.
+`COMPOSE_PROFILES=agent,server,db` in `.env` allows `docker compose up` and `docker compose down` to work without specifying profiles manually.
 
 ### Start all services (agent + server)
 
@@ -267,12 +263,6 @@ docker compose --profile agent up --scale agent=N
 
 > replace N with the actual number you need
 
-#### Start only (if already built)
-
-```
-docker compose up agent
-```
-
 ### Start only server
 
 #### Build & start
@@ -281,13 +271,7 @@ docker compose up agent
 docker compose --profile server up
 ```
 
-#### Start only (if already built)
-
-```
-docker compose up server
-```
-
-### Start only database (timescaleDB)
+#### Start only database (timescaleDB)
 
 ```
 docker compose --profile db up -d
@@ -312,12 +296,12 @@ This project uses a **multi-stage container build pipeline** orchestrated throug
 Builder services are only responsible for compilation and testing.
 Runtime services only execute the final binaries produced during the build pipeline.
 
-The first service, `shared`, builds the shared static library (`.a`) inside a dedicated Docker volume.
-`shared` tests are executed before the service exits. If any shared test fails, the pipeline stops and dependent services are not started.
+The first service, `transport`, builds the transport static library (`.a`) inside a dedicated Docker volume.
+`transport` tests are executed before the service exits. If any transport test fails, the pipeline stops and dependent services are not started.
 
-The second service (`agent-builder` or `server-builder`) compiles the final target binary using the shared `.a` artifact from the common volume. The compiled target binary is stored in another dedicated volume. Like the `shared` service, target tests are executed before the service exits.
+The second service (`agent-builder` or `server-builder`) compiles the final target binary using the shared `.a` artifact from the common volume. The compiled target binary is stored in another dedicated volume. Like the `transport` service, target tests are executed before the service exits.
 
-Build artifacts are stored in Docker named volumes (`shared-build`, `server-build`, `agent-build`) so rebuilds can reuse previous outputs. Use `docker compose down -v` to remove these volumes and start from scratch.
+Build artifacts are stored in Docker named volumes (`transport-build`, `server-build`, `agent-build`) so rebuilds can reuse previous outputs. Use `docker compose down -v` to remove these volumes and start from scratch.
 
 Finally, the runtime service starts the compiled target binary directly from its build volume.
 
