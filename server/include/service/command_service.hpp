@@ -19,6 +19,8 @@ class ICommandService {
   virtual void deleteTarget(std::uint32_t commandId) = 0;
   virtual std::vector<DashboardCommand> findByAgentId(
       const std::string& agentId, int limit = 50) = 0;
+  virtual CommandType getCommandType(
+      const std::uint32_t commandId) = 0;
 };
 
 // command_repository.hpp
@@ -39,6 +41,7 @@ class CommandService : public ICommandService {
   void deleteTarget(std::uint32_t commandId) override;
   std::vector<DashboardCommand> findByAgentId(const std::string& agentId,
                                               int limit = 50) override;
+  CommandType getCommandType(const std::uint32_t commandId) override;
 };
 
 #endif

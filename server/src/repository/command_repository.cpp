@@ -33,11 +33,28 @@ std::vector<DashboardCommand> CommandRepository::findByAgentId(
   return commands;
 }
 
+CommandType CommandRepository::getCommandType(const std::uint32_t commandId) {
+  pqxx::params params;
+  params.append(commandId);
+
+  pqxx::result rows = db_.executeParams(
+      "SELECT command_type FROM command_history"
+      "WHERE id = $1",
+      params);
+
+  if (rows.empty()) {
+    throw std::runtime_error("Command not found");
+  }
+
+  return static_cast<CommandType>(rows[0]["command_type"].as<int>());
+}
+
 DashboardCommand CommandRepository::rowToDashboardCommand(
     const pqxx::row& row) {
   DashboardCommand cmd;
   cmd.sent_at = row["sent_at"].as<std::string>();  // type is TIMESTAMPTZ
-  cmd.target = row["agent_id"].as<std::string>();  // target id = mac adress for now
+  cmd.target =
+      row["agent_id"].as<std::string>();  // target id = mac adress for now
   cmd.command.id = static_cast<uint32_t>(row["id"].as<long long>());
   cmd.command.type = static_cast<CommandType>(row["command_type"].as<int>());
   cmd.command.data = row["command_data"].as<std::string>();

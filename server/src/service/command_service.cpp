@@ -21,7 +21,6 @@ std::string CommandService::getTarget(std::uint32_t commandId) {
   return it->second;
 }
 
-
 // Erase command.id and target string from map, in memory deletion only
 void CommandService::deleteTarget(std::uint32_t commandId) {
   commandTargets_.erase(commandId);
@@ -31,4 +30,15 @@ void CommandService::deleteTarget(std::uint32_t commandId) {
 std::vector<DashboardCommand> CommandService::findByAgentId(
     const std::string& agentId, int limit) {
   return std::vector<DashboardCommand>();
+}
+
+CommandType CommandService::getCommandType(const std::uint32_t commandId) {
+  CommandType type = CommandType::UNKNOWN;
+  try {
+    type = repository_.getCommandType(commandId);
+  } catch (const std::exception& ex) {
+    Logger::error("Command service", "command id " + std::to_string(commandId) +
+                                         " not found. " + ex.what());
+  }
+  return type;
 }

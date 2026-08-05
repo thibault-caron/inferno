@@ -42,6 +42,14 @@ class FakeCommandRepository : public ICommandRepository {
     commands_.clear();
     nextId_ = 1;
   };
+
+  CommandType getCommandType(std::uint32_t commandId) override {
+    for (const auto& cmd : commands_) {
+      if (cmd.command.id == commandId) return cmd.command.type;
+    }
+
+    return CommandType::UNKNOWN;
+  }
 };
 
 #endif

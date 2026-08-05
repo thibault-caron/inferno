@@ -6,17 +6,25 @@ DashboardResponse ResponseService::save(const ResponsePayload& response) {
   // handle (e.g. log it and send an ERROR back), not something this
   // service should silently swallow.
   std::string target = commandService_.getTarget(response.id);
+  ResponsePayload payload = response;
+  
 
-  std::string receivedAt = repository_.save(response);
+  CommandType actualType = commandService_.getCommandType(response.id);
+
+  if (actualType != CommandType::UNKNOWN) {
+    payload.type = actualType;
+  }
+
+  std::string receivedAt = repository_.save(payload);
 
   DashboardResponse dashboardResponse;
   dashboardResponse.target = target;
   dashboardResponse.received_at = receivedAt;
-  dashboardResponse.response = response;
+  dashboardResponse.response = payload;
 
   // Last chunk: the command -> target mapping has served its purpose.
-  if (response.chunk_index + 1 >= response.total_chunks) {
-    commandService_.deleteTarget(response.id);
+  if (payload.chunk_index + 1 >= payload.total_chunks) {
+    commandService_.deleteTarget(payload.id);
   }
 
   return dashboardResponse;

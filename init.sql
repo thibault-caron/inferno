@@ -78,7 +78,6 @@ CREATE TABLE IF NOT EXISTS responses (
     id SERIAL PRIMARY KEY,
     command_id INTEGER NOT NULL REFERENCES command_history(id) ON DELETE CASCADE,
     status SMALLINT NOT NULL,            -- 0=OK, 1=ERROR
-    command_type SMALLINT NOT NULL,            -- 0=OK, 1=ERROR
     total_chunks SMALLINT NOT NULL,      -- how many chunks total
     chunk_index SMALLINT NOT NULL,       -- which chunk this is
     chunk_data BYTEA NOT NULL,           -- the actual data
