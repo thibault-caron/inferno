@@ -68,7 +68,7 @@ class ServerDispatcherTest : public ::testing::Test {
     fakeResponseRepo = responseRepoUnique.get();
 
     responseServiceUnique =
-        std::make_unique<ResponseService>(*fakeResponseRepo, *commandService);
+        std::make_unique<ResponseService>(*fakeResponseRepo);
     responseService = responseServiceUnique.get();
 
     // Metrics
@@ -409,6 +409,9 @@ TEST_F(ServerDispatcherTest, should_forward_agent_response_to_dashboard) {
   CommandPayload receivedCmd =
       ProtocolParser::parseCommandPayload(agentSpy.payload());
   uint32_t cmdId = receivedCmd.id;
+
+  // Fake the DB join
+  fakeResponseRepo->mockCommand(1, cmd.target, cmd.command.type);
 
   // Clear spies for response phase
   agentSpy.sent.clear();

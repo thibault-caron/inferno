@@ -94,7 +94,7 @@ class ReactorIntegrationTest : public ::testing::Test {
     fakeResponseRepo = responseRepoUnique.get();
  
     responseServiceUnique =
-        std::make_unique<ResponseService>(*fakeResponseRepo, *commandService);
+        std::make_unique<ResponseService>(*fakeResponseRepo);
     responseService = responseServiceUnique.get();
 
     // Metrics

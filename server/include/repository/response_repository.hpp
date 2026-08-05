@@ -15,7 +15,7 @@ class IResponseRepository {
   // so callers (ResponseService) can build a DashboardResponse to forward
   // immediately without a follow-up query.
 
-  virtual std::string save(const ResponsePayload& response) = 0;
+  virtual DashboardResponse save(const ResponsePayload& response) = 0;
 
   // Latest N commands for one agent (dashboard history panel).
   virtual std::vector<DashboardResponse> findByCommandId(
@@ -33,7 +33,7 @@ class ResponseRepository : public IResponseRepository {
  public:
   explicit ResponseRepository(IDatabaseConnection& db) : db_(db) {}
 
-  std::string save(const ResponsePayload& response) override;
+  DashboardResponse save(const ResponsePayload& response) override;
 
   //   std::vector<DashboardResponse> findByAgentId(int commandId);
 
