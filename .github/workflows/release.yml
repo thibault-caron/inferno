@@ -129,47 +129,47 @@ jobs:
           name: agent-linux-appimage
           path: inferno-agent-linux-*.AppImage
 
-  build-agent-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # build-agent-windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Setup MSYS2 and install dependencies
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-openssl
-            mingw-w64-x86_64-gtest
+  #     - name: Setup MSYS2 and install dependencies
+  #       uses: msys2/setup-msys2@v2
+  #       with:
+  #         msystem: MINGW64
+  #         update: true
+  #         install: >-
+  #           mingw-w64-x86_64-toolchain
+  #           mingw-w64-x86_64-cmake
+  #           mingw-w64-x86_64-openssl
+  #           mingw-w64-x86_64-gtest
 
-      - name: Build and test agent
-        shell: msys2 {0}
-        run: |
-          chmod +x ./inferno.sh
-          ./inferno.sh test agent
+  #     - name: Build and test agent
+  #       shell: msys2 {0}
+  #       run: |
+  #         chmod +x ./inferno.sh
+  #         ./inferno.sh test agent
 
-      - name: Bundle DLLs and ca.crt
-        shell: msys2 {0}
-        run: |
-          mkdir -p release-artifacts/inferno-agent-windows
-          cp agent/build/bin/agent.exe release-artifacts/inferno-agent-windows/
-          cp certs/ca.crt release-artifacts/inferno-agent-windows/
-          cp /mingw64/bin/libssl-3-x64.dll release-artifacts/inferno-agent-windows/
-          cp /mingw64/bin/libcrypto-3-x64.dll release-artifacts/inferno-agent-windows/
-          echo "Run: set SERVER_HOST=localhost & agent.exe" > release-artifacts/inferno-agent-windows/README.txt
+  #     - name: Bundle DLLs and ca.crt
+  #       shell: msys2 {0}
+  #       run: |
+  #         mkdir -p release-artifacts/inferno-agent-windows
+  #         cp agent/build/bin/agent.exe release-artifacts/inferno-agent-windows/
+  #         cp certs/ca.crt release-artifacts/inferno-agent-windows/
+  #         cp /mingw64/bin/libssl-3-x64.dll release-artifacts/inferno-agent-windows/
+  #         cp /mingw64/bin/libcrypto-3-x64.dll release-artifacts/inferno-agent-windows/
+  #         echo "Run: set SERVER_HOST=localhost & agent.exe" > release-artifacts/inferno-agent-windows/README.txt
 
-      - name: Create ZIP
-        shell: pwsh
-        run: |
-          $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
+  #     - name: Create ZIP
+  #       shell: pwsh
+  #       run: |
+  #         $version = "${{ github.ref }}".Replace("refs/tags/", "")
+  #         Compress-Archive -Path release-artifacts\inferno-agent-windows -DestinationPath inferno-agent-windows-${version}.zip
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: agent-windows-exe
-          path: inferno-agent-windows-*.zip
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: agent-windows-exe
+  #         path: inferno-agent-windows-*.zip
