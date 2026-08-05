@@ -15,7 +15,7 @@ ProcessTableWidget::ProcessTableWidget(QWidget *parent)
 {
     QVBoxLayout *outer = new QVBoxLayout(this);
 
-    outer->addWidget(makeLabel("RUNNING PROCESSES (TOP 10 BY MEMORY)", "sectionTitle"));
+    outer->addWidget(makeLabel("RUNNING PROCESSES (TOP 10 BY CPU)", "sectionTitle"));
 
 
     QWidget *grid = new QWidget;
@@ -115,7 +115,7 @@ void ProcessTableWidget::setProcesses(const std::vector<ProcessInfo> &processes)
     std::vector<ProcessInfo> sorted = processes;
     std::sort(sorted.begin(), sorted.end(),
               [](const ProcessInfo &a, const ProcessInfo &b) {
-                  return a.mem_bytes > b.mem_bytes;
+                  return a.cpu_percent > b.cpu_percent;
               });
 
     int row = 1;
