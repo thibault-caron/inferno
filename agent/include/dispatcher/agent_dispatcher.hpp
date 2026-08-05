@@ -32,6 +32,7 @@ class AgentDispatcher : public IAgentDispatcher {
 
   void send(AgentSession& session, std::uint16_t id, ResponseStatus status,
             const std::vector<std::uint8_t>& data,
+            CommandType cmdType = CommandType::OS_INFO,
             MessageType type = MessageType::RESPONSE);
   void onCommand(AgentSession& session,
                  const std::vector<std::uint8_t>& payload);
@@ -45,12 +46,12 @@ class AgentDispatcher : public IAgentDispatcher {
   void processesList(AgentSession& session, const CommandPayload& command);
   void shellCommand(AgentSession& session, const CommandPayload& command);
   void sendResponseChunked(AgentSession& session, std::uint16_t id,
-                           ResponseStatus status,
+                           ResponseStatus status, CommandType cmdType,
                            const std::vector<std::uint8_t>& data);
   std::vector<std::uint8_t> createResponseChunk(
-      std::uint16_t id, ResponseStatus status, std::size_t chunkIndex,
-      std::size_t totalChunks, std::size_t start, std::size_t end,
-      const std::vector<std::uint8_t>& data);
+      std::uint16_t id, ResponseStatus status, CommandType cmdType,
+      std::size_t chunkIndex, std::size_t totalChunks, std::size_t start,
+      std::size_t end, const std::vector<std::uint8_t>& data);
 };
 
 #endif

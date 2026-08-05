@@ -146,9 +146,11 @@ Note: The dashboard does not generate the command `id`. It leaves it at `0`; the
 
 Sent by agent after executing a COMMAND. Supports chunking for large outputs.
 
+
 ```
 uint32_t id
 uint8_t  status
+uint8_t  type
 uint8_t  total_chunks
 uint8_t  chunk_index
 uint16_t data_len
@@ -159,6 +161,7 @@ uint8_t  data[data_len]
 struct ResponsePayload {
     uint32_t id;            // matches the command id this responds to
     uint8_t  status;        // 0=OK, 1=ERROR
+    uint8_t type;           // CommandType 
     uint8_t  total_chunks;  // total number of chunks for this response
     uint8_t  chunk_index;   // 0-based index of this chunk
     string  data;

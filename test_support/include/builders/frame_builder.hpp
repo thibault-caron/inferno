@@ -98,13 +98,14 @@ inline std::vector<std::uint8_t> makeRawOsInfoPayload(
   return ProtocolSerializer::serializeOsInfoPayload(info);
 }
 
-inline ResponsePayload makeResponsePayload(std::uint32_t id = 0,
-                                           const std::string& data = "",
-                                           std::uint8_t totalChunks = 1,
-                                           std::uint8_t chunkIndex = 0) {
+inline ResponsePayload makeResponsePayload(
+    std::uint32_t id = 0, CommandType type = CommandType::OS_INFO,
+    const std::string& data = "", std::uint8_t totalChunks = 1,
+    std::uint8_t chunkIndex = 0) {
   ResponsePayload p;
   p.id = id;
   p.status = ResponseStatus::OK;
+  p.type = type;
   p.total_chunks = totalChunks;
   p.chunk_index = chunkIndex;
   //   p.data = data;
@@ -114,22 +115,23 @@ inline ResponsePayload makeResponsePayload(std::uint32_t id = 0,
   return p;
 }
 
-inline std::vector<std::uint8_t> makeRawResponsePayload(
-    std::uint32_t id = 0, const std::vector<std::uint8_t>& dataBytes = {}) {
-  std::vector<std::uint8_t> out(RESPONSE_FIXED_BYTES + dataBytes.size());
-  std::size_t offset{0};
-  ConvertEndian::writeU32BE(out, offset, id);
-  out[offset] = static_cast<std::uint8_t>(ResponseStatus::OK);
-  offset++;
-  out[offset] = 1;
-  offset++;
-  out[offset] = 0;
-  offset++;
-  ConvertEndian::writeU16BE(out, offset, dataBytes.size());
-  std::copy(dataBytes.begin(), dataBytes.end(),
-            out.begin() + RESPONSE_FIXED_BYTES);
-  return out;
-}
+// inline std::vector<std::uint8_t> makeRawResponsePayload(
+//     std::uint32_t id = 0, const std::vector<std::uint8_t>& dataBytes = {}) {
+//   std::vector<std::uint8_t> out(RESPONSE_FIXED_BYTES + dataBytes.size());
+//   std::size_t offset{0};
+//   ConvertEndian::writeU32BE(out, offset, id);
+//   out[offset] = static_cast<std::uint8_t>(ResponseStatus::OK);
+//   offset++;
+//   out[offset] = static_cast<std::uint8_t>(CommandType::OS_INFO);
+//   out[offset] = 1;
+//   offset++;
+//   out[offset] = 0;
+//   offset++;
+//   ConvertEndian::writeU16BE(out, offset, dataBytes.size());
+//   std::copy(dataBytes.begin(), dataBytes.end(),
+//             out.begin() + RESPONSE_FIXED_BYTES);
+//   return out;
+// }
 
 inline std::vector<std::uint8_t> makeRawCommandPayload(
     std::uint32_t id, std::uint8_t rawType, std::uint16_t declaredLen,

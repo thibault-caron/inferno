@@ -417,6 +417,7 @@ TEST_F(ServerDispatcherTest, should_forward_agent_response_to_dashboard) {
   // Act 2: Agent sends RESPONSE back (with same command ID)
   ResponsePayload response;
   response.id = cmdId;
+  response.type = CommandType::OS_INFO;
   response.status = ResponseStatus::OK;  // OK
   response.total_chunks = 1;
   response.chunk_index = 0;

@@ -40,7 +40,7 @@ TEST_F(AgentDispatcherTest,
       42, static_cast<std::uint8_t>(CommandType::OS_INFO), {});
 
   const ResponsePayload expected = {
-      42, ResponseStatus::OK, 1, 0,
+      42, ResponseStatus::OK, CommandType::OS_INFO, 1, 0,
       ProtocolSerializer::serializeOsInfoPayload(OsInfoBuilder::create())};
 
   //------- Act
@@ -98,7 +98,7 @@ TEST_F(AgentDispatcherTest, should_get_process_list_when_requested) {
       ProcessBuilder::createProcessInfoList();
 
   const ResponsePayload expected = {
-      1, ResponseStatus::OK, 1, 0,
+      1, ResponseStatus::OK, CommandType::RUNNING_PROCESSES, 1, 0,
       ProtocolSerializer::serializeProcessInfoList(expectedProcesses)};
 
   //------- Act
@@ -193,7 +193,7 @@ TEST_F(AgentDispatcherTest, should_execute_shell_command_when_requested) {
       {command.begin(), command.end()});
 
   const ResponsePayload expected =
-      FrameBuilder::makeResponsePayload(1, "hello\n");
+      FrameBuilder::makeResponsePayload(1, CommandType::SHELL, "hello\n");
 
   //------- Act
   dispatcher.handleFrame(

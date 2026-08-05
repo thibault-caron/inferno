@@ -59,6 +59,8 @@ std::vector<std::uint8_t> serializeResponsePayload(
 
   payloadInByte[offset] = static_cast<std::uint8_t>(payload.status);
   offset++;
+  payloadInByte[offset] = static_cast<std::uint8_t>(payload.type);
+  offset++;
   payloadInByte[offset] = payload.total_chunks;
   offset++;
   payloadInByte[offset] = payload.chunk_index;

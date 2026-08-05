@@ -33,7 +33,8 @@ void AgentDispatcher::startMetrics(AgentSession& session,
   Logger::info("agent dispatcher", "received COMMAND START_METRICS id=" +
                                        std::to_string(command.id));
   metricsController_->start(session);
-  return send(session, command.id, ResponseStatus::OK, {});
+  return send(session, command.id, ResponseStatus::OK, {},
+              CommandType::START_METRICS);
 }
 
 void AgentDispatcher::stopMetrics(AgentSession& session,
@@ -41,7 +42,8 @@ void AgentDispatcher::stopMetrics(AgentSession& session,
   Logger::info("agent dispatcher", "received COMMAND STOP_METRICS id=" +
                                        std::to_string(command.id));
   metricsController_->stop();
-  return send(session, command.id, ResponseStatus::OK, {});
+  return send(session, command.id, ResponseStatus::OK, {},
+              CommandType::STOP_METRICS);
 }
 
 void AgentDispatcher::osInfo(AgentSession& session,
@@ -55,7 +57,8 @@ void AgentDispatcher::osInfo(AgentSession& session,
   const std::vector<std::uint8_t> OsInfoPayload =
       ProtocolSerializer::serializeOsInfoPayload(payload);
 
-  send(session, command.id, ResponseStatus::OK, OsInfoPayload);
+  send(session, command.id, ResponseStatus::OK, OsInfoPayload,
+       CommandType::OS_INFO);
 }
 
 void AgentDispatcher::processesList(AgentSession& session,
@@ -68,7 +71,8 @@ void AgentDispatcher::processesList(AgentSession& session,
   const std::vector<std::uint8_t> processBytes =
       ProtocolSerializer::serializeProcessInfoList(processes);
 
-  return send(session, command.id, ResponseStatus::OK, processBytes);
+  return send(session, command.id, ResponseStatus::OK, processBytes,
+              CommandType::RUNNING_PROCESSES);
 }
 
 void AgentDispatcher::shellCommand(AgentSession& session,
@@ -80,7 +84,7 @@ void AgentDispatcher::shellCommand(AgentSession& session,
   const std::string output = monitor_.executeShell(command.data);
 
   return send(session, command.id, ResponseStatus::OK,
-              {output.begin(), output.end()});
+              {output.begin(), output.end()}, CommandType::SHELL);
 }
 
 void AgentDispatcher::onError(const std::vector<std::uint8_t>& payload) {
@@ -156,7 +160,7 @@ void AgentDispatcher::sendRegister(AgentSession& session) {
   Logger::info("agent dispatcher", what.str());
   send(session, command.id, ResponseStatus::OK,
        ProtocolSerializer::serializeOsInfoPayload(session.getAgentInfo()),
-       MessageType::REGISTER);
+       CommandType::OS_INFO, MessageType::REGISTER);
   // HERE !
   // send(session, command.id, ResponseStatus::OK,
   //      ProtocolSerializer::serializeOsInfoPayload(session.getAgentInfo()),
@@ -168,13 +172,15 @@ void AgentDispatcher::setMetricsController(
   metricsController_ = controller;
 }
 
+// GROS FDP
+
 void AgentDispatcher::send(AgentSession& session, std::uint16_t id,
                            ResponseStatus status,
                            const std::vector<std::uint8_t>& data,
-                           MessageType type) {
+                           CommandType cmdType, MessageType type) {
   switch (type) {
     case MessageType::RESPONSE: {
-      sendResponseChunked(session, id, status, data);
+      sendResponseChunked(session, id, status, cmdType, data);
       return;
     }
     case MessageType::REGISTER: {
@@ -200,7 +206,7 @@ void AgentDispatcher::send(AgentSession& session, std::uint16_t id,
 
 void AgentDispatcher::sendResponseChunked(
     AgentSession& session, std::uint16_t id, ResponseStatus status,
-    const std::vector<std::uint8_t>& data) {
+    CommandType cmdType, const std::vector<std::uint8_t>& data) {
   const std::size_t maxChunkSize =
       KMAX_U16_VALUE - RESPONSE_FIXED_BYTES - LPTF_HEADER_SIZE;
 
@@ -218,7 +224,7 @@ void AgentDispatcher::sendResponseChunked(
     std::size_t end = std::min(start + maxChunkSize, data.size());
 
     std::vector<uint8_t> responsePayload = createResponseChunk(
-        id, status, chunkIdx, totalChunks, start, end, data);
+        id, status, cmdType, chunkIdx, totalChunks, start, end, data);
 
     Frame frame = {
         ProtocolHelper::createHeader(MessageType::RESPONSE, responsePayload),
@@ -229,12 +235,13 @@ void AgentDispatcher::sendResponseChunked(
 }
 
 std::vector<std::uint8_t> AgentDispatcher::createResponseChunk(
-    std::uint16_t id, ResponseStatus status, std::size_t chunkIndex,
-    std::size_t totalChunks, std::size_t start, std::size_t end,
-    const std::vector<std::uint8_t>& data) {
+    std::uint16_t id, ResponseStatus status, CommandType cmdType,
+    std::size_t chunkIndex, std::size_t totalChunks, std::size_t start,
+    std::size_t end, const std::vector<std::uint8_t>& data) {
   ResponsePayload response;
   response.id = id;
   response.status = status;
+  response.type = cmdType;
   response.total_chunks = static_cast<std::uint8_t>(totalChunks);
   response.chunk_index = static_cast<std::uint8_t>(chunkIndex);
   response.data = {data.begin() + start, data.begin() + end};

@@ -15,6 +15,7 @@
 #include "fixtures/ports.hpp"
 #include "socket/socket_factory.hpp"
 #include "stubs/test_frame_transport.hpp"
+#include "codec/protocol_serializer.hpp"
 
 // ── Unit tests (no network) ───────────────────────────────────
 
@@ -148,7 +149,10 @@ TEST(TcpServerIntegration,
   // Send RESPONSE using the shared helper
   const Frame responseFrame = FrameBuilder::makeFrame(
       MessageType::RESPONSE,
-      FrameBuilder::makeRawResponsePayload(7, Common::bytesFromString("pong")));
+      ProtocolSerializer::serializeResponsePayload(
+          FrameBuilder::makeResponsePayload(7, CommandType::OS_INFO,
+                                            "pong")));
+  // FrameBuilder::makeRawResponsePayload(7, Common::bytesFromString("pong")));
   ASSERT_NO_THROW(serverSession.sendFrame(responseFrame));
 
   agentThread.join();

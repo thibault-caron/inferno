@@ -97,6 +97,9 @@ ResponsePayload parseResponsePayload(const std::vector<std::uint8_t>& input) {
   payload.status =
       ProtocolHelper::EnumConversion::toResponseStatus(input[offset]);
   offset++;
+  payload.type =
+      ProtocolHelper::EnumConversion::toCommandType(input[offset]);
+  offset++;
   payload.total_chunks = input[offset];
   offset++;
   payload.chunk_index = input[offset];

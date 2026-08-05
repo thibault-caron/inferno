@@ -4,22 +4,17 @@ std::string ResponseRepository::save(const ResponsePayload& response) {
   pqxx::params params;
   params.append(response.id);
   params.append(static_cast<int>(response.status));
+  params.append(static_cast<int>(response.type));
   params.append(static_cast<int>(response.total_chunks));
   params.append(static_cast<int>(response.chunk_index));
-  // params.append(pqxx::binarystring(response.data.data(),
-  // response.data.size()));
-  // using data.size() is deprecated, try this
-  // params.append(pqxx::binarystring(
-  //     reinterpret_cast<const std::byte*>(response.data.data()),
-  //     response.data.size()));
   params.append(
       pqxx::bytes_view(reinterpret_cast<const std::byte*>(response.data.data()),
                        response.data.size()));
 
   pqxx::result result = db_.executeParams(
       "INSERT INTO responses "
-      "  (command_id, status, total_chunks, chunk_index, chunk_data) "
-      "VALUES ($1, $2, $3, $4, $5) RETURNING received_at",
+      "  (command_id, status, command_type, total_chunks, chunk_index, chunk_data) "
+      "VALUES ($1, $2, $3, $4, $5, $6) RETURNING received_at",
       params);
   return result[0][0].as<std::string>();
 }

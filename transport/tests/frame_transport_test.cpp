@@ -7,7 +7,7 @@
 #include "stubs/spy_socket.hpp"
 #include "stubs/test_frame_transport.hpp"
 
-
+#include "codec/protocol_serializer.hpp"
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -230,8 +230,9 @@ TEST(FrameTransportBuffer,
   const std::vector<std::uint8_t> payload1 =
       FrameBuilder::makeRawOsInfoPayload();
   const std::vector<std::uint8_t> payload2 =
-      FrameBuilder::makeRawResponsePayload(0,
-                                           Common::bytesFromString("result"));
+    ProtocolSerializer::serializeResponsePayload(FrameBuilder::makeResponsePayload(0, CommandType::OS_INFO, "result"));
+    //   FrameBuilder::makeRawResponsePayload(0,
+    //                                        Common::bytesFromString("result"));
 
   agentSession.appendToBuffer(
       FrameBuilder::makeRawFrame(MessageType::REGISTER, payload1));
