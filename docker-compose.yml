@@ -1,0 +1,207 @@
+services:
+  # ============================================
+  # TimescaleDB Database
+  # ============================================
+  inferno-db:
+    profiles: [db, server]
+    # image: postgres:18.3-bookworm
+    image: timescale/timescaledb:2.28.3-pg17
+    container_name: inferno-db
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_PORT: ${DB_PORT}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - type: volume
+        source: inferno-data
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: ./init.sql
+        target: /docker-entrypoint-initdb.d/init.sql
+        read_only: true
+      - type: bind
+        source: ./queries.sql
+        target: /queries.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # C++ transport library (Development)
+  # ============================================
+  transport:
+    profiles: [agent, server, dashboard]
+    attach: true
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    # container_name: inferno-shared
+    volumes:
+      - type: bind
+        source: ./transport
+        target: /app/transport
+      - type: bind
+        source: ./inferno.sh
+        target: /app/inferno.sh
+      - type: volume
+        source: transport-build
+        target: /app/transport/build
+      - type: bind
+        source: ./certs
+        target: /app/certs
+      - type: bind
+        source: ./test_support
+        target: /app/test_support
+    command: ["bash", "./inferno.sh", "test", "transport"]
+    # command: ["bash"]
+
+  # ============================================
+  # C++ Server (Development / Builder)
+  # ============================================
+  server-builder:
+    profiles: [server]
+    attach: true
+    depends_on:
+      #   - inferno-db
+      transport:
+        condition: service_completed_successfully
+      inferno-db:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    # container_name: inferno-server
+    volumes:
+      - type: bind
+        source: ./server
+        target: /app/server
+      - type: bind
+        source: ./transport
+        target: /app/transport
+      - type: bind
+        source: ./inferno.sh
+        target: /app/inferno.sh
+      - type: volume
+        source: transport-build
+        target: /app/transport/build
+      - type: volume
+        source: server-build
+        target: /app/server/build
+      - type: bind
+        source: ./certs
+        target: /app/certs
+      - type: bind
+        source: ./test_support
+        target: /app/test_support
+    command: ["bash", "./inferno.sh", "test", "server"]
+
+  # ============================================
+  # C++ Server (Runtime/Deployment)
+  # ============================================
+  server:
+    profiles: [server]
+    depends_on:
+      server-builder:
+        condition: service_completed_successfully
+      inferno-db:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      DB_HOST: inferno-db
+      DB_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT}
+      TLS: ${TLS}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      - type: volume
+        source: server-build
+        target: /app/server/build
+      - type: bind
+        source: ./certs
+        target: /app/certs
+    command: ["./server/build/bin/server"]
+
+  # ============================================
+  # C++ Agent (Development / Builder)
+  # ============================================
+  agent-builder:
+    attach: true
+    profiles: [agent]
+    depends_on:
+      transport:
+        condition: service_completed_successfully
+    environment:
+      # Server configuration
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_HOST: ${SERVER_HOST}
+      TLS: ${TLS}
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    volumes:
+      - type: bind
+        source: ./agent
+        target: /app/agent
+      - type: bind
+        source: ./transport
+        target: /app/transport
+      - type: bind
+        source: ./inferno.sh
+        target: /app/inferno.sh
+      - type: volume
+        source: transport-build
+        target: /app/transport/build
+      - type: volume
+        source: agent-build
+        target: /app/agent/build
+      - type: bind
+        source: ./certs
+        target: /app/certs
+      - type: bind
+        source: ./test_support
+        target: /app/test_support
+    command: ["bash", "./inferno.sh", "test", "agent"]
+    # command : ["bash"]
+
+  # ============================================
+  # C++ Agent (Runtime/Deployment)
+  # ============================================
+  agent:
+    profiles: [agent]
+    depends_on:
+      agent-builder:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      # Server configuration
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_HOST: ${SERVER_HOST}
+      TLS: ${TLS}
+    volumes:
+      - type: volume
+        source: agent-build
+        target: /app/agent/build
+      - type: bind
+        source: ./certs
+        target: /app/certs
+    command: ["./agent/build/bin/agent"]
+
+volumes:
+  inferno-data:
+  transport-build:
+  server-build:
+  agent-build:

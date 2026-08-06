@@ -52,3 +52,23 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# Build artifacts
+build/
+agent/build/
+server/build/
+shared/build/
+transport/build/
+dashboad/build/
+
+# Environment
+.env
+
+# Notes perso
+notes*.md
+notes*/
+build.log
+
+.vscode/
+
+queries.sql

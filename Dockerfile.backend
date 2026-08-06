@@ -1,0 +1,33 @@
+FROM fedora:43@sha256:762d73ba1c455232b0272c5d445a34f36c4b9f421cbc05ce8102552325b6a222 AS builder
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+    # Compiler & build
+    gcc-c++ \
+    cmake \
+    make \
+    ninja-build \
+    # Google Test
+    gtest-devel \
+    gmock-devel \
+    # Debug & analysis
+    gdb \
+    valgrind \
+    strace \
+    file \
+    # Quality of life
+    git \
+    openssl-devel \
+    && dnf clean all
+
+WORKDIR /app
+
+CMD ["bash"]
+
+
+# ── Stage 2 : runtime (uncomment when you have a binary to ship) ───────────
+# FROM debian:bookworm-20260406-slim AS runtime
+# WORKDIR /app
+# COPY --from=builder /app/build/agent . 
+# or # COPY --from=builder /app/build/server .
+# EXPOSE 4444
+# CMD ["./agent"] or CMD ["./server"]

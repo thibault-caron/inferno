@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>INFERNO</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">QWidget#centralwidget, QWidget#contentArea, QWidget#mainPanel {
+    background-color: #F4F6F5;
+}
+QListWidget, QListView {
+    background-color: #ffffff;
+    border: 1px solid #89B6A5;
+    border-radius: 6px;
+    padding: 4px;
+    color: #4C3B4D;
+    font-size: 13px;
+}
+QListWidget::item {
+    padding: 6px 8px;
+    border-radius: 4px;
+}
+QListWidget::item:selected {
+    background-color: #C9EDDC;
+    color: #4C3B4D;
+}
+QLineEdit {
+    background-color: #ffffff;
+    border: 1px solid #82968C;
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: #4C3B4D;
+    font-size: 13px;
+}
+QLineEdit:focus {
+    border: 1px solid #4C3B4D;
+}
+QPushButton {
+    background-color: #4C3B4D;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-weight: bold;
+    font-size: 13px;
+}
+QPushButton:hover {
+    background-color: #6A706E;
+}
+QPushButton:pressed {
+    background-color: #82968C;
+}
+QPushButton#osInfoButton, QPushButton#processListButton, QPushButton#presetDfButton, QPushButton#presetNetstatButton, QPushButton#presetTopButton {
+    background-color: #dde3e0;
+    color: #4C3B4D;
+    border: 1px solid #82968C;
+    font-weight: normal;
+}
+QPushButton#disconnectButton {
+    background-color: #ffffff;
+    color: #b23b3b;
+    border: 1px solid #d99a9a;
+}
+QPushButton#osInfoButton:hover, QPushButton#processListButton:hover, QPushButton#disconnectButton:hover, QPushButton#presetDfButton:hover, QPushButton#presetNetstatButton:hover, QPushButton#presetTopButton:hover {
+background-color: #eef1f0;
+}
+QPushButton#osInfoButton:pressed, QPushButton#processListButton:pressed, QPushButton#disconnectButton:pressed, QPushButton#presetDfButton:pressed, QPushButton#presetNetstatButton:pressed, QPushButton#presetTopButton:pressed {
+background-color: #dfe4e2;
+}
+QTextEdit {
+    background-color: #4C3B4D;
+    color: #C9EDDC;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+}QLabel#brandLabel {
+color: #4C3B4D;
+font-size: 20px;
+font-weight: bold;
+}
+QLabel#subtitleLabel {
+color: #82968C;
+font-size: 12px;
+}
+QLabel#agentsLabel {
+color: #6A706E;
+font-size: 11px;
+font-weight: bold;
+padding-top: 12px;
+}
+QLabel#executeLabel {
+color: #6A706E;
+font-size: 11px;
+font-weight: bold;
+padding-right: 8px;
+}
+QLabel#offlineLabel {
+color: #82968C;
+font-size: 11px;
+}QLabel#agentNameLabel {
+color: #4C3B4D;
+font-size: 18px;
+font-weight: bold;
+padding-right: 8px;
+}
+QLabel#osBadge, QLabel#ipBadge, QLabel#statusBadge {
+font-size: 12px;
+padding: 2px 8px;
+border-radius: 9px;
+}
+QLabel#osBadge {
+background-color: #d6ece1;
+color: #3f6b58;
+}
+QLabel#ipBadge {
+background-color: #e4e2ee;
+color: #52506b;
+}
+QLabel#statusBadge {
+background-color: #d6ece1;
+color: #3f6b58;
+}
+QLabel#statusBadge[streaming="false"] {
+background-color: #f5dcdb;
+color: #8c3b38;
+}
+QLabel#agentItemName {
+color: #4C3B4D;
+font-size: 13px;
+}
+QLabel#agentItemDetails {
+color: #82968C;
+font-size: 11px;
+}
+QLabel#agentStatusDot {
+color: #89B6A5;
+font-size: 14px;
+}
+QLabel#agentStatusDot[online="false"] {
+color: #C0504D;
+}QFrame#metricCard {
+background-color: #ffffff;
+border: 1px solid #e2e6e4;
+border-radius: 8px;
+}
+QLabel#metricTitle {
+color: #6A706E;
+font-size: 12px;
+}
+QLabel#metricValue {
+color: #2f2833;
+font-size: 26px;
+font-weight: 500;
+}
+QLabel#metricSubtitle {
+color: #9aa0a0;
+font-size: 11px;
+}
+QLabel#sectionTitle {
+color: #6A706E;
+font-size: 11px;
+font-weight: bold;
+padding-top: 8px;
+}
+QWidget#processGrid {
+background-color: #ffffff;
+border: 1px solid #e2e6e4;
+border-radius: 8px;
+}
+QLabel#processCell {
+color: #4C3B4D;
+font-size: 13px;
+font-weight: 700;
+}
+QLabel#processPid {
+color: #4C3B4D;
+font-size: 13px;
+font-weight: normal;
+}
+QLabel#processHeaderCell {
+color: #9aa0a0;
+font-size: 12px;
+}
+QLabel#processFooter {
+color: #9aa0a0;
+font-size: 12px;
+}
+QProgressBar#processBar {
+background-color: #e8ebe9;
+border: none;
+border-radius: 3px;
+}
+QProgressBar#processBar::chunk {
+background-color: #7fae94;
+border-radius: 3px;
+}
+QProgressBar#processBar[high="true"]::chunk {
+background-color: #e0b062;
+}
+QLabel#processStatus {
+color: #5a9b78;
+font-size: 13px;
+}
+QWidget#processSeparator {
+background-color: #eef0ef;
+}</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+    <widget class="QWidget" name="sidebar" native="true">
+          <layout class="QVBoxLayout" name="sidebarLayout">
+           <item>
+            <widget class="QLabel" name="brandLabel">
+             <property name="text">
+              <string>INFERNO</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="subtitleLabel">
+             <property name="text">
+              <string>admin</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="agentsLabel">
+             <property name="text">
+              <string>AGENTS (5)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="agentList"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="offlineLabel">
+             <property name="text">
+              <string>1 agent offline</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="mainPanel" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+              <layout class="QHBoxLayout" name="headerRow">
+               <item>
+                <widget class="QLabel" name="agentNameLabel">
+                 <property name="text">
+                  <string>agent2-srv</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="osBadge">
+                 <property name="text">
+                  <string>Linux · x64</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="ipBadge">
+                 <property name="text">
+                  <string>192.168.1.42</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="statusBadge">
+                 <property name="text">
+                  <string>● streaming</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="headerSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>180</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="osInfoButton">
+                 <property name="text">
+                  <string>OS info</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="processListButton">
+                 <property name="text">
+                  <string>Process list</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="disconnectButton">
+                 <property name="text">
+                  <string>Disconnect</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+       <item>
+        <layout class="QHBoxLayout" name="executeRow">
+        <item>
+                  <widget class="QLabel" name="executeLabel">
+                   <property name="text">
+                    <string>EXECUTE</string>
+                   </property>
+                  </widget>
+                 </item>
+         <item>
+
+              <widget class="QPushButton" name="presetDfButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>disk</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+                       <widget class="QPushButton" name="presetNetstatButton">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="text">
+                         <string>network</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="presetTopButton">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="text">
+                         <string>load</string>
+                        </property>
+                       </widget>
+                      </item>
+             <item>
+          <widget class="QLineEdit" name="commandEdit">
+           <property name="placeholderText">
+            <string>custom shell command...</string>
+           </property>
+          </widget>
+         </item>
+
+         <item>
+          <widget class="QPushButton" name="runButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Run</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+               <widget class="QScrollArea" name="contentScroll">
+                <property name="widgetResizable">
+                 <bool>true</bool>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <widget class="QWidget" name="contentArea">
+                 <layout class="QVBoxLayout" name="contentLayout">
+                  <item>
+                   <widget class="QTextEdit" name="outputView">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </widget>
+              </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>RightToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+
