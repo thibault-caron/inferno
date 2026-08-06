@@ -4,6 +4,7 @@
 #include <cctype>
 #include <fstream>
 #include <unordered_map>
+#include <iostream>
 
 namespace EnvHelper {
 
@@ -22,6 +23,9 @@ std::uint16_t resolvePort(const std::string& portName) {
     portStr = getFromCache(portName);  // Check .env file
   }
 
+  std::cout << "DEBUG: portName=" << portName << " portStr=" << portStr
+            << " SERVER_PORT=" << SERVER_PORT << '\n';
+
   if (portStr.empty()) {
     return SERVER_PORT;  // Default
   }
@@ -37,15 +41,6 @@ std::uint16_t resolvePort(const std::string& portName) {
   return SERVER_PORT;
 }
 
-std::string resolveServerHost() {
-  const char* hostEnv = std::getenv("SERVER_HOST");
-  if (hostEnv && hostEnv[0] != '\0') {
-    std::cout << "Resolved server host from environment: " << hostEnv << '\n';
-    return std::string(hostEnv);
-  }
-  return "server";
-}
-
 std::string resolveString(const std::string& variableName) {
   const char* envVariable = std::getenv(variableName.c_str());
   if (envVariable && envVariable[0] != '\0') {
@@ -58,6 +53,9 @@ std::string resolveString(const std::string& variableName) {
     std::cout << "Resolved " << variableName << " from .env file.\n";
     return cachedValue;
   }
+
+  if (variableName == "DASHBOARD_SERVER_HOST" || variableName == "SERVER_HOST")
+    return "localhost";
 
   return "";
 }
@@ -91,7 +89,7 @@ void loadEnvFile(const std::string& filePath) {
     std::ifstream file(path);
     if (!file.is_open()) {
       std::cout << ".env file not found at " << path << '\n';
-      cacheLoaded = true;
+      // cacheLoaded = true;
       // return;
       continue;
     }
@@ -117,9 +115,10 @@ void loadEnvFile(const std::string& filePath) {
 
     cacheLoaded = true;
   }
-  if (envCache.find("SERVER_HOST") == envCache.end()) {
-    envCache["SERVER_HOST"] = "server";  // Container default
-  }
+  // if (envCache.find("SERVER_HOST") == envCache.end()) {
+  //   // envCache["SERVER_HOST"] = "server";  // Container default
+  //   envCache["SERVER_HOST"] = "localhost";  // Container default
+  // }
   return;
 }
 

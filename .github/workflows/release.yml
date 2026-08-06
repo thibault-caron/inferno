@@ -128,7 +128,141 @@ jobs:
         with:
           name: agent-linux-appimage
           path: inferno-agent-linux-*.AppImage
+  build-dashboard-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Create .env file (for transport build only)
+        run: |
+          cat > .env << EOF
+          POSTGRES_PASSWORD=test_password
+          POSTGRES_USER=test_user
+          POSTGRES_DB=test_db
+          DB_PORT=5432
+          SERVER_PORT=8888
+          TLS=false
+          COMPOSE_PROFILES=agent
+          EOF
+
+      - name: Build and test transport library in Docker
+        run: |
+          docker compose run --rm transport
+          if [ $? -ne 0 ]; then
+            echo "Transport build failed!"
+            exit 1
+          fi
+
+      - name: Extract transport library to host
+        run: |
+          mkdir -p transport/build
+          docker run --rm \
+            -v inferno_transport-build:/build \
+            -v ${{ github.workspace }}/transport/build:/out \
+            alpine:latest \
+            sh -c 'cp -r /build/* /out/'
+
+      - name: Install Qt6 and build tools on host
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qt6-base-dev \
+            qt6-tools-dev \
+            qt6-websockets-dev \
+            cmake \
+            ninja-build \
+            libssl-dev
+
+      - name: Verify Qt installation
+        run: |
+          qmake6 --version
+          cmake --version
+
+      - name: Build dashboard
+        run: |
+          cd dashboard
+          mkdir -p build
+          cd build
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -j$(nproc)
+          ls -lh dashboard
+
+      - name: Verify binary
+        run: |
+          file dashboard/build/dashboard
+          ldd dashboard/build/dashboard | head -20
+
+      - name: Install linuxdeploy
+        run: |
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+
+      - name: Create AppImage
+        run: |
+          mkdir -p appdir/usr/bin
+          cp dashboard/build/dashboard appdir/usr/bin/inferno-dashboard
+          chmod +x appdir/usr/bin/inferno-dashboard
+
+          # Bundle CA certificate
+          mkdir -p appdir/usr/share/inferno
+          cp certs/ca.crt appdir/usr/share/inferno/ca.crt
+
+          # Create desktop entry
+          mkdir -p appdir/usr/share/applications
+          cat > appdir/usr/share/applications/inferno-dashboard.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Inferno Dashboard
+          Exec=inferno-dashboard
+          Icon=inferno-dashboard
+          Categories=System;Utility;
+          Terminal=false
+          Comment=Monitor remote systems with Inferno
+          EOF
+
+          # Create icon
+          mkdir -p appdir/usr/share/icons/hicolor/scalable/apps
+          cat > appdir/usr/share/icons/hicolor/scalable/apps/inferno-dashboard.svg << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg">
+            <rect width="64" height="64" fill="#0066cc" rx="8"/>
+            <circle cx="20" cy="20" r="3" fill="white"/>
+            <circle cx="32" cy="20" r="3" fill="white"/>
+            <circle cx="44" cy="20" r="3" fill="white"/>
+          </svg>
+          EOF
+
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir=appdir \
+            --output=appimage
+
+          if [ $? -ne 0 ]; then
+            echo "AppImage creation failed!"
+            exit 1
+          fi
+
+      - name: Rename artifact
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          APPIMAGE_FILE=$(ls *.AppImage 2>/dev/null | head -1)
+          
+          if [ -z "$APPIMAGE_FILE" ]; then
+            echo "ERROR: No AppImage found!"
+            ls -la
+            exit 1
+          fi
+          
+          mv "$APPIMAGE_FILE" "inferno-dashboard-linux-${VERSION}.AppImage"
+          chmod +x "inferno-dashboard-linux-${VERSION}.AppImage"
+          ls -lh inferno-dashboard-linux-*.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-linux-appimage
+          path: inferno-dashboard-linux-*.AppImage
   # build-agent-windows:
   #   runs-on: windows-latest
   #   steps:

@@ -10,7 +10,7 @@
 namespace EnvHelper {
 std::uint16_t resolvePort(const std::string& portName = "SERVER_PORT");
 std::string resolveString(const std::string& variableName);
-std::string resolveServerHost();
+// std::string resolveServerHost();
 
 bool resolveTlsEnabled();
 void loadEnvFile(const std::string& filePath = ".env");
