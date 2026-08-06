@@ -16,7 +16,6 @@ int main() {
   std::setvbuf(stdout, nullptr, _IONBF, 0);
   std::setvbuf(stderr, nullptr, _IONBF, 0);
 
-  // const std::string host = EnvHelper::resolveServerHost();
   const std::string host = EnvHelper::resolveString("SERVER_HOST");
   Logger::info("agent main", "SERVER_HOST = " + host);
 

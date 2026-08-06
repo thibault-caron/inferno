@@ -37,27 +37,30 @@ std::uint16_t resolvePort(const std::string& portName) {
   return SERVER_PORT;
 }
 
-std::string resolveServerHost() {
-  const char* hostEnv = std::getenv("SERVER_HOST");
-  if (hostEnv && hostEnv[0] != '\0') {
-    std::cout << "Resolved server host from environment: " << hostEnv << '\n';
-    return std::string(hostEnv);
-  }
-  return "server";
-}
+// std::string resolveServerHost() {
+//   const char* hostEnv = std::getenv("SERVER_HOST");
+//   if (hostEnv && hostEnv[0] != '\0') {
+//     std::cout << "Resolved server host from environment: " << hostEnv << '\n';
+//     return std::string(hostEnv);
+//   }
+//   return "server";
+// }
 
 std::string resolveString(const std::string& variableName) {
+
   const char* envVariable = std::getenv(variableName.c_str());
   if (envVariable && envVariable[0] != '\0') {
     std::cout << "Resolved " << variableName << " from environment.\n";
     return std::string(envVariable);
   }
-
+  
   std::string cachedValue = getFromCache(variableName);
   if (!cachedValue.empty()) {
     std::cout << "Resolved " << variableName << " from .env file.\n";
     return cachedValue;
   }
+  
+  if (variableName == "DASHBOARD_SERVER_HOST" || variableName == "SERVER_HOST") return "localhost";
 
   return "";
 }
