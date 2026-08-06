@@ -266,6 +266,8 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     needs: [build-agent-linux, build-dashboard-linux]
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
@@ -337,7 +339,7 @@ jobs:
           
           - [Full README](README.md)
           - [Architecture](README.md#architecture)
-          - [Binary Protocol]((_docs/project/lptf_binary_protocol.md))
+          - [Binary Protocol](_docs/project/lptf_binary_protocol.md))
           EOF
           
           # Replace version and date placeholders
@@ -346,7 +348,7 @@ jobs:
           cat RELEASE_NOTES.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: RELEASE_NOTES.md
           files: |
@@ -354,8 +356,6 @@ jobs:
             final-release/inferno-dashboard-linux-*.AppImage
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # build-agent-windows:
   #   runs-on: windows-latest
   #   steps:
