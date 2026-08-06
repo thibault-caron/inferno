@@ -3,6 +3,7 @@
 ![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
 
 ## 📋 Table of Contents
+[test](#dashboard-on-Windows)
 
 - [Communication protocol](./_docs/project/lptf_binary_protocol.md)
 - [Architecture](#architecture)
@@ -443,6 +444,32 @@ export LIBGL_ALWAYS_SOFTWARE=1
 ```
 
 > WSL has no GPU access, so Qt's hardware OpenGL rendering fails. This flag forces software rendering instead.
+
+---
+
+### Agent on Windows
+
+Prerequisites: Same as Dashboard. Ensure OpenSSL is installed (see [Install OpenSSL compatible with Qt MinGW](#install-openssl-compatible-with-qt-mingw)).
+
+**Build the agent:**
+
+From **PowerShell**:
+
+```powershell
+./agent/windows-build.bat
+```
+
+From **Git Bash**:
+
+```bash
+powershell.exe -NoProfile -Command "& '$(cygpath -w ./agent/windows-build.bat)'"
+```
+
+**Run the agent:**
+
+```bash
+./agent/build/bin/agent.exe
+```
 
 ---
 

@@ -263,6 +263,99 @@ jobs:
         with:
           name: dashboard-linux-appimage
           path: inferno-dashboard-linux-*.AppImage
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [build-agent-linux, build-dashboard-linux]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Organize artifacts
+        run: |
+          mkdir -p final-release
+          find release-artifacts -name "*.AppImage" -exec mv {} final-release/ \;
+          ls -lh final-release/
+
+      - name: Generate Release Notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          RELEASE_DATE=$(date -u '+%Y-%m-%d')
+          
+          cat > RELEASE_NOTES.md << 'EOF'
+          # Inferno $VERSION
+          
+          **Released:** $RELEASE_DATE
+          
+          ## 📦 Downloads
+          
+          Linux AppImages are ready to run — download and execute directly.
+          
+          - `inferno-agent-linux-$VERSION.AppImage` — Remote monitoring agent
+          - `inferno-dashboard-linux-$VERSION.AppImage` — Desktop monitoring interface
+          
+          ## 🚀 Linux QuickStart
+          
+          ```bash
+              # Download, then run directly
+              ./inferno-agent-linux-$VERSION.AppImage
+              ./inferno-dashboard-linux-$VERSION.AppImage
+          ```
+                    
+          ### Custom Configuration
+          
+          Override defaults via environment variables:
+                    
+          ```bash
+              SERVER_HOST=192.168.1.100 SERVER_PORT=9000 ./inferno-agent-linux-$VERSION.AppImage
+          ```
+                    
+          See [Configuration](README.md#setup) for all options.
+          
+          ## Windows
+          Build from source using `windows-build.bat` :
+          - see [Build Instructions for agent](README.md#agent-on-windows)
+          - see [Build Instructions for dashboard](README.md#dashboard-on-Windows)
+          
+          ## Server Setup
+          
+          Server and database (TimescaleDB) requires Docker. See [Quick Start](README.md#quick-start):
+                    
+          ```bash
+              git clone https://github.com/thibault-caron/inferno.git
+              cd inferno
+              cp .env.template .env
+              docker compose --profile server up
+          ```
+          
+          ## Documentation
+          
+          - [Full README](README.md)
+          - [Architecture](README.md#architecture)
+          - [Binary Protocol]((_docs/project/lptf_binary_protocol.md))
+          EOF
+          
+          # Replace version and date placeholders
+          sed -i "s|\$VERSION|$VERSION|g" RELEASE_NOTES.md
+          sed -i "s|\$RELEASE_DATE|$RELEASE_DATE|g" RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: RELEASE_NOTES.md
+          files: |
+            final-release/inferno-agent-linux-*.AppImage
+            final-release/inferno-dashboard-linux-*.AppImage
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # build-agent-windows:
   #   runs-on: windows-latest
   #   steps:
