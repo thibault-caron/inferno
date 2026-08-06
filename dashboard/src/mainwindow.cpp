@@ -200,9 +200,9 @@ void MainWindow::buildContentArea() {
   m_networkChart->setSeries(m_networkHistory.series());
   m_diskChart->setSeries(m_diskHistory.series());
 
-  m_memoryChart->setYMax(20.0);
+  m_memoryChart->setYMax(100.0);
 
-  m_networkChart->setYMax(50.0);
+  m_networkChart->setYMax(200.0);
   m_networkChart->setYUnit(" KB/s");
 
   m_diskChart->setYMax(10.0);
