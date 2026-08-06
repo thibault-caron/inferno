@@ -145,6 +145,7 @@ services:
     environment:
       # Server configuration
       SERVER_PORT: ${SERVER_PORT}
+      SERVER_HOST: ${SERVER_HOST}
       TLS: ${TLS}
     build:
       context: .
@@ -188,6 +189,7 @@ services:
     environment:
       # Server configuration
       SERVER_PORT: ${SERVER_PORT}
+      SERVER_HOST: ${SERVER_HOST}
       TLS: ${TLS}
     volumes:
       - type: volume

@@ -115,9 +115,10 @@ void loadEnvFile(const std::string& filePath) {
 
     cacheLoaded = true;
   }
-  if (envCache.find("SERVER_HOST") == envCache.end()) {
-    envCache["SERVER_HOST"] = "server";  // Container default
-  }
+  // if (envCache.find("SERVER_HOST") == envCache.end()) {
+  //   // envCache["SERVER_HOST"] = "server";  // Container default
+  //   envCache["SERVER_HOST"] = "localhost";  // Container default
+  // }
   return;
 }
 
