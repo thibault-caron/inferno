@@ -76,7 +76,7 @@ void LineChartWidget::paintEvent(QPaintEvent *event)
     double h = height();
 
     const double pad = 30.0;
-    const double leftPad = 60.0;
+    const double leftPad = 72.0;
     double plotLeft = leftPad;
     double plotTop = pad + 42;
     double plotWidth = w - leftPad - pad;
