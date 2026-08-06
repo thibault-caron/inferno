@@ -339,7 +339,7 @@ jobs:
           
           - [Full README](README.md)
           - [Architecture](README.md#architecture)
-          - [Binary Protocol](_docs/project/lptf_binary_protocol.md))
+          - [Binary Protocol](_docs/project/lptf_binary_protocol.md)
           EOF
           
           # Replace version and date placeholders
