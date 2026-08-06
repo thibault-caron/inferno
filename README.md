@@ -3,7 +3,6 @@
 ![Dashboard screenshot](./_docs/dashboard/dashboard_screenshot.png)
 
 ## 📋 Table of Contents
-[test](#dashboard-on-Windows)
 
 - [Communication protocol](./_docs/project/lptf_binary_protocol.md)
 - [Architecture](#architecture)
